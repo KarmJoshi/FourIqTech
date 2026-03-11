@@ -1,469 +1,362 @@
-# ============================================
-# FOURIQTECH SEO AUTOMATION CONFIG
-# ============================================
-
 company:
-  name: "FouriqTech"
-  website: "https://fouriqtech.com"
-  tagline: "Next-Gen Digital Services"
-  
+  name: FouriqTech
+  website: https://fouriqtech.com
+  tagline: Next-Gen Digital Services
   services:
     primary:
-      - "Web Design & Development"
-      - "Digital Marketing"
-      - "SEO Services"
-      - "Custom Web Applications"
-    
+      - Web Design & Development
+      - Digital Marketing
+      - SEO Services
+      - Custom Web Applications
     secondary:
-      - "E-commerce Development"
-      - "Mobile-Responsive Design"
-      - "WordPress Development"
-      - "Social Media Marketing"
-      - "Google Ads Management"
-      - "Content Marketing"
-
+      - E-commerce Development
+      - Mobile-Responsive Design
+      - WordPress Development
+      - Social Media Marketing
+      - Google Ads Management
+      - Content Marketing
   location:
-    primary: "India, India"
+    primary: India, India
     service_areas:
-      - "India"
-      - "India"
-      - "Global (Remote)"
-    
+      - India
+      - India
+      - Global (Remote)
   target_clients:
-    - "Global Startups and Enterprises"
-    - "Startups across India"
-    - "E-commerce stores"
-    - "Service-based businesses"
-    - "Local businesses going digital"
-
+    - Global Startups and Enterprises
+    - Startups across India
+    - E-commerce stores
+    - Service-based businesses
+    - Local businesses going digital
   cms:
-    type: "detect_automatically"  # Antigravity will check
-    # If WordPress, add these later:
-    # admin_url: "https://fouriqtech.com/wp-admin"
-    # username: "admin"
-    # password: "your_password"
-
-# ============================================
-# SEO GOALS
-# ============================================
+    type: detect_automatically
 goals:
-  primary: "Generate 20-30 qualified leads per month within 6-12 months"
-  
+  primary: Generate 20-30 qualified leads per month within 6-12 months
   milestones:
-    month_3: "First 3-5 leads from organic search"
-    month_6: "10-15 leads per month"
-    month_9: "15-25 leads per month"
-    month_12: "25-40 leads per month"
-  
+    month_3: First 3-5 leads from organic search
+    month_6: 10-15 leads per month
+    month_9: 15-25 leads per month
+    month_12: 25-40 leads per month
   target_rankings:
-    - "Page 1 for 15+ local keywords by month 6"
-    - "Top 3 for 5+ long-tail keywords by month 9"
-    - "Featured snippets for 2-3 queries by month 12"
-
-# ============================================
-# TARGET KEYWORDS (20 Primary Keywords)
-# ============================================
+    - Page 1 for 15+ local keywords by month 6
+    - Top 3 for 5+ long-tail keywords by month 9
+    - Featured snippets for 2-3 queries by month 12
 keywords:
-  
-  # LOCAL WEB DESIGN (High Priority)
   tier_1_local:
-    - "web design company in India"
-    - "website development India"
-    - "web designer in Global"
-    - "best web development company India"
-    - "custom website design India"
-  
-  # LOCAL DIGITAL MARKETING (High Priority)
+    - web design company in India
+    - website development India
+    - web designer in Global
+    - best web development company India
+    - custom website design India
   tier_2_marketing:
-    - "digital marketing agency India"
-    - "SEO services India"
-    - "social media marketing India"
-    - "Google Ads agency India"
-    - "digital marketing company India"
-  
-  # LONG-TAIL (Easy Wins)
+    - digital marketing agency India
+    - SEO services India
+    - social media marketing India
+    - Google Ads agency India
+    - digital marketing company India
   tier_3_longtail:
-    - "affordable web design for small business India"
-    - "freelance web developer India prices"
-    - "WordPress development services India"
-    - "e-commerce website development India cost"
-    - "responsive website design company near me"
-  
-  # SERVICE-SPECIFIC
+    - affordable web design for small business India
+    - freelance web developer India prices
+    - WordPress development services India
+    - e-commerce website development India cost
+    - responsive website design company near me
   tier_4_services:
-    - "custom web application development India"
-    - "startup website design packages"
-    - "business website design India"
-    - "professional web design services India"
-    - "complete digital marketing services India"
-
-# ============================================
-# CONTENT STRATEGY
-# ============================================
+    - custom web application development India
+    - startup website design packages
+    - business website design India
+    - professional web design services India
+    - complete digital marketing services India
+  auto_discovered:
+    - enterprise web portal development India
+    - strategic digital transformation consulting for global startups
+    - custom e-commerce platform development for international brands
+    - B2B SaaS product website design agency India
+    - AI-powered website development for enterprise solutions India
 content:
-  
-  blog_frequency: "3 posts per week"  # 12 posts/month
-  
+  blog_frequency: 3 posts per week
   content_types:
-    - type: "How-to Guides"
-      frequency: "2 per month"
+    - type: How-to Guides
+      frequency: 2 per month
       examples:
-        - "How to Choose the Right Web Design Company in India"
-        - "10 Essential Features Every Business Website Needs in 2026"
-        - "Step-by-Step Guide to Launching Your E-commerce Store"
-    
-    - type: "Case Studies"
-      frequency: "1 per month"
+        - How to Choose the Right Web Design Company in India
+        - 10 Essential Features Every Business Website Needs in 2026
+        - Step-by-Step Guide to Launching Your E-commerce Store
+    - type: Case Studies
+      frequency: 1 per month
       examples:
-        - "How We Increased Online Sales by 300% for [Client Name]"
-        - "Startup Success: Building a Complete Digital Presence in 60 Days"
-    
-    - type: "Industry Insights"
-      frequency: "2 per month"
+        - How We Increased Online Sales by 300% for [Client Name]
+        - 'Startup Success: Building a Complete Digital Presence in 60 Days'
+    - type: Industry Insights
+      frequency: 2 per month
       examples:
-        - "Web Design Trends in India 2026"
-        - "Why India Businesses Need Mobile-First Websites"
-        - "Digital Marketing ROI for Small Businesses"
-    
-    - type: "Comparison Posts"
-      frequency: "1 per month"
+        - Web Design Trends in India 2026
+        - Why India Businesses Need Mobile-First Websites
+        - Digital Marketing ROI for Small Businesses
+    - type: Comparison Posts
+      frequency: 1 per month
       examples:
-        - "WordPress vs Custom Development: Which is Right for You?"
-        - "In-House Team vs Web Design Agency: Cost Comparison"
-    
-    - type: "Local Focus"
-      frequency: "2 per month"
+        - 'WordPress vs Custom Development: Which is Right for You?'
+        - 'In-House Team vs Web Design Agency: Cost Comparison'
+    - type: Local Focus
+      frequency: 2 per month
       examples:
-        - "Top 10 Successful Websites from India-Based Companies"
-        - "How India SMEs Can Compete Online with Larger Brands"
-        - "Digital Marketing for Textile Businesses in India"
-  
+        - Top 10 Successful Websites from India-Based Companies
+        - How India SMEs Can Compete Online with Larger Brands
+        - Digital Marketing for Textile Businesses in India
   content_specs:
     min_word_count: 1500
     max_word_count: 2500
     include_images: true
     images_per_post: 3-5
     include_infographics: true
-    video_content: "Optional - if easy to create"
-    
+    video_content: Optional - if easy to create
   topic_clusters:
     cluster_1:
-      pillar: "Complete Guide to Web Design in India"
+      pillar: Complete Guide to Web Design in India
       supporting:
-        - "Web Design Cost Breakdown in India"
-        - "Best Web Design Tools for Agencies"
-        - "How to Brief a Web Designer"
-        - "Web Design Timeline Explained"
-    
+        - Web Design Cost Breakdown in India
+        - Best Web Design Tools for Agencies
+        - How to Brief a Web Designer
+        - Web Design Timeline Explained
     cluster_2:
-      pillar: "Digital Marketing Masterclass for India Businesses"
+      pillar: Digital Marketing Masterclass for India Businesses
       supporting:
-        - "SEO Basics for Local Business"
-        - "Social Media Strategy for SMEs"
-        - "Google Ads for Beginners"
-        - "Content Marketing on a Budget"
-    
+        - SEO Basics for Local Business
+        - Social Media Strategy for SMEs
+        - Google Ads for Beginners
+        - Content Marketing on a Budget
     cluster_3:
-      pillar: "E-commerce Success Guide"
+      pillar: E-commerce Success Guide
       supporting:
-        - "Choosing E-commerce Platform"
-        - "Payment Gateway Setup India"
-        - "E-commerce SEO Checklist"
-        - "Shipping Solutions for Online Stores"
-
-# ============================================
-# ON-PAGE SEO OPTIMIZATION
-# ============================================
+        - Choosing E-commerce Platform
+        - Payment Gateway Setup India
+        - E-commerce SEO Checklist
+        - Shipping Solutions for Online Stores
 onpage_seo:
-  
   homepage:
-    title: "FouriqTech - Web Design & Digital Marketing Agency in India"
-    meta_description: "Leading web design and digital marketing agency in India. Custom websites, SEO, social media marketing. Affordable packages for startups & SMEs. Get a free quote!"
-    h1: "Next-Gen Web Design & Digital Marketing Services in India"
-    
+    title: FouriqTech - Web Design & Digital Marketing Agency in India
+    meta_description: >-
+      Leading web design and digital marketing agency in India. Custom websites,
+      SEO, social media marketing. Affordable packages for startups & SMEs. Get
+      a free quote!
+    h1: Next-Gen Web Design & Digital Marketing Services in India
   service_pages:
-    - page: "Web Design Services"
-      url: "/web-design-services"
-      title: "Professional Web Design Services India | FouriqTech"
-      meta: "Custom, responsive web design services in India. Mobile-first designs that convert. Portfolio of 50+ successful projects. Free consultation."
-    
-    - page: "Digital Marketing"
-      url: "/digital-marketing-services"
-      title: "Digital Marketing Agency India | SEO, Social Media & Ads"
-      meta: "Complete digital marketing services in India - SEO, Google Ads, Social Media Marketing. Proven results for 30+ businesses. Free strategy call."
-    
-    - page: "E-commerce Development"
-      url: "/ecommerce-development"
-      title: "E-commerce Website Development India | Online Store Solutions"
-      meta: "Launch your online store with expert e-commerce development. Payment gateway integration, inventory management. Starting from ₹25,000."
-  
+    - page: Web Design Services
+      url: /web-design-services
+      title: Professional Web Design Services India | FouriqTech
+      meta: >-
+        Custom, responsive web design services in India. Mobile-first designs
+        that convert. Portfolio of 50+ successful projects. Free consultation.
+    - page: Digital Marketing
+      url: /digital-marketing-services
+      title: Digital Marketing Agency India | SEO, Social Media & Ads
+      meta: >-
+        Complete digital marketing services in India - SEO, Google Ads, Social
+        Media Marketing. Proven results for 30+ businesses. Free strategy call.
+    - page: E-commerce Development
+      url: /ecommerce-development
+      title: E-commerce Website Development India | Online Store Solutions
+      meta: >-
+        Launch your online store with expert e-commerce development. Payment
+        gateway integration, inventory management. Starting from ₹25,000.
   internal_linking:
-    strategy: "Topic cluster hub-and-spoke model"
-    links_per_post: "8-12 internal links"
-    anchor_text: "Natural, keyword-rich"
-  
+    strategy: Topic cluster hub-and-spoke model
+    links_per_post: 8-12 internal links
+    anchor_text: Natural, keyword-rich
   schema_markup:
-    - type: "LocalBusiness"
-      priority: "High"
-    - type: "Service"
-      priority: "High"
-    - type: "Organization"
-      priority: "Medium"
-    - type: "Article" 
-      priority: "Medium"
-    - type: "FAQPage"
-      priority: "Medium"
-
-# ============================================
-# TECHNICAL SEO
-# ============================================
+    - type: LocalBusiness
+      priority: High
+    - type: Service
+      priority: High
+    - type: Organization
+      priority: Medium
+    - type: Article
+      priority: Medium
+    - type: FAQPage
+      priority: Medium
 technical_seo:
-  
   core_web_vitals:
-    target_lcp: "< 2.5 seconds"
-    target_fid: "< 100 milliseconds"
-    target_cls: "< 0.1"
-  
+    target_lcp: < 2.5 seconds
+    target_fid: < 100 milliseconds
+    target_cls: < 0.1
   mobile_optimization:
     responsive_design: true
     mobile_first_indexing: true
-    amp_pages: "Optional"
-  
+    amp_pages: Optional
   site_speed:
-    image_optimization: "Compress all images to WebP"
+    image_optimization: Compress all images to WebP
     lazy_loading: true
     minify_css_js: true
-    caching: "Enable browser caching"
-    cdn: "Cloudflare or similar"
-  
+    caching: Enable browser caching
+    cdn: Cloudflare or similar
   crawlability:
-    xml_sitemap: "Auto-generate and submit"
-    robots_txt: "Optimize for crawlers"
-    fix_broken_links: "Weekly scan and fix"
-    canonical_tags: "Add to all pages"
-
-# ============================================
-# LOCAL SEO (CRITICAL FOR GUJARAT)
-# ============================================
+    xml_sitemap: Auto-generate and submit
+    robots_txt: Optimize for crawlers
+    fix_broken_links: Weekly scan and fix
+    canonical_tags: Add to all pages
 local_seo:
-  
   google_business_profile:
     setup: true
     optimization:
-      - "Complete all sections"
-      - "Add 20+ high-quality photos"
-      - "Post weekly updates"
-      - "Respond to all reviews within 24 hours"
-      - "Add services with descriptions"
-      - "Regular Q&A updates"
-  
+      - Complete all sections
+      - Add 20+ high-quality photos
+      - Post weekly updates
+      - Respond to all reviews within 24 hours
+      - Add services with descriptions
+      - Regular Q&A updates
   local_keywords:
-    primary_location: "India"
+    primary_location: India
     sub_locations:
-      - "Global"
-      - "Global"
-      - "Global"
-      - "Global"
-      - "Global"
-  
+      - Global
+      - Global
+      - Global
+      - Global
+      - Global
   local_citations:
     directories:
-      - "JustDial"
-      - "Sulekha"
-      - "IndiaMART"
-      - "TradeIndia"
-      - "Google Business Profile"
-      - "Bing Places"
-      - "Yellow Pages India"
-  
+      - JustDial
+      - Sulekha
+      - IndiaMART
+      - TradeIndia
+      - Google Business Profile
+      - Bing Places
+      - Yellow Pages India
   location_pages:
     create_for:
-      - "Global"
-      - "Global"
-      - "Global"
-    format: "Service in [City] - Custom landing page"
-
-# ============================================
-# BACKLINK STRATEGY (SAFE & REALISTIC)
-# ============================================
+      - Global
+      - Global
+      - Global
+    format: Service in [City] - Custom landing page
 backlinks:
-  
-  approach: "Quality over quantity - Natural link building only"
-  
-  monthly_target: "5-10 high-quality backlinks"
-  
+  approach: Quality over quantity - Natural link building only
+  monthly_target: 5-10 high-quality backlinks
   strategies:
-    
     1_content_marketing:
-      method: "Create linkable assets"
+      method: Create linkable assets
       examples:
-        - "State of Web Design in India 2026 [Annual Report]"
-        - "Free Website Audit Tool"
-        - "Web Design Cost Calculator"
-        - "Digital Marketing ROI Calculator"
-      expected: "2-3 natural backlinks/month"
-    
+        - State of Web Design in India 2026 [Annual Report]
+        - Free Website Audit Tool
+        - Web Design Cost Calculator
+        - Digital Marketing ROI Calculator
+      expected: 2-3 natural backlinks/month
     2_guest_posting:
-      method: "AI writes, you review & pitch"
+      method: AI writes, you review & pitch
       targets:
-        - "Marketing blogs in India"
-        - "Small business resources"
-        - "Startup publications"
-        - "Tech blogs"
-      frequency: "2-3 guest posts/month"
-      automation: "60% (AI finds & writes, you send)"
-    
+        - Marketing blogs in India
+        - Small business resources
+        - Startup publications
+        - Tech blogs
+      frequency: 2-3 guest posts/month
+      automation: 60% (AI finds & writes, you send)
     3_local_partnerships:
-      method: "Partner with India business associations"
+      method: Partner with India business associations
       targets:
-        - "India Chamber of Commerce"
-        - "Local startup hubs"
-        - "Business networking groups"
-        - "Industry associations"
-      expected: "1-2 backlinks/month"
-    
+        - India Chamber of Commerce
+        - Local startup hubs
+        - Business networking groups
+        - Industry associations
+      expected: 1-2 backlinks/month
     4_broken_link_building:
-      method: "AI finds broken links, creates replacement"
-      automation: "90% (AI does heavy lifting)"
-      expected: "2-3 backlinks/month"
-    
+      method: AI finds broken links, creates replacement
+      automation: 90% (AI does heavy lifting)
+      expected: 2-3 backlinks/month
     5_resource_pages:
-      method: "Get listed on 'best agencies' lists"
+      method: Get listed on 'best agencies' lists
       targets:
-        - "Design agency directories"
-        - "Marketing service listings"
-        - "B2B service platforms"
-      expected: "1-2 backlinks/month"
-
-# ============================================
-# LEAD GENERATION & CONVERSION
-# ============================================
+        - Design agency directories
+        - Marketing service listings
+        - B2B service platforms
+      expected: 1-2 backlinks/month
 conversion:
-  
   lead_magnets:
-    - "Free Website Audit (worth ₹5,000)"
-    - "Digital Marketing Strategy Template"
-    - "Web Design Checklist PDF"
-    - "E-commerce Launch Guide"
-  
+    - Free Website Audit (worth ₹5,000)
+    - Digital Marketing Strategy Template
+    - Web Design Checklist PDF
+    - E-commerce Launch Guide
   ctas:
-    primary: "Get Free Consultation"
-    secondary: "View Our Portfolio"
-    tertiary: "Download Free Guide"
-  
+    primary: Get Free Consultation
+    secondary: View Our Portfolio
+    tertiary: Download Free Guide
   contact_forms:
-    - "Homepage: Quick quote form"
-    - "Service pages: Detailed inquiry form"
-    - "Blog posts: Newsletter signup"
-  
+    - 'Homepage: Quick quote form'
+    - 'Service pages: Detailed inquiry form'
+    - 'Blog posts: Newsletter signup'
   tracking:
     goals:
-      - "Form submissions"
-      - "Phone calls"
-      - "WhatsApp messages"
-      - "Email inquiries"
-    
-    conversion_rate_target: "2-5% of visitors"
-
-# ============================================
-# REPORTING & MONITORING
-# ============================================
+      - Form submissions
+      - Phone calls
+      - WhatsApp messages
+      - Email inquiries
+    conversion_rate_target: 2-5% of visitors
 reporting:
-  
-  frequency: "Weekly snapshot, Monthly detailed report"
-  
+  frequency: Weekly snapshot, Monthly detailed report
   metrics:
     rankings:
-      - "Track all 20 primary keywords"
-      - "Top 10 rankings count"
-      - "Featured snippets count"
-    
+      - Track all 20 primary keywords
+      - Top 10 rankings count
+      - Featured snippets count
     traffic:
-      - "Total organic visitors"
-      - "New vs returning"
-      - "Top landing pages"
-      - "Geographic breakdown"
-    
+      - Total organic visitors
+      - New vs returning
+      - Top landing pages
+      - Geographic breakdown
     leads:
-      - "Total form submissions"
-      - "Lead source breakdown"
-      - "Conversion rate by page"
-      - "Lead quality score"
-    
+      - Total form submissions
+      - Lead source breakdown
+      - Conversion rate by page
+      - Lead quality score
     technical:
-      - "Core Web Vitals scores"
-      - "Page speed metrics"
-      - "Mobile usability issues"
-      - "Broken links count"
-  
-  dashboard: "Google Data Studio or similar"
-
-# ============================================
-# AUTOMATION SETTINGS
-# ============================================
+      - Core Web Vitals scores
+      - Page speed metrics
+      - Mobile usability issues
+      - Broken links count
+  dashboard: Google Data Studio or similar
 automation:
-  
-  level: "95% automated"
-  
+  level: 95% automated
   agents:
-    orchestrator: "gemini-3-pro"
-    content_writer: "gpt-oss"
-    seo_analyst: "claude-sonnet-4-5"
-    technical_auditor: "claude-sonnet-4-5"
-  
+    orchestrator: gemini-3-pro
+    content_writer: gpt-oss
+    seo_analyst: claude-sonnet-4-5
+    technical_auditor: claude-sonnet-4-5
   autonomous_tasks:
-    - "Content research and writing"
-    - "Keyword research"
-    - "On-page optimization"
-    - "Technical SEO fixes"
-    - "Internal linking"
-    - "Meta tag generation"
-    - "Image optimization"
-    - "Sitemap updates"
-    - "Rank tracking"
-    - "Reporting"
-  
+    - Content research and writing
+    - Keyword research
+    - On-page optimization
+    - Technical SEO fixes
+    - Internal linking
+    - Meta tag generation
+    - Image optimization
+    - Sitemap updates
+    - Rank tracking
+    - Reporting
   manual_review_needed:
-    - "Guest post outreach emails (review before sending)"
-    - "Major website changes (get approval)"
-    - "Client-facing content (final quality check)"
-  
-  approval_required: false  # Set true if you want to review everything
-  
+    - Guest post outreach emails (review before sending)
+    - Major website changes (get approval)
+    - Client-facing content (final quality check)
+  approval_required: false
   notifications:
-    email: "your@email.com"  # Add your email
-    frequency: "Weekly summary + Critical alerts"
+    email: your@email.com
+    frequency: Weekly summary + Critical alerts
     alerts:
-      - "First page ranking achieved"
-      - "New lead received"
-      - "Technical error detected"
-      - "Penalty risk detected"
-
-# ============================================
-# BUDGET & TIMELINE
-# ============================================
+      - First page ranking achieved
+      - New lead received
+      - Technical error detected
+      - Penalty risk detected
 budget:
-  monthly_cost: "₹2,000 (Antigravity Pro subscription)"
-  additional_costs: "₹0 (all automation included)"
-  
+  monthly_cost: ₹2,000 (Antigravity Pro subscription)
+  additional_costs: ₹0 (all automation included)
 timeline:
-  phase_1: "Month 1-3: Foundation & Content Creation"
-  phase_2: "Month 4-6: Rankings & Traffic Growth"
-  phase_3: "Month 7-9: Lead Generation Begins"
-  phase_4: "Month 10-12: Scaling & Optimization"
-
-# ============================================
-# SUCCESS CRITERIA
-# ============================================
+  phase_1: 'Month 1-3: Foundation & Content Creation'
+  phase_2: 'Month 4-6: Rankings & Traffic Growth'
+  phase_3: 'Month 7-9: Lead Generation Begins'
+  phase_4: 'Month 10-12: Scaling & Optimization'
 success_metrics:
   month_6:
-    - "15+ keywords ranking on page 1-2"
-    - "500-1000 organic visitors/month"
-    - "10-15 qualified leads/month"
-  
+    - 15+ keywords ranking on page 1-2
+    - 500-1000 organic visitors/month
+    - 10-15 qualified leads/month
   month_12:
-    - "25+ keywords on page 1"
-    - "5+ keywords in top 3"
-    - "2000-4000 organic visitors/month"
-    - "25-40 qualified leads/month"
-    - "5-10 new clients acquired from SEO"
+    - 25+ keywords on page 1
+    - 5+ keywords in top 3
+    - 2000-4000 organic visitors/month
+    - 25-40 qualified leads/month
+    - 5-10 new clients acquired from SEO
