@@ -2,8 +2,8 @@ name: Autonomous SEO Content Loop
 
 on:
   schedule:
-    # Runs at 04:30 UTC = 10:00 AM IST on Mon, Wed, Fri
-    - cron: '30 4 * * 1,3,5'
+    # Runs at 04:30 UTC (10:00 AM IST) and 16:30 UTC (10:00 PM IST) EVERY DAY
+    - cron: '30 4,16 * * *'
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 permissions:
