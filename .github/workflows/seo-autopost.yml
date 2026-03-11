@@ -27,7 +27,7 @@ jobs:
 
       - name: Run SEO Master Agent Script
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
         run: node .github/scripts/seo-auto-poster.mjs
 
       - name: Commit and Push Changes
@@ -35,7 +35,7 @@ jobs:
           git config --global user.name "FouriqTech AI Bot"
           git config --global user.email "ai@fouriqtech.com"
           
-          git add src/data/blogPosts.ts
+          git add src/data/blogPosts.ts fouriqtech-seo-config.yaml
           
           # Check if there are actual changes before committing
           if git diff --staged --quiet; then
