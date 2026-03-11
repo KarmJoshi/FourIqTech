@@ -37,11 +37,17 @@ const API_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '
   .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
 let currentKeyIdx = 0;
+if (API_KEYS.length > 0) {
+  process.env.GEMINI_API_KEY = API_KEYS[0]; // Force SDK ENV to first key
+}
 let aiClient = API_KEYS.length > 0 ? new GoogleGenAI({ apiKey: API_KEYS[0] }) : null;
 
 function rotateKey() {
   currentKeyIdx = (currentKeyIdx + 1) % API_KEYS.length;
-  aiClient = new GoogleGenAI({ apiKey: API_KEYS[currentKeyIdx] });
+  const nextKey = API_KEYS[currentKeyIdx];
+  // Force the environment variable to update as well, as some SDK versions cache process.env over constructor args
+  process.env.GEMINI_API_KEY = nextKey;
+  aiClient = new GoogleGenAI({ apiKey: nextKey });
   console.log(`   🔑 Rotated → Key #${currentKeyIdx + 1}/${API_KEYS.length}`);
 }
 
