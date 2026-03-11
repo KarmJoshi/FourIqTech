@@ -35,7 +35,7 @@ jobs:
           git config --global user.name "FouriqTech AI Bot"
           git config --global user.email "ai@fouriqtech.com"
           
-          git add src/data/blogPosts.ts fouriqtech-seo-config.yaml
+          git add src/data/blogPosts.ts fouriqtech-seo-config.yaml .github/publish_log.json || true
           
           # Check if there are actual changes before committing
           if git diff --staged --quiet; then

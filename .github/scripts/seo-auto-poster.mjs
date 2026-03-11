@@ -3,341 +3,463 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
 
-// ═══════════════════════════════════════════════════════════════
-// 🏢 FOURIQTECH AI SEO COMPANY — Enterprise-Grade Multi-Agent
-// ═══════════════════════════════════════════════════════════════
-// Features:
-//   🔑 Multi-API Key Rotation (auto-failover on 429)
-//   🧠 Dynamic Model Selection (task-priority-based)
-//   ⬆️ Model Escalation on QA Rejection
-//   ✍️ Human-Like Content Engine (anti-AI detection)
-//   🚫 Strict QA Gate (never publish garbage)
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// 🏢 FOURIQTECH AI SEO ENGINE — Professional Grade v2.0
+// ═══════════════════════════════════════════════════════════════════════
+// Autonomous SEO content engine with:
+//   🔑 Multi-API Key Rotation       🧠 Dynamic Model Escalation
+//   🔬 SEO-Intelligent Research      📊 Topical Authority Clustering
+//   ✍️ Technical Content w/ Code     ✅ Strict QA (80+ to publish)
+//   🔗 Internal Linking System       📋 Technical SEO Automation
+//   👔 Manager w/ Publishing Rules   🚫 Max 2 articles/day
+// ═══════════════════════════════════════════════════════════════════════
 
 const CONFIG_PATH = path.join(process.cwd(), 'fouriqtech-seo-config.yaml');
 const BLOG_DATA_PATH = path.join(process.cwd(), 'src/data/blogPosts.ts');
 const KNOWLEDGE_BASE_DIR = path.join(process.cwd(), '.github/knowledge_base');
+const PUBLISH_LOG_PATH = path.join(process.cwd(), '.github/publish_log.json');
 
-// ── Model Ladder (weakest → strongest) ──
+// ── Model Ladder ──
 const MODEL_LADDER = [
   'gemini-2.5-flash',
   'gemini-3-flash-preview',
   'gemini-3.1-pro-preview',
 ];
 
-// ── Task Priority → Starting Model ──
 const TASK_MODELS = {
-  research:  { priority: 'low',      startModel: 0 }, // Flash
-  strategy:  { priority: 'medium',   startModel: 0 }, // Flash
-  writing:   { priority: 'high',     startModel: 0 }, // Flash (escalates on rejection)
-  qa:        { priority: 'medium',   startModel: 0 }, // Flash
-  rewrite:   { priority: 'critical', startModel: 1 }, // 3-Flash minimum for rewrites
+  research:  { start: 0 },
+  strategy:  { start: 0 },
+  writing:   { start: 0 },
+  rewrite:   { start: 1 },
+  qa:        { start: 0 },
 };
 
-function getModel(taskType, escalationLevel = 0) {
-  const base = TASK_MODELS[taskType]?.startModel || 0;
-  const idx = Math.min(base + escalationLevel, MODEL_LADDER.length - 1);
-  return MODEL_LADDER[idx];
+function getModel(taskType, escalation = 0) {
+  const base = TASK_MODELS[taskType]?.start || 0;
+  return MODEL_LADDER[Math.min(base + escalation, MODEL_LADDER.length - 1)];
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 🔑 MULTI-API KEY ROTATION ENGINE
-// ═══════════════════════════════════════════════════════════════
+// ── Multi-API Key Rotation ──
 const API_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-  .split(',')
-  .map(k => k.trim())
-  .filter(k => k.length > 0);
+  .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
-let currentKeyIndex = 0;
-let aiClient = new GoogleGenAI({ apiKey: API_KEYS[0] });
+let currentKeyIdx = 0;
+let aiClient = API_KEYS.length > 0 ? new GoogleGenAI({ apiKey: API_KEYS[0] }) : null;
 
 function rotateKey() {
-  currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
-  aiClient = new GoogleGenAI({ apiKey: API_KEYS[currentKeyIndex] });
-  console.log(`   🔑 Rotated to API Key #${currentKeyIndex + 1}/${API_KEYS.length}`);
-  return currentKeyIndex;
+  currentKeyIdx = (currentKeyIdx + 1) % API_KEYS.length;
+  aiClient = new GoogleGenAI({ apiKey: API_KEYS[currentKeyIdx] });
+  console.log(`   🔑 Rotated → Key #${currentKeyIdx + 1}/${API_KEYS.length}`);
 }
 
-async function smartCall(model, contents, jsonMode = true, maxKeyRetries = API_KEYS.length) {
-  let keysTriedCount = 0;
-  while (keysTriedCount < maxKeyRetries) {
+async function smartCall(model, contents) {
+  let tries = 0;
+  while (tries < API_KEYS.length) {
     try {
-      const config = jsonMode ? { responseMimeType: "application/json" } : {};
-      const response = await aiClient.models.generateContent({ model, contents, config });
-      return response.candidates[0].content.parts[0].text;
-    } catch (error) {
-      if (error.status === 429 || error.message?.includes('429') || error.message?.includes('RESOURCE_EXHAUSTED')) {
-        console.log(`   ⚠️ Key #${currentKeyIndex + 1} quota exhausted.`);
-        keysTriedCount++;
-        if (keysTriedCount < maxKeyRetries) {
-          rotateKey();
-          await new Promise(r => setTimeout(r, 2000));
-          continue;
-        }
+      const resp = await aiClient.models.generateContent({
+        model, contents, config: { responseMimeType: "application/json" }
+      });
+      return resp.candidates[0].content.parts[0].text;
+    } catch (err) {
+      if (err.status === 429 || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
+        tries++;
+        if (tries < API_KEYS.length) { rotateKey(); await sleep(2000); continue; }
       }
-      throw error;
+      throw err;
     }
   }
-  throw new Error('All API keys exhausted. No quota remaining.');
+  throw new Error('All API keys exhausted.');
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 🩹 SELF-HEALING WRAPPER
-// ═══════════════════════════════════════════════════════════════
-async function runWithHealer(agentName, taskFn, maxRetries = 2) {
-  let lastError = null;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await taskFn(lastError);
-    } catch (error) {
-      console.error(`   ⚠️ [${agentName}] Attempt ${attempt} failed: ${error.message?.substring(0, 120)}`);
-      lastError = error;
-      if (attempt < maxRetries) {
-        console.log(`   🩹 [${agentName}] Self-healing: retrying...`);
-        await new Promise(r => setTimeout(r, 3000));
-      }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function healedCall(agent, fn, retries = 2) {
+  let lastErr = null;
+  for (let i = 1; i <= retries; i++) {
+    try { return await fn(lastErr); }
+    catch (e) {
+      console.error(`   ⚠️ [${agent}] Attempt ${i}: ${e.message?.substring(0, 120)}`);
+      lastErr = e;
+      if (i < retries) { console.log(`   🩹 [${agent}] Retrying...`); await sleep(3000); }
     }
   }
-  throw lastError;
+  throw lastErr;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ✍️ HUMAN-LIKE WRITING INSTRUCTIONS (injected into every Writer prompt)
-// ═══════════════════════════════════════════════════════════════
-const HUMANIZATION_RULES = `
-CRITICAL WRITING STYLE RULES — YOUR CONTENT MUST FEEL 100% HUMAN-WRITTEN:
+// ── Publish Log (track daily count) ──
+function getTodayPublishCount() {
+  try {
+    const log = JSON.parse(fs.readFileSync(PUBLISH_LOG_PATH, 'utf8'));
+    const today = new Date().toISOString().split('T')[0];
+    return (log[today] || 0);
+  } catch { return 0; }
+}
 
-1. SENTENCE VARIETY: Mix short punchy sentences (5-8 words) with longer explanatory ones (20-30 words). Never write 3 long sentences in a row.
+function incrementPublishCount() {
+  let log = {};
+  try { log = JSON.parse(fs.readFileSync(PUBLISH_LOG_PATH, 'utf8')); } catch {}
+  const today = new Date().toISOString().split('T')[0];
+  log[today] = (log[today] || 0) + 1;
+  fs.writeFileSync(PUBLISH_LOG_PATH, JSON.stringify(log, null, 2));
+}
 
-2. CONVERSATIONAL TONE: Write as if you're a senior consultant talking to a CEO over coffee. Use "We've found that..." / "Here's the thing..." / "Let me be blunt..." / "In our experience..."
-
-3. USE CONTRACTIONS: Always use "don't", "we've", "it's", "you'll", "won't" instead of "do not", "we have", "it is". Formal writing screams AI.
-
-4. ADD REAL OPINIONS: Include opinionated statements like "Frankly, most agencies get this wrong" or "This is the single biggest mistake we see". Don't be neutral on everything.
-
-5. IMPERFECT TRANSITIONS: Do NOT start paragraphs with "Furthermore", "Additionally", "Moreover", "In conclusion". Instead use "Here's the thing", "But wait", "Now,", "Look,", "The reality?", "So what does this mean?"
-
-6. ANECDOTAL HOOKS: Start at least 2 sections with a mini-story: "A client came to us last quarter...", "We once worked with a startup that...", "I remember reviewing a website that..."
-
-7. BREAK PATTERNS: Not every section needs bullet points. Mix paragraphs, numbered tips, a single bold callout, and casual sub-headers.
-
-8. RHETORICAL QUESTIONS: Use them naturally: "So why do 70% of businesses still ignore this?" / "Sound familiar?"
-
-9. AVOID AI CLICHES: NEVER use these words/phrases: "landscape", "in today's digital age", "leverage", "harness the power", "cutting-edge", "game-changer", "seamless", "robust", "holistic". Use normal human words instead.
-
-10. NATURAL KEYWORD PLACEMENT: The target keyword should appear in the title, first paragraph, 2-3 H2s, and conclusion. That's it. Never force it.
-`;
-
-// ═══════════════════════════════════════════════════════════════
-// 🔬 AGENT 1: RESEARCHER — Market Intelligence
-// ═══════════════════════════════════════════════════════════════
-async function researcherAgent(config, existingSlugs, knowledgeContext) {
+// ═══════════════════════════════════════════════════════════════════════
+// 🔬 RESEARCHER — SEO-Intelligent Keyword Discovery
+// ═══════════════════════════════════════════════════════════════════════
+async function researcherAgent(config, existingSlugs, knowledgeCtx) {
   const model = getModel('research');
-  console.log(`\n🔬 RESEARCHER [${model}]: Scanning market for opportunities...`);
+  console.log(`\n🔬 RESEARCHER [${model}]: Deep keyword analysis...`);
 
-  return await runWithHealer('Researcher', async (prevError) => {
-    const healHint = prevError ? `\nPREVIOUS ERROR: "${prevError.message}". Fix your JSON output format.` : '';
+  return await healedCall('Researcher', async (prevErr) => {
+    const fix = prevErr ? `\nFIX PREVIOUS ERROR: "${prevErr.message}". Ensure valid JSON.` : '';
 
-    const raw = await smartCall(model, `You are the MARKET RESEARCHER at FouriqTech SEO Company.
-      
-      COMPANY KNOWLEDGE: ${knowledgeContext}
-      EXISTING BLOG SLUGS (avoid duplicates): ${JSON.stringify(existingSlugs)}
-      CURRENT KEYWORDS: ${JSON.stringify(config._flatKeywords || [])}
+    const raw = await smartCall(model, `You are an expert SEO keyword researcher for FouriqTech, a web design & development agency targeting global startups and enterprises ($25k+ budgets).
 
-      YOUR TASKS:
-      1. Discover 5 NEW high-value long-tail keywords for web design/development/digital marketing targeting India & Global startups/enterprises.
-      2. Identify 3 trending industry topics that would attract $25k+ clients.
-      3. Analyze competitor gaps — what topics are competitors NOT covering well?
-      4. Ensure ZERO overlap with existing slugs.
-      ${healHint}
+COMPANY CONTEXT: ${knowledgeCtx}
+EXISTING BLOG SLUGS (DO NOT DUPLICATE): ${JSON.stringify(existingSlugs)}
+CURRENT KEYWORDS: ${JSON.stringify(config._flatKeywords || [])}
 
-      RETURN VALID JSON:
-      { "newKeywords": [], "trendingTopics": [], "competitorGaps": [], "marketInsight": "..." }`);
+YOUR MISSION: Find the single best SEO opportunity for a new blog post.
+
+KEYWORD SELECTION CRITERIA (STRICT):
+- MUST be a long-tail keyword (4+ words)
+- MUST have low or medium competition
+- MUST have clear search intent (informational, commercial, or transactional)
+- MUST be specific and actionable, NOT broad
+
+GOOD keyword examples:
+- "gsap animation performance optimization"
+- "nextjs api routes best practices"
+- "react custom hooks performance guide"
+- "website speed optimization checklist 2026"
+
+BAD keyword examples (NEVER use these):
+- "web development" (too broad)
+- "frontend development" (too broad)
+- "javascript tutorial" (too generic)
+- "web design India" (already covered)
+
+ALSO PROVIDE:
+- 4 secondary keywords related to the primary
+- The user's search intent (informational / commercial / transactional)
+- A unique content angle competitors are missing
+- A competitor gap analysis
+
+${fix}
+
+RETURN VALID JSON:
+{
+  "primary_keyword": "specific long-tail keyword here",
+  "secondary_keywords": ["kw1", "kw2", "kw3", "kw4"],
+  "keyword_difficulty": "low/medium",
+  "search_intent": "informational/commercial/transactional",
+  "content_angle": "What makes our article unique",
+  "competitor_gap_analysis": "What competitors are NOT covering",
+  "estimated_volume": "high/medium/low"
+}`);
 
     const result = JSON.parse(raw);
-    console.log(`   📈 Discovered ${result.newKeywords?.length || 0} new keywords`);
-    console.log(`   🔥 Trends: ${result.trendingTopics?.slice(0, 2).join(', ')}`);
-    console.log(`   💡 Insight: ${result.marketInsight}`);
+    console.log(`   🎯 Primary: "${result.primary_keyword}" [${result.keyword_difficulty}]`);
+    console.log(`   🔍 Intent: ${result.search_intent}`);
+    console.log(`   💡 Angle: ${result.content_angle}`);
     return result;
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 📊 AGENT 2: STRATEGIST — Content Planning
-// ═══════════════════════════════════════════════════════════════
-async function strategistAgent(researchData, config, existingSlugs, blogHistory) {
+// ═══════════════════════════════════════════════════════════════════════
+// 📊 STRATEGIST — Topical Authority & Clustering
+// ═══════════════════════════════════════════════════════════════════════
+async function strategistAgent(research, config, existingSlugs, blogHistory) {
   const model = getModel('strategy');
-  console.log(`\n📊 STRATEGIST [${model}]: Creating battle plan...`);
+  console.log(`\n📊 STRATEGIST [${model}]: Building topical authority plan...`);
 
-  return await runWithHealer('Strategist', async (prevError) => {
-    const healHint = prevError ? `\nPREVIOUS ERROR: "${prevError.message}". Fix your JSON.` : '';
-    const allKw = [...new Set([...(config._flatKeywords || []), ...(researchData.newKeywords || [])])];
+  return await healedCall('Strategist', async (prevErr) => {
+    const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
 
-    const raw = await smartCall(model, `You are the CONTENT STRATEGIST at FouriqTech SEO Company.
+    const raw = await smartCall(model, `You are a senior SEO content strategist for FouriqTech.
 
-      RESEARCHER'S INTEL:
-      - New Keywords: ${JSON.stringify(researchData.newKeywords)}
-      - Trending: ${JSON.stringify(researchData.trendingTopics)}
-      - Gaps: ${JSON.stringify(researchData.competitorGaps)}
-      - Insight: ${researchData.marketInsight}
+RESEARCHER'S FINDINGS:
+- Primary Keyword: "${research.primary_keyword}"
+- Secondary Keywords: ${JSON.stringify(research.secondary_keywords)}
+- Search Intent: ${research.search_intent}
+- Content Angle: ${research.content_angle}
+- Competitor Gap: ${research.competitor_gap_analysis}
 
-      ALL KEYWORDS: ${JSON.stringify(allKw)}
-      WRITTEN SLUGS: ${JSON.stringify(existingSlugs)}
-      RECENT TONE: ${blogHistory.substring(0, 3000)}
+EXISTING SLUGS: ${JSON.stringify(existingSlugs)}
+EXISTING KEYWORDS: ${JSON.stringify(config._flatKeywords || [])}
 
-      TASKS:
-      1. Pick the BEST keyword to target (highest ROI, not yet written).
-      2. Create a 8-10 point OUTLINE for a 2000+ word article.
-      3. Pick 2-3 existing slugs to link to.
-      4. Write a compelling CTA.
-      5. Define target reader persona.
-      ${healHint}
+YOUR TASKS:
 
-      RETURN VALID JSON:
-      { "targetKeyword": "...", "articleTitle": "...", "targetPersona": "...", "outline": [], "internalLinks": [], "callToAction": "...", "estimatedSearchVolume": "high/medium/low" }`);
+1. TOPICAL AUTHORITY CLUSTER: Identify which topic cluster this article belongs to and list 4-5 related future article ideas for the cluster.
+
+2. ARTICLE OUTLINE: Create a detailed 10-point outline following this EXACT structure:
+   - H1: Title (SEO-optimized)
+   - Introduction (hook + what reader will learn)
+   - H2: Problem Overview (why this matters)
+   - H2: Technical Deep-Dive (core explanation)
+   - H2: Implementation Guide (step-by-step)
+   - H3: Code Example (if technical topic)
+   - H2: Optimization Techniques (pro tips)
+   - H2: Best Practices (do's and don'ts)
+   - H2: FAQ Section (4-5 common questions + answers)
+   - H2: Conclusion (summary + CTA)
+
+3. INTERNAL LINKING: Select 3-5 existing slugs to link to. ALSO always link to services (/services) and homepage (/).
+
+4. NO DUPLICATE KEYWORDS: Ensure primary_keyword is not already targeted.
+
+${fix}
+
+RETURN VALID JSON:
+{
+  "primary_keyword": "${research.primary_keyword}",
+  "secondary_keywords": ${JSON.stringify(research.secondary_keywords)},
+  "article_title": "SEO-optimized title with primary keyword",
+  "cluster_topic": "Name of the topic cluster",
+  "cluster_future_articles": ["future1", "future2", "future3", "future4"],
+  "article_outline": [
+    "Introduction: hook and overview",
+    "H2: Problem Overview section description",
+    "H2: Technical explanation section",
+    "H2: Implementation guide with steps",
+    "H3: Code example section",
+    "H2: Optimization techniques",
+    "H2: Best practices",
+    "H2: FAQ with 4-5 questions",
+    "H2: Conclusion with CTA"
+  ],
+  "internal_link_targets": ["slug1", "slug2", "slug3"],
+  "external_authority_links": ["https://example.com relevant-resource"],
+  "target_persona": "Who reads this",
+  "call_to_action": "CTA text"
+}`);
 
     const result = JSON.parse(raw);
-    console.log(`   🎯 Target: "${result.targetKeyword}"`);
-    console.log(`   📝 Title: "${result.articleTitle}"`);
-    console.log(`   👤 Persona: ${result.targetPersona}`);
-    console.log(`   📋 Outline: ${result.outline?.length || 0} sections`);
+    console.log(`   📝 Title: "${result.article_title}"`);
+    console.log(`   🏗️ Cluster: ${result.cluster_topic}`);
+    console.log(`   📋 Outline: ${result.article_outline?.length} sections`);
+    console.log(`   🔗 Links: ${result.internal_link_targets?.length} internal + ${result.external_authority_links?.length} external`);
     return result;
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ✍️ AGENT 3: WRITER — Content Creation (with Dynamic Model)
-// ═══════════════════════════════════════════════════════════════
-async function writerAgent(strategy, knowledgeContext, blogHistory, escalationLevel, qaFeedback = null) {
+// ═══════════════════════════════════════════════════════════════════════
+// ✍️ WRITER — Technical Content Engine
+// ═══════════════════════════════════════════════════════════════════════
+async function writerAgent(strategy, knowledgeCtx, blogHistory, escalation, qaFeedback = null) {
   const taskType = qaFeedback ? 'rewrite' : 'writing';
-  const model = getModel(taskType, escalationLevel);
-  const mode = qaFeedback ? `(REWRITE #${escalationLevel + 1})` : '';
-  console.log(`\n✍️ WRITER [${model}] ${mode}: Crafting content...`);
+  const model = getModel(taskType, escalation);
+  const mode = qaFeedback ? `(REWRITE #${escalation + 1})` : '';
+  console.log(`\n✍️ WRITER [${model}] ${mode}: Producing expert content...`);
 
-  return await runWithHealer('Writer', async (prevError) => {
-    const healHint = prevError ? `\nPREVIOUS ERROR: "${prevError.message}". Fix your JSON.` : '';
+  return await healedCall('Writer', async (prevErr) => {
+    const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON with HTML content.` : '';
     const rewriteBlock = qaFeedback
-      ? `\n\n🔴 QA REJECTED YOUR PREVIOUS DRAFT. FIX THESE ISSUES:\n${qaFeedback}\nRewrite the ENTIRE article. Address EVERY point.`
+      ? `\n\n🔴 QA REJECTED YOUR DRAFT. FIX ALL OF THESE:\n${qaFeedback}\nRewrite the ENTIRE article from scratch addressing every issue.`
       : '';
 
-    const raw = await smartCall(model, `You are the SENIOR CONTENT WRITER at FouriqTech SEO Company.
+    const raw = await smartCall(model, `You are a senior technical content writer for FouriqTech.
 
-      STRATEGIST'S PLAN:
-      - Target Keyword: "${strategy.targetKeyword}"
-      - Title: "${strategy.articleTitle}"
-      - Persona: "${strategy.targetPersona}"
-      - Outline: ${JSON.stringify(strategy.outline)}
-      - Internal Links: ${JSON.stringify(strategy.internalLinks)}
-      - CTA: "${strategy.callToAction}"
+STRATEGY BRIEF:
+- Primary Keyword: "${strategy.primary_keyword}"
+- Secondary Keywords: ${JSON.stringify(strategy.secondary_keywords)}
+- Title: "${strategy.article_title}"
+- Outline: ${JSON.stringify(strategy.article_outline)}
+- Internal Links: ${JSON.stringify(strategy.internal_link_targets)}
+- External Links: ${JSON.stringify(strategy.external_authority_links)}
+- CTA: "${strategy.call_to_action}"
+- Persona: "${strategy.target_persona}"
 
-      --- COMPANY KNOWLEDGE (ONLY USE THESE FACTS) ---
-      ${knowledgeContext}
-      
-      --- PREVIOUS BLOG TONE (MATCH THIS) ---
-      ${blogHistory.substring(0, 2000)}
+--- COMPANY FACTS (USE ONLY THESE) ---
+${knowledgeCtx}
 
-      ${HUMANIZATION_RULES}
-      ${rewriteBlock}
-      ${healHint}
+--- TONE REFERENCE ---
+${blogHistory.substring(0, 2000)}
 
-      HARD RULES:
-      1. MINIMUM 2000 words. Count carefully. This is non-negotiable.
-      2. Follow the outline — every point becomes a full section with 200+ words.
-      3. Semantic HTML only: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>.
-      4. Internal links as: <a href="/blog/SLUG">text</a>.
-      5. End with CTA in a <h2> section.
-      6. NO markdown. NO code fences. Pure HTML.
+${rewriteBlock}
+${fix}
 
-      RETURN VALID JSON:
-      { "title": "...", "slug": "...", "excerpt": "150-word excerpt", "category": "...", "content": "<h2>...</h2><p>...</p>..." }`);
+═══ ARTICLE STRUCTURE (FOLLOW EXACTLY) ═══
+
+1. <h1> with primary keyword
+2. Introduction paragraph (engaging hook, state what reader learns)
+3. <h2> Problem Overview (why this topic matters, real-world impact)
+4. <h2> Technical Deep-Dive (detailed explanation with examples)
+5. <h2> Implementation Guide (step-by-step instructions)
+   - Include <pre><code class="language-javascript">...</code></pre> code blocks if topic is technical
+6. <h2> Optimization Techniques (advanced tips)
+7. <h2> Best Practices (do's and don'ts as a list)
+8. <h2> Frequently Asked Questions
+   - 4-5 <h3> questions with <p> answers
+9. <h2> Conclusion with CTA
+
+═══ TONE REQUIREMENTS ═══
+- 70% educational (teach the reader something valuable)
+- 20% technical insight (show expertise with specifics)
+- 10% promotional (mention FouriqTech naturally, not forced)
+
+═══ WRITING RULES ═══
+1. MINIMUM 2000 words. Non-negotiable. Every H2 section must have 200+ words.
+2. Use primary keyword naturally 5-8 times. Use each secondary keyword 2-3 times.
+3. Internal links: <a href="/blog/SLUG">descriptive text</a> for every slug in the list.
+4. ALSO link to: <a href="/">FouriqTech</a> and <a href="/#contact">our services</a>.
+5. External links: <a href="URL" target="_blank" rel="noopener">text</a> to 1-2 authority sources.
+6. Code examples: Use <pre><code class="language-javascript">...</code></pre> format.
+7. FAQ: Each question as <h3>, answer as <p>.
+8. Semantic HTML only. NO markdown. NO code fences.
+9. Vary sentence length. Use contractions. Be conversational.
+10. NEVER use: "landscape", "leverage", "harness", "cutting-edge", "game-changer", "seamless", "robust", "holistic", "in today's digital age".
+
+═══ META GENERATION ═══
+Also generate SEO meta data for this article.
+
+RETURN VALID JSON:
+{
+  "title": "Article title with keyword",
+  "slug": "url-friendly-slug",
+  "excerpt": "150-word compelling description for search results",
+  "category": "Category",
+  "meta_title": "SEO title tag (max 60 chars)",
+  "meta_description": "Meta description (max 155 chars)",
+  "schema_headline": "Schema.org headline",
+  "content": "<h1>...</h1><p>...</p>...(full HTML article)..."
+}`);
 
     const result = JSON.parse(raw);
     const wordCount = result.content?.split(/\s+/).length || 0;
+
+    // Count keyword occurrences
+    const kwCount = (result.content?.toLowerCase().match(new RegExp(strategy.primary_keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+
     console.log(`   📄 "${result.title}" (${wordCount} words)`);
-    return { ...result, wordCount };
+    console.log(`   🔑 Keyword "${strategy.primary_keyword}" used ${kwCount} times`);
+    return { ...result, wordCount, keywordCount: kwCount };
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ✅ AGENT 4: QA INSPECTOR — Quality Gate
-// ═══════════════════════════════════════════════════════════════
-async function qaAgent(draft, strategy, knowledgeContext) {
+// ═══════════════════════════════════════════════════════════════════════
+// ✅ QA INSPECTOR — Strict Quality Gate (Score ≥ 80 to publish)
+// ═══════════════════════════════════════════════════════════════════════
+async function qaAgent(draft, strategy, knowledgeCtx) {
   const model = getModel('qa');
-  console.log(`\n✅ QA INSPECTOR [${model}]: Auditing quality...`);
+  console.log(`\n✅ QA INSPECTOR [${model}]: Running strict audit...`);
 
-  return await runWithHealer('QA Inspector', async (prevError) => {
-    const healHint = prevError ? `\nPREVIOUS ERROR: "${prevError.message}". Fix your JSON.` : '';
+  return await healedCall('QA Inspector', async (prevErr) => {
+    const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
 
-    const raw = await smartCall(model, `You are the QA INSPECTOR at FouriqTech. You are FAIR but THOROUGH.
+    // Pre-compute checks
+    const content = draft.content || '';
+    const lowerContent = content.toLowerCase();
+    const primaryKw = strategy.primary_keyword.toLowerCase();
+    const wordCount = draft.wordCount || 0;
+    const kwCount = draft.keywordCount || 0;
+    const kwDensity = wordCount > 0 ? ((kwCount / wordCount) * 100).toFixed(2) : 0;
+    const hasCodeBlock = content.includes('<code') || content.includes('<pre');
+    const hasFAQ = lowerContent.includes('frequently asked') || lowerContent.includes('faq') || (content.match(/<h3>/g) || []).length >= 3;
+    const internalLinkCount = (content.match(/href="\/blog\//g) || []).length;
+    const externalLinkCount = (content.match(/target="_blank"/g) || []).length;
+    const h2Count = (content.match(/<h2>/gi) || []).length;
 
-      ARTICLE:
-      - Title: "${draft.title}"
-      - Word Count: ${draft.wordCount}
-      - Content (first 8000 chars): ${draft.content?.substring(0, 8000)}
+    const raw = await smartCall(model, `You are the QA Inspector at FouriqTech. You are STRICT but FAIR.
 
-      STRATEGY:
-      - Target Keyword: "${strategy.targetKeyword}"
-      - Outline: ${JSON.stringify(strategy.outline)}
-      - Required Links: ${JSON.stringify(strategy.internalLinks)}
+ARTICLE METRICS (PRE-COMPUTED):
+- Word Count: ${wordCount}
+- Primary Keyword: "${strategy.primary_keyword}" (used ${kwCount} times, density: ${kwDensity}%)
+- Secondary Keywords: ${JSON.stringify(strategy.secondary_keywords)}
+- Has Code Examples: ${hasCodeBlock}
+- Has FAQ Section: ${hasFAQ}
+- Internal Links: ${internalLinkCount}
+- External Links: ${externalLinkCount}
+- H2 Headings: ${h2Count}
 
-      KNOWLEDGE BASE: ${knowledgeContext.substring(0, 2000)}
-      ${healHint}
+ARTICLE TITLE: "${draft.title}"
+ARTICLE CONTENT (first 10000 chars):
+${content.substring(0, 10000)}
 
-      SCORE EACH CRITERION 1-10:
-      1. WORD COUNT: Is it genuinely 1500+ words of substance?
-      2. KEYWORD USAGE: "${strategy.targetKeyword}" used naturally 3-8 times?
-      3. OUTLINE COVERAGE: Does article follow ALL outline points?
-      4. INTERNAL LINKS: Required slugs linked?
-      5. FACTUAL ACCURACY: Facts match Knowledge Base?
-      6. READABILITY: Engaging, clear, conversational?
-      7. HUMAN FEEL: Does it feel human-written? No AI cliches?
-      8. SEO STRUCTURE: Proper H2/H3 hierarchy?
-      9. CTA PRESENCE: Compelling Call to Action?
+STRATEGY PLAN:
+- Required Internal Link Slugs: ${JSON.stringify(strategy.internal_link_targets)}
+- Required External Links: ${JSON.stringify(strategy.external_authority_links)}
 
-      IMPORTANT: Be FAIR. If the article is genuinely good, approve it. Don't reject needlessly.
-      Approve if overallScore >= 65.
+${fix}
 
-      RETURN VALID JSON:
-      {
-        "scores": { "wordCount": 0, "keywordUsage": 0, "outlineCoverage": 0, "internalLinks": 0, "factualAccuracy": 0, "readability": 0, "humanFeel": 0, "seoStructure": 0, "ctaPresence": 0 },
-        "overallScore": 0,
-        "approved": true/false,
-        "feedback": "Specific actionable feedback if rejected",
-        "summary": "One-line summary"
-      }`);
+═══ QA CHECKLIST — SCORE EACH 1-10 ═══
+
+1. WORD_COUNT: Is it genuinely 2000+ words of substance? (${wordCount} words detected)
+2. PRIMARY_KEYWORD: Used naturally 5-8 times? Density 1-1.5%? (${kwCount} times, ${kwDensity}%)
+3. SECONDARY_KEYWORDS: Each of ${JSON.stringify(strategy.secondary_keywords)} used 2-3 times?
+4. INTERNAL_LINKS: At least 3 internal links present? (${internalLinkCount} found)
+5. EXTERNAL_LINKS: At least 1 authority external link? (${externalLinkCount} found)
+6. CODE_EXAMPLES: Code blocks present if topic is technical? (${hasCodeBlock})
+7. FAQ_SECTION: FAQ with 4-5 questions included? (${hasFAQ})
+8. HEADING_STRUCTURE: Proper H1 > H2 > H3 hierarchy? (${h2Count} H2s found)
+9. READABILITY: Conversational, varied sentences, no AI cliches?
+10. TONE_BALANCE: 70% educational, 20% technical, 10% promotional?
+
+SCORING RULES:
+- Each criterion is 1-10 points
+- Overall score = average of all × 10 (max 100)
+- Article PASSES if overallScore >= 80
+- Be FAIR: if the article genuinely covers the topic well, approve it
+
+RETURN VALID JSON:
+{
+  "scores": {
+    "word_count": 0,
+    "primary_keyword": 0,
+    "secondary_keywords": 0,
+    "internal_links": 0,
+    "external_links": 0,
+    "code_examples": 0,
+    "faq_section": 0,
+    "heading_structure": 0,
+    "readability": 0,
+    "tone_balance": 0
+  },
+  "overallScore": 0,
+  "approved": false,
+  "issues": ["issue1", "issue2"],
+  "feedback": "Detailed actionable feedback if rejected",
+  "summary": "One-line quality summary"
+}`);
 
     const result = JSON.parse(raw);
-    console.log(`   📊 Score: ${result.overallScore}/100`);
-    console.log(`   ${result.approved ? '✅ APPROVED' : '❌ REJECTED'}`);
-    if (!result.approved) console.log(`   📝 ${result.feedback?.substring(0, 200)}`);
+    console.log(`   📊 Score: ${result.overallScore}/100 ${result.approved ? '✅ PASSED' : '❌ FAILED'}`);
+    if (result.issues?.length > 0) console.log(`   🔍 Issues: ${result.issues.slice(0, 3).join('; ')}`);
     console.log(`   💬 ${result.summary}`);
     return result;
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 👔 AGENT 5: MANAGER — CEO & Orchestrator
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// 👔 MANAGER — CEO & Orchestrator
+// ═══════════════════════════════════════════════════════════════════════
 async function managerAgent() {
-  console.log('╔═══════════════════════════════════════════════════════╗');
-  console.log('║  👔 FOURIQTECH AI SEO COMPANY — Enterprise Engine    ║');
-  console.log('╚═══════════════════════════════════════════════════════╝');
+  console.log('╔═══════════════════════════════════════════════════════════╗');
+  console.log('║  👔 FOURIQTECH AI SEO ENGINE v2.0 — Professional Grade  ║');
+  console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log(`⏰ ${new Date().toISOString()}`);
-  console.log(`🔑 API Keys loaded: ${API_KEYS.length}`);
-  console.log(`🧠 Model Ladder: ${MODEL_LADDER.join(' → ')}`);
+  console.log(`🔑 API Keys: ${API_KEYS.length} | 🧠 Models: ${MODEL_LADDER.join(' → ')}`);
 
   if (API_KEYS.length === 0) {
-    console.error('❌ No API keys found. Set GEMINI_API_KEYS env var. Exiting.');
+    console.error('❌ No API keys. Set GEMINI_API_KEYS. Exiting.');
     process.exit(1);
   }
 
+  // ── Check daily publish limit ──
+  const todayCount = getTodayPublishCount();
+  if (todayCount >= 2) {
+    console.log('🚫 MANAGER: Daily limit reached (2 articles). Skipping this run.');
+    process.exit(0);
+  }
+  console.log(`📰 Published today: ${todayCount}/2`);
+
   // ── Load Resources ──
-  let knowledgeContext = "";
+  let knowledgeCtx = "";
   if (fs.existsSync(KNOWLEDGE_BASE_DIR)) {
     const files = fs.readdirSync(KNOWLEDGE_BASE_DIR).filter(f => f.endsWith('.md') || f.endsWith('.txt'));
     console.log(`📚 Knowledge docs: ${files.length}`);
-    for (const file of files) {
-      knowledgeContext += `\n--- ${file} ---\n${fs.readFileSync(path.join(KNOWLEDGE_BASE_DIR, file), 'utf8')}\n`;
+    for (const f of files) {
+      knowledgeCtx += `\n--- ${f} ---\n${fs.readFileSync(path.join(KNOWLEDGE_BASE_DIR, f), 'utf8')}\n`;
     }
   }
 
@@ -345,134 +467,140 @@ async function managerAgent() {
   const existingSlugs = [...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]);
   const blogHistory = blogDataFile.substring(0, 8000);
 
-  const fileContents = fs.readFileSync(CONFIG_PATH, 'utf8');
-  let config = yaml.load(fileContents);
+  const configRaw = fs.readFileSync(CONFIG_PATH, 'utf8');
+  let config = yaml.load(configRaw);
 
-  let allKeywords = [];
+  let flatKw = [];
   if (config.keywords && typeof config.keywords === 'object') {
     for (const tier of Object.values(config.keywords)) {
-      if (Array.isArray(tier)) allKeywords.push(...tier);
+      if (Array.isArray(tier)) flatKw.push(...tier);
     }
   }
-  config._flatKeywords = allKeywords;
+  config._flatKeywords = flatKw;
 
-  console.log(`📰 Existing posts: ${existingSlugs.length}`);
-  console.log(`🔑 Keywords: ${allKeywords.length}\n`);
+  console.log(`📰 Existing posts: ${existingSlugs.length} | 🔑 Keywords: ${flatKw.length}\n`);
 
   // ── Stage 1: Researcher ──
-  let researchData;
-  try {
-    researchData = await researcherAgent(config, existingSlugs, knowledgeContext);
-  } catch (e) {
-    console.error('❌ Researcher failed. Using fallback keywords.');
-    researchData = { newKeywords: config._flatKeywords?.slice(0, 5) || ['web design India'], trendingTopics: [], competitorGaps: [], marketInsight: 'Fallback mode' };
+  let research;
+  try { research = await researcherAgent(config, existingSlugs, knowledgeCtx); }
+  catch (e) {
+    console.error('❌ Researcher failed. Using fallback.');
+    research = {
+      primary_keyword: 'react performance optimization techniques',
+      secondary_keywords: ['react rendering', 'react memo', 'useMemo performance', 'react profiler'],
+      search_intent: 'informational', content_angle: 'practical guide', competitor_gap_analysis: 'N/A',
+      keyword_difficulty: 'medium'
+    };
   }
 
-  if (researchData.newKeywords?.length > 0) {
+  // Save new keywords to config
+  if (research.primary_keyword) {
     if (!config.keywords.auto_discovered) config.keywords.auto_discovered = [];
-    config.keywords.auto_discovered = [...new Set([...config.keywords.auto_discovered, ...researchData.newKeywords])];
-    config._flatKeywords = [...new Set([...config._flatKeywords, ...researchData.newKeywords])];
-    const { _flatKeywords, ...configToSave } = config;
-    fs.writeFileSync(CONFIG_PATH, yaml.dump(configToSave));
-    console.log('   💾 Config updated.\n');
+    const newKws = [research.primary_keyword, ...(research.secondary_keywords || [])];
+    config.keywords.auto_discovered = [...new Set([...config.keywords.auto_discovered, ...newKws])];
+    config._flatKeywords = [...new Set([...config._flatKeywords, ...newKws])];
+    const { _flatKeywords, ...save } = config;
+    fs.writeFileSync(CONFIG_PATH, yaml.dump(save));
+    console.log('   💾 Keywords saved.\n');
   }
 
   // ── Stage 2: Strategist ──
   let strategy;
-  try {
-    strategy = await strategistAgent(researchData, config, existingSlugs, blogHistory);
-  } catch (e) {
-    console.error('❌ Strategist failed. Cannot proceed. Aborting.');
-    process.exit(1);
-  }
+  try { strategy = await strategistAgent(research, config, existingSlugs, blogHistory); }
+  catch (e) { console.error('❌ Strategist failed. Aborting.'); process.exit(1); }
 
-  // ── Stage 3 & 4: Writer ↔ QA Loop (with Model Escalation) ──
+  // ── Stage 3 & 4: Writer ↔ QA Loop with Escalation ──
   const MAX_ATTEMPTS = 4;
   let draft = null;
   let qaResult = null;
   let published = false;
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const escalation = attempt; // 0=flash, 1=3-flash, 2=3.1-pro, 3=3.1-pro
-
+    // Writer
     try {
       const feedback = (attempt > 0 && qaResult && !qaResult.approved) ? qaResult.feedback : null;
-      draft = await writerAgent(strategy, knowledgeContext, blogHistory, escalation, feedback);
+      draft = await writerAgent(strategy, knowledgeCtx, blogHistory, attempt, feedback);
     } catch (e) {
-      console.error(`   ❌ Writer failed at escalation ${escalation}. Trying next...`);
+      console.error(`   ❌ Writer failed (escalation ${attempt}). Continuing...`);
       continue;
     }
 
-    try {
-      qaResult = await qaAgent(draft, strategy, knowledgeContext);
-    } catch (e) {
-      console.error('   ⚠️ QA failed. Auto-approving to not lose content.');
-      qaResult = { approved: true, overallScore: 65, summary: 'QA unavailable' };
+    // QA
+    try { qaResult = await qaAgent(draft, strategy, knowledgeCtx); }
+    catch (e) {
+      console.error('   ⚠️ QA failed. Cannot auto-approve under strict rules. Continuing...');
+      qaResult = { approved: false, overallScore: 0, feedback: 'QA engine unavailable', issues: ['QA unavailable'] };
     }
 
-    if (qaResult.approved) {
+    if (qaResult.approved && qaResult.overallScore >= 80) {
+      published = true;
+      break;
+    }
+
+    if (qaResult.overallScore >= 80 && !qaResult.approved) {
+      qaResult.approved = true;
       published = true;
       break;
     }
 
     if (attempt < MAX_ATTEMPTS - 1) {
-      const nextModel = getModel('rewrite', attempt + 1);
-      console.log(`\n   ⬆️ MANAGER: Escalating Writer to ${nextModel} for attempt ${attempt + 2}...`);
+      const next = getModel('rewrite', attempt + 1);
+      console.log(`\n   ⬆️ ESCALATING → ${next} (attempt ${attempt + 2}/${MAX_ATTEMPTS})`);
     }
   }
 
-  // ── Stage 5: Publish or Abort ──
+  // ── Stage 5: Publish or Skip ──
   if (published && draft) {
-    console.log('\n👔 MANAGER: Content APPROVED. Publishing...');
+    console.log('\n👔 PUBLISHING approved content...');
 
-    const safeTitle = draft.title.replace(/'/g, "\\'").replace(/`/g, '\\`');
-    const safeExcerpt = draft.excerpt.replace(/'/g, "\\'").replace(/`/g, '\\`');
-    const safeContent = draft.content.replace(/`/g, '\\`').replace(/\${/g, '\\${');
+    const safe = s => (s || '').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\${/g, '\\${');
 
-    const newPostCode = `
+    const newPost = `
   {
-    slug: '${draft.slug}',
-    title: '${safeTitle}',
-    excerpt: '${safeExcerpt}',
+    slug: '${safe(draft.slug)}',
+    title: '${safe(draft.title)}',
+    excerpt: '${safe(draft.excerpt)}',
     date: '${new Date().toISOString().split('T')[0]}',
-    readTime: '20 min read',
-    category: '${draft.category || 'Technology'}',
+    readTime: '${Math.ceil(draft.wordCount / 200)} min read',
+    category: '${safe(draft.category)}',
     author: 'FouriqTech AI Manager',
     content: \`
-      ${safeContent}
-    \`,
+      ${(draft.content || '').replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`,
   },`;
 
-    const updatedBlogData = blogDataFile.replace(
+    const updated = blogDataFile.replace(
       'export const blogPosts: BlogPost[] = [',
-      `export const blogPosts: BlogPost[] = [${newPostCode}`
+      `export const blogPosts: BlogPost[] = [${newPost}`
     );
-    fs.writeFileSync(BLOG_DATA_PATH, updatedBlogData);
+    fs.writeFileSync(BLOG_DATA_PATH, updated);
+    incrementPublishCount();
 
-    console.log('\n╔═══════════════════════════════════════════════════════╗');
-    console.log('║  📋 RUN REPORT — SUCCESS                             ║');
-    console.log('╠═══════════════════════════════════════════════════════╣');
-    console.log(`║  ✅ "${draft.title}"`);
-    console.log(`║  🎯 Keyword: "${strategy.targetKeyword}"`);
+    console.log('\n╔═══════════════════════════════════════════════════════════╗');
+    console.log('║  📋 RUN REPORT — ✅ PUBLISHED                            ║');
+    console.log('╠═══════════════════════════════════════════════════════════╣');
+    console.log(`║  📝 "${draft.title}"`);
+    console.log(`║  🎯 Keyword: "${strategy.primary_keyword}"`);
     console.log(`║  📊 QA Score: ${qaResult.overallScore}/100`);
-    console.log(`║  📝 Words: ${draft.wordCount}`);
+    console.log(`║  📏 Words: ${draft.wordCount}`);
+    console.log(`║  🏗️ Cluster: ${strategy.cluster_topic}`);
     console.log(`║  🔗 /blog/${draft.slug}`);
-    console.log('╚═══════════════════════════════════════════════════════╝');
+    console.log('╚═══════════════════════════════════════════════════════════╝');
   } else {
-    console.log('\n╔═══════════════════════════════════════════════════════╗');
-    console.log('║  📋 RUN REPORT — NO PUBLISH                          ║');
-    console.log('╠═══════════════════════════════════════════════════════╣');
-    console.log('║  🚫 Quality standards not met after all escalations.  ║');
-    console.log('║  ⏭️  Skipping today. Will retry next cycle.           ║');
-    console.log('╚═══════════════════════════════════════════════════════╝');
+    console.log('\n╔═══════════════════════════════════════════════════════════╗');
+    console.log('║  📋 RUN REPORT — 🚫 NOT PUBLISHED                       ║');
+    console.log('╠═══════════════════════════════════════════════════════════╣');
+    console.log(`║  Score: ${qaResult?.overallScore || 0}/100 (need 80+)`);
+    console.log('║  Quality standards not met after all escalations.        ║');
+    console.log('║  Skipping. Will retry next cycle.                        ║');
+    console.log('╚═══════════════════════════════════════════════════════════╝');
   }
 
-  console.log('\n👔 MANAGER: Company signing off. ✅');
+  console.log('\n👔 MANAGER: Engine signing off. ✅');
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
 // 🚀 BOOT
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
 managerAgent().catch(err => {
   console.error('💥 FATAL:', err.message?.substring(0, 300));
   process.exit(1);
