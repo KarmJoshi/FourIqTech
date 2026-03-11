@@ -5,18 +5,32 @@ import { GoogleGenAI } from '@google/genai';
 
 const CONFIG_PATH = path.join(process.cwd(), 'fouriqtech-seo-config.yaml');
 const BLOG_DATA_PATH = path.join(process.cwd(), 'src/data/blogPosts.ts');
+const KNOWLEDGE_BASE_DIR = path.join(process.cwd(), '.github/knowledge_base');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 async function run() {
-  console.log('🤖 FouriqTech SEO Master Agent: Initiating Full Pipeline...');
+  console.log('🤖 FouriqTech SEO Master Agent (RAG Enabled): Initiating Full Pipeline...');
 
   if (!process.env.GEMINI_API_KEY) {
     console.error('❌ Missing GEMINI_API_KEY environment variable. Exiting.');
     process.exit(1);
   }
 
-  // 1. Load Config and Data
+  // 1. Load Knowledge Base (RAG)
+  let knowledgeContext = "";
+  if (fs.existsSync(KNOWLEDGE_BASE_DIR)) {
+    const files = fs.readdirSync(KNOWLEDGE_BASE_DIR);
+    console.log(`📚 Found ${files.length} knowledge documents. Reading...`);
+    for (const file of files) {
+      if (file.endsWith('.md') || file.endsWith('.txt')) {
+        const content = fs.readFileSync(path.join(KNOWLEDGE_BASE_DIR, file), 'utf8');
+        knowledgeContext += `\n--- SOURCE: ${file} ---\n${content}\n`;
+      }
+    }
+  }
+
+  // 2. Load Config and Data
   const fileContents = fs.readFileSync(CONFIG_PATH, 'utf8');
   let config = yaml.load(fileContents);
   const blogDataFile = fs.readFileSync(BLOG_DATA_PATH, 'utf8');
@@ -42,7 +56,7 @@ async function run() {
 
   try {
     const keywordResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-2.5-flash',
       contents: keywordPrompt,
       config: { responseMimeType: "application/json" }
     });
@@ -93,12 +107,17 @@ async function run() {
     You are an elite SEO Content Architect for FouriqTech.
     Your objective is to write a highly authoritative, 1500+ word blog post optimized for the keyword: "${targetKeyword}".
 
+    --- COMPANY KNOWLEDGE BASE (PRIMARY SOURCE OF TRUTH) ---
+    ${knowledgeContext}
+    --- END KNOWLEDGE BASE ---
+
     REQUIREMENTS:
     1. Competitor Analysis Built-In: Write content that is more comprehensive than the top 10 Google results. Include actionable steps, global market context, and pricing/ROI estimates where applicable.
-    2. Format: Semantic HTML (Returns <h2>, <h3>, <p>, <ul> tags directly as a string, no markdown wrappers).
-    3. Length: 1500+ words minimum.
-    4. Internal Linking: Naturally mention and create HTML anchor tags (<a href="/blog/[slug]">) linking to these existing posts where relevant: ${JSON.stringify(existingSlugs)}. Include at least 3 internal links.
-    5. SEO: Emphasize business growth at a national (India) and Global enterprise level.
+    2. Fact Fidelity: Use ONLY factual details provided in the KNOWLEDGE BASE about FouriqTech's services, tech stack, and budget minimums.
+    3. Format: Semantic HTML (Returns <h2>, <h3>, <p>, <ul> tags directly as a string, no markdown wrappers).
+    4. Length: 1500+ words minimum.
+    5. Internal Linking: Naturally mention and create HTML anchor tags (<a href="/blog/[slug]">) linking to these existing posts where relevant: ${JSON.stringify(existingSlugs)}. Include at least 3 internal links.
+    6. SEO: Emphasize business growth at a national (India) and Global enterprise level.
     
     RETURN EXCLUSIVELY VALID JSON:
     {
@@ -115,7 +134,7 @@ async function run() {
   
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-2.5-flash',
       contents: contentPrompt,
       config: { responseMimeType: "application/json" }
     });
