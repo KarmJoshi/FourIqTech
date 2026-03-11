@@ -19,17 +19,17 @@ const BLOG_DATA_PATH = path.join(process.cwd(), 'src/data/blogPosts.ts');
 const KNOWLEDGE_BASE_DIR = path.join(process.cwd(), '.github/knowledge_base');
 const PUBLISH_LOG_PATH = path.join(process.cwd(), '.github/publish_log.json');
 
-// ── Task-Specific AI Models (Free-Tier Optimized) ──
-function getModel(taskType, escalation = 0) {
+// ── Task-Specific AI Models & Fallback (Free-Tier Optimized) ──
+function getModels(taskType, escalation = 0) {
+  // Returns an array of models [primary, fallback1, fallback2]
   const tasks = {
-    'research': 'gemini-3.1-flash-lite-preview',  // The Researcher: Ultra-fast for high volumes of SERP data
-    'strategy': 'gemini-2.5-flash',                 // General Assistant: Good for formatting and planning
-    'writing':  'gemini-3-flash-preview',           // The Writer: Fast, high-quality drafting
-    // Writer escalates to Editor reasoning if QA continually rejects it
-    'rewrite':   escalation > 0 ? 'gemini-2.5-pro' : 'gemini-3-flash-preview',
-    'qa':       'gemini-2.5-pro'                    // The Editor/QA: Deep reasoning for SEO checks
+    'research': ['gemini-3.1-flash-lite-preview', 'gemini-2.5-flash', 'gemini-3-flash-preview'],
+    'strategy': ['gemini-2.5-flash', 'gemini-3-flash-preview'],
+    'writing':  ['gemini-3-flash-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'],
+    'rewrite':  escalation > 0 ? ['gemini-2.5-pro', 'gemini-3-flash-preview', 'gemini-2.5-flash'] : ['gemini-3-flash-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'],
+    'qa':       ['gemini-2.5-pro', 'gemini-3-flash-preview', 'gemini-2.5-flash']
   };
-  return tasks[taskType] || 'gemini-2.5-flash';
+  return tasks[taskType] || ['gemini-2.5-flash'];
 }
 
 // ── Multi-API Key Rotation & Rate Limit Handling ──
@@ -47,37 +47,51 @@ function rotateKey() {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function smartCall(model, contents) {
-  let tries = 0;
-  let backoffMs = 5000; // Start with 5 second backoff for rate limits
+async function smartCall(modelArray, contents, agentName = 'AI') {
+  const models = Array.isArray(modelArray) ? modelArray : [modelArray];
 
-  while (tries < API_KEYS.length * 2) { // Allow trying each key twice with backoff
-    try {
-      const resp = await aiClient.models.generateContent({
-        model, contents, config: { responseMimeType: "application/json" }
-      });
-      // Add a small mandatory delay after EVERY successful call to prevent bursting
-      await sleep(3000); 
-      return resp.candidates[0].content.parts[0].text;
-    } catch (err) {
-      if (err.status === 429 || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
-        console.log(`   ⏳ Rate limit hit! Backing off for ${backoffMs/1000}s...`);
-        await sleep(backoffMs);
-        tries++;
-        
-        // Every other attempt, rotate the key
-        if (tries % 2 !== 0 && API_KEYS.length > 1) {
-          rotateKey();
-        } else {
-          // If we didn't rotate, increase the backoff exponentially
-          backoffMs *= 2; 
+  for (const model of models) {
+    let tries = 0;
+    let backoffMs = 5000; // Start with 5 second backoff for rate limits
+
+    console.log(`   🚀 [${agentName}] Trying model: ${model}...`);
+    while (tries < API_KEYS.length * 2) { // Allow trying each key twice with backoff
+      try {
+        const resp = await aiClient.models.generateContent({
+          model, contents, config: { responseMimeType: "application/json" }
+        });
+        // Add a small mandatory delay after EVERY successful call to prevent bursting
+        await sleep(3000); 
+        return resp.candidates[0].content.parts[0].text;
+      } catch (err) {
+        if (err.status === 429 || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
+          console.log(`   ⏳ Rate limit hit! Backing off for ${backoffMs/1000}s...`);
+          await sleep(backoffMs);
+          tries++;
+          
+          // Every other attempt, rotate the key
+          if (tries % 2 !== 0 && API_KEYS.length > 1) {
+            rotateKey();
+          } else {
+            // If we didn't rotate, increase the backoff exponentially
+            backoffMs *= 2; 
+          }
+          continue;
         }
-        continue;
+        
+        // If it's a 404/400 (model not found) or 503/500 (API overloaded), break cleanly to fallback model
+        const errStr = String(err.status || err.message || '').toLowerCase();
+        if (errStr.includes('404') || errStr.includes('400') || errStr.includes('503') || errStr.includes('500') || errStr.includes('high demand')) {
+           console.log(`   ❌ Model ${model} unavailable (Error: ${err.status || 'Overloaded'}). Falling back...`);
+           break; 
+        }
+        throw err;
       }
-      throw err;
     }
+    // If the loop finished without returning, ALL keys/backoffs are exhausted for THIS model
+    console.log(`   ⚠️ Exhausted all rate limit retries for ${model}. Switching to fallback model...`);
   }
-  throw new Error('All API keys and backoff attempts exhausted.');
+  throw new Error('All models, API keys, and backoff attempts exhausted.');
 }
 
 async function healedCall(agent, fn, retries = 2) {
@@ -119,13 +133,13 @@ function incrementPublishCount() {
 // 🔬 RESEARCHER — SEO-Intelligent Keyword Discovery
 // ═══════════════════════════════════════════════════════════════════════
 async function researcherAgent(config, existingSlugs, knowledgeCtx) {
-  const model = getModel('research');
-  console.log(`\n🔬 RESEARCHER [${model}]: Deep keyword analysis...`);
+  const models = getModels('research');
+  console.log(`\n🔬 RESEARCHER: Deep keyword analysis...`);
 
   return await healedCall('Researcher', async (prevErr) => {
     const fix = prevErr ? `\nFIX PREVIOUS ERROR: "${prevErr.message}". Ensure valid JSON.` : '';
 
-    const raw = await smartCall(model, `You are an expert SEO keyword researcher for FouriqTech, a web design & development agency targeting global startups and enterprises ($25k+ budgets).
+    const raw = await smartCall(models, `You are an expert SEO keyword researcher for FouriqTech, a web design & development agency targeting global startups and enterprises ($25k+ budgets).
 
 COMPANY CONTEXT: ${knowledgeCtx}
 EXISTING BLOG SLUGS (DO NOT DUPLICATE): ${JSON.stringify(existingSlugs)}
@@ -182,13 +196,13 @@ RETURN VALID JSON:
 // 📊 STRATEGIST — Topical Authority & Clustering (SCANNABLE ENGINEERING FORMAT)
 // ═══════════════════════════════════════════════════════════════════════
 async function strategistAgent(research, config, existingSlugs, blogHistory) {
-  const model = getModel('strategy');
-  console.log(`\n📊 STRATEGIST [${model}]: Building topical authority plan...`);
+  const models = getModels('strategy');
+  console.log(`\n📊 STRATEGIST: Building topical authority plan...`);
 
   return await healedCall('Strategist', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
 
-    const raw = await smartCall(model, `You are a senior SEO content strategist for FouriqTech.
+    const raw = await smartCall(models, `You are a senior SEO content strategist for FouriqTech.
 
 RESEARCHER'S FINDINGS:
 - Primary Keyword: "${research.primary_keyword}"
@@ -264,9 +278,9 @@ RETURN VALID JSON:
 // ═══════════════════════════════════════════════════════════════════════
 async function writerAgent(strategy, knowledgeCtx, blogHistory, escalation, qaFeedback = null) {
   const taskType = qaFeedback ? 'rewrite' : 'writing';
-  const model = getModel(taskType, escalation);
+  const models = getModels(taskType, escalation);
   const mode = qaFeedback ? `(REWRITE #${escalation + 1})` : '';
-  console.log(`\n✍️ WRITER [${model}] ${mode}: Producing expert content...`);
+  console.log(`\n✍️ WRITER ${mode}: Producing expert content...`);
 
   return await healedCall('Writer', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON with HTML content.` : '';
@@ -274,7 +288,7 @@ async function writerAgent(strategy, knowledgeCtx, blogHistory, escalation, qaFe
       ? `\n\n🔴 QA REJECTED YOUR DRAFT. FIX ALL OF THESE:\n${qaFeedback}\nRewrite the ENTIRE article from scratch addressing every issue.`
       : '';
 
-    const raw = await smartCall(model, `You are a senior technical content writer for FouriqTech. Your goal is to write an article that rivals Stripe, Vercel, or Cloudflare engineering blogs in readability, technical authority, and scannability.
+    const raw = await smartCall(models, `You are a senior technical content writer for FouriqTech. Your goal is to write an article that rivals Stripe, Vercel, or Cloudflare engineering blogs in readability, technical authority, and scannability.
 
 STRATEGY BRIEF:
 - Primary Keyword: "${strategy.primary_keyword}"
@@ -354,8 +368,8 @@ RETURN VALID JSON:
 // ✅ QA INSPECTOR — Strict Quality Gate (Score ≥ 80 to publish)
 // ═══════════════════════════════════════════════════════════════════════
 async function qaAgent(draft, strategy, knowledgeCtx) {
-  const model = getModel('qa');
-  console.log(`\n✅ QA INSPECTOR [${model}]: Running strict audit...`);
+  const models = getModels('qa');
+  console.log(`\n✅ QA INSPECTOR: Running strict audit...`);
 
   return await healedCall('QA Inspector', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
@@ -379,7 +393,7 @@ async function qaAgent(draft, strategy, knowledgeCtx) {
     // Redundancy check heuristic (simple count of common enterprise fluff phrases)
     const redundancyCount = (lowerContent.match(/enterprise performance|enterprise scalability|enterprise user experience|in today's digital age/gi) || []).length;
 
-    const raw = await smartCall(model, `You are the QA Inspector for a top-tier Engineering Blog (like Stripe/Vercel). You are STRICT but FAIR.
+    const raw = await smartCall(models, `You are the QA Inspector for a top-tier Engineering Blog (like Stripe/Vercel). You are STRICT but FAIR.
 
 ARTICLE METRICS (PRE-COMPUTED):
 - Word Count: ${wordCount} (Target: 2000+)
