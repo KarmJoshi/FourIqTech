@@ -23,14 +23,14 @@ company:
       - "Content Marketing"
 
   location:
-    primary: "Gujarat, India"
+    primary: "India, India"
     service_areas:
-      - "Gujarat"
+      - "India"
       - "India"
       - "Global (Remote)"
     
   target_clients:
-    - "Small & Medium Businesses in Gujarat"
+    - "Global Startups and Enterprises"
     - "Startups across India"
     - "E-commerce stores"
     - "Service-based businesses"
@@ -67,35 +67,35 @@ keywords:
   
   # LOCAL WEB DESIGN (High Priority)
   tier_1_local:
-    - "web design company in Gujarat"
-    - "website development Gujarat"
-    - "web designer in Ahmedabad"
-    - "best web development company Gujarat"
-    - "custom website design Gujarat"
+    - "web design company in India"
+    - "website development India"
+    - "web designer in Global"
+    - "best web development company India"
+    - "custom website design India"
   
   # LOCAL DIGITAL MARKETING (High Priority)
   tier_2_marketing:
-    - "digital marketing agency Gujarat"
-    - "SEO services Gujarat"
-    - "social media marketing Gujarat"
-    - "Google Ads agency Gujarat"
+    - "digital marketing agency India"
+    - "SEO services India"
+    - "social media marketing India"
+    - "Google Ads agency India"
     - "digital marketing company India"
   
   # LONG-TAIL (Easy Wins)
   tier_3_longtail:
-    - "affordable web design for small business Gujarat"
-    - "freelance web developer Gujarat prices"
-    - "WordPress development services Gujarat"
-    - "e-commerce website development Gujarat cost"
+    - "affordable web design for small business India"
+    - "freelance web developer India prices"
+    - "WordPress development services India"
+    - "e-commerce website development India cost"
     - "responsive website design company near me"
   
   # SERVICE-SPECIFIC
   tier_4_services:
     - "custom web application development India"
     - "startup website design packages"
-    - "business website design Gujarat"
+    - "business website design India"
     - "professional web design services India"
-    - "complete digital marketing services Gujarat"
+    - "complete digital marketing services India"
 
 # ============================================
 # CONTENT STRATEGY
@@ -108,7 +108,7 @@ content:
     - type: "How-to Guides"
       frequency: "2 per month"
       examples:
-        - "How to Choose the Right Web Design Company in Gujarat"
+        - "How to Choose the Right Web Design Company in India"
         - "10 Essential Features Every Business Website Needs in 2026"
         - "Step-by-Step Guide to Launching Your E-commerce Store"
     
@@ -121,8 +121,8 @@ content:
     - type: "Industry Insights"
       frequency: "2 per month"
       examples:
-        - "Web Design Trends in Gujarat 2026"
-        - "Why Gujarat Businesses Need Mobile-First Websites"
+        - "Web Design Trends in India 2026"
+        - "Why India Businesses Need Mobile-First Websites"
         - "Digital Marketing ROI for Small Businesses"
     
     - type: "Comparison Posts"
@@ -134,9 +134,9 @@ content:
     - type: "Local Focus"
       frequency: "2 per month"
       examples:
-        - "Top 10 Successful Websites from Gujarat-Based Companies"
-        - "How Gujarat SMEs Can Compete Online with Larger Brands"
-        - "Digital Marketing for Textile Businesses in Gujarat"
+        - "Top 10 Successful Websites from India-Based Companies"
+        - "How India SMEs Can Compete Online with Larger Brands"
+        - "Digital Marketing for Textile Businesses in India"
   
   content_specs:
     min_word_count: 1500
@@ -148,15 +148,15 @@ content:
     
   topic_clusters:
     cluster_1:
-      pillar: "Complete Guide to Web Design in Gujarat"
+      pillar: "Complete Guide to Web Design in India"
       supporting:
-        - "Web Design Cost Breakdown in Gujarat"
+        - "Web Design Cost Breakdown in India"
         - "Best Web Design Tools for Agencies"
         - "How to Brief a Web Designer"
         - "Web Design Timeline Explained"
     
     cluster_2:
-      pillar: "Digital Marketing Masterclass for Gujarat Businesses"
+      pillar: "Digital Marketing Masterclass for India Businesses"
       supporting:
         - "SEO Basics for Local Business"
         - "Social Media Strategy for SMEs"
@@ -177,24 +177,24 @@ content:
 onpage_seo:
   
   homepage:
-    title: "FouriqTech - Web Design & Digital Marketing Agency in Gujarat"
-    meta_description: "Leading web design and digital marketing agency in Gujarat. Custom websites, SEO, social media marketing. Affordable packages for startups & SMEs. Get a free quote!"
-    h1: "Next-Gen Web Design & Digital Marketing Services in Gujarat"
+    title: "FouriqTech - Web Design & Digital Marketing Agency in India"
+    meta_description: "Leading web design and digital marketing agency in India. Custom websites, SEO, social media marketing. Affordable packages for startups & SMEs. Get a free quote!"
+    h1: "Next-Gen Web Design & Digital Marketing Services in India"
     
   service_pages:
     - page: "Web Design Services"
       url: "/web-design-services"
-      title: "Professional Web Design Services Gujarat | FouriqTech"
-      meta: "Custom, responsive web design services in Gujarat. Mobile-first designs that convert. Portfolio of 50+ successful projects. Free consultation."
+      title: "Professional Web Design Services India | FouriqTech"
+      meta: "Custom, responsive web design services in India. Mobile-first designs that convert. Portfolio of 50+ successful projects. Free consultation."
     
     - page: "Digital Marketing"
       url: "/digital-marketing-services"
-      title: "Digital Marketing Agency Gujarat | SEO, Social Media & Ads"
-      meta: "Complete digital marketing services in Gujarat - SEO, Google Ads, Social Media Marketing. Proven results for 30+ businesses. Free strategy call."
+      title: "Digital Marketing Agency India | SEO, Social Media & Ads"
+      meta: "Complete digital marketing services in India - SEO, Google Ads, Social Media Marketing. Proven results for 30+ businesses. Free strategy call."
     
     - page: "E-commerce Development"
       url: "/ecommerce-development"
-      title: "E-commerce Website Development Gujarat | Online Store Solutions"
+      title: "E-commerce Website Development India | Online Store Solutions"
       meta: "Launch your online store with expert e-commerce development. Payment gateway integration, inventory management. Starting from ₹25,000."
   
   internal_linking:
@@ -258,13 +258,13 @@ local_seo:
       - "Regular Q&A updates"
   
   local_keywords:
-    primary_location: "Gujarat"
+    primary_location: "India"
     sub_locations:
-      - "Ahmedabad"
-      - "Surat"
-      - "Vadodara"
-      - "Rajkot"
-      - "Gandhinagar"
+      - "Global"
+      - "Global"
+      - "Global"
+      - "Global"
+      - "Global"
   
   local_citations:
     directories:
@@ -278,9 +278,9 @@ local_seo:
   
   location_pages:
     create_for:
-      - "Ahmedabad"
-      - "Surat"
-      - "Vadodara"
+      - "Global"
+      - "Global"
+      - "Global"
     format: "Service in [City] - Custom landing page"
 
 # ============================================
@@ -297,7 +297,7 @@ backlinks:
     1_content_marketing:
       method: "Create linkable assets"
       examples:
-        - "State of Web Design in Gujarat 2026 [Annual Report]"
+        - "State of Web Design in India 2026 [Annual Report]"
         - "Free Website Audit Tool"
         - "Web Design Cost Calculator"
         - "Digital Marketing ROI Calculator"
@@ -314,9 +314,9 @@ backlinks:
       automation: "60% (AI finds & writes, you send)"
     
     3_local_partnerships:
-      method: "Partner with Gujarat business associations"
+      method: "Partner with India business associations"
       targets:
-        - "Gujarat Chamber of Commerce"
+        - "India Chamber of Commerce"
         - "Local startup hubs"
         - "Business networking groups"
         - "Industry associations"

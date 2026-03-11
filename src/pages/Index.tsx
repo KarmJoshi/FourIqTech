@@ -10,6 +10,7 @@ import ContactSection from '@/components/ContactSection';
 import ProcessSection from '@/components/ProcessSection';
 import TechStack from '@/components/TechStack';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 
 const Index = () => {
   const [navVisible, setNavVisible] = useState(false);
@@ -29,6 +30,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="FouriqTech - Web Design & Digital Marketing Agency in Gujarat"
+        description="Leading web design and digital marketing agency in Gujarat. Custom websites, SEO, social media marketing. Affordable packages for startups & SMEs. Get a free quote!"
+        url="https://fouriqtech.com"
+      />
       <Navbar isVisible={navVisible} />
       <HeroSection onComplete={() => setNavVisible(true)} />
       <TechStack />

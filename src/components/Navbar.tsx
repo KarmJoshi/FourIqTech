@@ -1,8 +1,15 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const navItems = ['Home', 'Services', 'About', 'Contact'];
+const navItems = [
+  { name: 'Home', path: '/' },
+  { name: 'Services', path: '/#services' },
+  { name: 'About', path: '/#about' },
+  { name: 'Contact', path: '/#contact' },
+  { name: 'Blog', path: '/blog' }
+];
 
 interface NavbarProps {
   isVisible?: boolean;
@@ -20,33 +27,35 @@ export default function Navbar({ isVisible = true }: NavbarProps) {
     >
       <div className="mx-auto max-w-7xl">
         <div className="glass-strong rounded-2xl px-6 py-3 flex items-center justify-between">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            className="font-display text-xl font-bold tracking-tight"
-          >
-            <span>FOUR</span>
-            <span className="text-primary glow-text">IQ</span>
-            <span className="text-primary">TECH</span>
-          </motion.div>
+          <Link to="/">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              className="font-display text-xl font-bold tracking-tight"
+            >
+              <span>FOUR</span>
+              <span className="text-primary glow-text">IQ</span>
+              <span className="text-primary">TECH</span>
+            </motion.div>
+          </Link>
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item, i) => (
               <motion.a
-                key={item}
-                href={`#${item.toLowerCase()}`}
+                key={item.name}
+                href={item.path}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * i + 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={{ scale: 1.05, color: 'hsl(42 85% 55%)' }}
                 className="px-4 py-2 text-sm font-heading font-medium text-muted-foreground transition-colors duration-300 rounded-xl hover:bg-primary/[0.06]"
               >
-                {item}
+                {item.name}
               </motion.a>
             ))}
             <motion.a
-              href="#contact"
+              href="/#contact"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.9, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -79,15 +88,15 @@ export default function Navbar({ isVisible = true }: NavbarProps) {
             >
               {navItems.map((item, i) => (
                 <motion.a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
+                  key={item.name}
+                  href={item.path}
                   onClick={() => setIsOpen(false)}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05, duration: 0.3 }}
                   className="px-4 py-3 text-sm font-heading font-medium text-muted-foreground hover:text-primary transition-colors duration-300 rounded-xl hover:bg-primary/[0.06]"
                 >
-                  {item}
+                  {item.name}
                 </motion.a>
               ))}
             </motion.div>
