@@ -25,9 +25,9 @@ function getModels(taskType, escalation = 0) {
   const tasks = {
     'research': ['gemini-3.1-flash-lite-preview', 'gemini-2.5-flash', 'gemini-3-flash-preview'],
     'strategy': ['gemini-2.5-flash', 'gemini-3-flash-preview'],
-    'writing':  ['gemini-3-flash-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'],
-    'rewrite':  escalation > 0 ? ['gemini-2.5-pro', 'gemini-3-flash-preview', 'gemini-2.5-flash'] : ['gemini-3-flash-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'],
-    'qa':       ['gemini-2.5-pro', 'gemini-3-flash-preview', 'gemini-2.5-flash']
+    'writing':  ['gemini-3-flash-preview', 'gemini-2.5-flash'],
+    'rewrite':  ['gemini-3-flash-preview', 'gemini-2.5-flash'],
+    'qa':       ['gemini-3-flash-preview', 'gemini-2.5-flash']
   };
   return tasks[taskType] || ['gemini-2.5-flash'];
 }
@@ -584,8 +584,7 @@ async function managerAgent() {
     }
 
     if (attempt < MAX_ATTEMPTS - 1) {
-      const next = getModel('rewrite', attempt + 1);
-      console.log(`\n   ⬆️ ESCALATING → ${next} (attempt ${attempt + 2}/${MAX_ATTEMPTS})`);
+      console.log(`\n   ⬆️ ESCALATING → ${getModels('rewrite', attempt + 1)[0]} (attempt ${attempt + 2}/${MAX_ATTEMPTS})`);
     }
   }
 
