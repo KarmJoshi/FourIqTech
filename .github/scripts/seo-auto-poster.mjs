@@ -167,7 +167,7 @@ RETURN VALID JSON:
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 📊 STRATEGIST — Topical Authority & Clustering
+// 📊 STRATEGIST — Topical Authority & Clustering (SCANNABLE ENGINEERING FORMAT)
 // ═══════════════════════════════════════════════════════════════════════
 async function strategistAgent(research, config, existingSlugs, blogHistory) {
   const model = getModel('strategy');
@@ -192,17 +192,20 @@ YOUR TASKS:
 
 1. TOPICAL AUTHORITY CLUSTER: Identify which topic cluster this article belongs to and list 4-5 related future article ideas for the cluster.
 
-2. ARTICLE OUTLINE: Create a detailed 10-point outline following this EXACT structure:
+2. ARTICLE OUTLINE (SCANNABLE ENGINEERING FORMAT): Create a detailed outline following this EXACT Stripe/Vercel engineering blog structure:
    - H1: Title (SEO-optimized)
    - Introduction (hook + what reader will learn)
+   - Quick Summary Section
    - H2: Problem Overview (why this matters)
-   - H2: Technical Deep-Dive (core explanation)
-   - H2: Implementation Guide (step-by-step)
-   - H3: Code Example (if technical topic)
-   - H2: Optimization Techniques (pro tips)
-   - H2: Best Practices (do's and don'ts)
-   - H2: FAQ Section (4-5 common questions + answers)
-   - H2: Conclusion (summary + CTA)
+   - H2: Technical Explanation (core concepts)
+   - H2: Implementation Guide
+   - Code Example Slot
+   - H2: Optimization Techniques (with bullet list)
+   - H2: Best Practices (Do/Don't list)
+   - H2: FAQ (4-5 questions)
+   - H2: Conclusion
+
+   NOTE: Add "Key Insight" blocks to at least 2 sections in the outline.
 
 3. INTERNAL LINKING: Select 3-5 existing slugs to link to. ALSO always link to services (/services) and homepage (/).
 
@@ -218,13 +221,14 @@ RETURN VALID JSON:
   "cluster_topic": "Name of the topic cluster",
   "cluster_future_articles": ["future1", "future2", "future3", "future4"],
   "article_outline": [
-    "Introduction: hook and overview",
+    "Introduction: hook and overview (80-120 words)",
+    "Quick Summary Section",
     "H2: Problem Overview section description",
     "H2: Technical explanation section",
     "H2: Implementation guide with steps",
-    "H3: Code example section",
-    "H2: Optimization techniques",
-    "H2: Best practices",
+    "Code Example Slot",
+    "H2: Optimization techniques (with bullet list)",
+    "H2: Best practices (Do/Don't list)",
     "H2: FAQ with 4-5 questions",
     "H2: Conclusion with CTA"
   ],
@@ -244,7 +248,7 @@ RETURN VALID JSON:
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// ✍️ WRITER — Technical Content Engine
+// ✍️ WRITER — Technical Content Engine (Stripe/Vercel Engineering Style)
 // ═══════════════════════════════════════════════════════════════════════
 async function writerAgent(strategy, knowledgeCtx, blogHistory, escalation, qaFeedback = null) {
   const taskType = qaFeedback ? 'rewrite' : 'writing';
@@ -258,7 +262,7 @@ async function writerAgent(strategy, knowledgeCtx, blogHistory, escalation, qaFe
       ? `\n\n🔴 QA REJECTED YOUR DRAFT. FIX ALL OF THESE:\n${qaFeedback}\nRewrite the ENTIRE article from scratch addressing every issue.`
       : '';
 
-    const raw = await smartCall(model, `You are a senior technical content writer for FouriqTech.
+    const raw = await smartCall(model, `You are a senior technical content writer for FouriqTech. Your goal is to write an article that rivals Stripe, Vercel, or Cloudflare engineering blogs in readability, technical authority, and scannability.
 
 STRATEGY BRIEF:
 - Primary Keyword: "${strategy.primary_keyword}"
@@ -279,27 +283,24 @@ ${blogHistory.substring(0, 2000)}
 ${rewriteBlock}
 ${fix}
 
-═══ ARTICLE STRUCTURE (FOLLOW EXACTLY) ═══
+═══ STRICT ENGINEERING BLOG FORMATTING RULES ═══
 
-1. <h1> with primary keyword
-2. Introduction paragraph (engaging hook, state what reader learns)
-3. <h2> Problem Overview (why this topic matters, real-world impact)
-4. <h2> Technical Deep-Dive (detailed explanation with examples)
-5. <h2> Implementation Guide (step-by-step instructions)
-   - Include <pre><code class="language-javascript">...</code></pre> code blocks if topic is technical
-6. <h2> Optimization Techniques (advanced tips)
-7. <h2> Best Practices (do's and don'ts as a list)
-8. <h2> Frequently Asked Questions
-   - 4-5 <h3> questions with <p> answers
-9. <h2> Conclusion with CTA
+1. MAX PARAGRAPH LENGTH: 50–80 words maximum. NEVER write a "wall of text". If a thought requires more words, break it into a new paragraph or a bullet list.
+2. MANDATORY BULLET LISTS: Convert long technical explanations into scannable <ul><li> elements. EVERY major H2 section MUST contain at least one bulleted or numbered list.
+3. KEY INSIGHT BLOCKS: Insert 2 to 4 highlight boxes using this EXACT HTML: 
+   <blockquote><strong>Key Insight:</strong> [Your high-value insight here]</blockquote>
+4. TECHNICAL CODE BLOCKS: Provide at least 1-2 practical code examples using <pre><code class="language-javascript">...</code></pre>.
+5. VISUAL BREAKS: Do not allow long continuous text. Mix paragraphs, lists, code, and insights constantly to optimize for "scanning behavior".
+6. QUICK SUMMARY: After the introduction, provide a "Quick Summary" section.
+7. DO/DON'T LIST: In the "Best Practices" section, format it as a clear Do and Don't list.
 
 ═══ TONE REQUIREMENTS ═══
 - 70% educational (teach the reader something valuable)
 - 20% technical insight (show expertise with specifics)
 - 10% promotional (mention FouriqTech naturally, not forced)
 
-═══ WRITING RULES ═══
-1. MINIMUM 2000 words. Non-negotiable. Every H2 section must have 200+ words.
+═══ GENERAL WRITING RULES ═══
+1. MINIMUM 2000 words. Non-negotiable. Expand with technical specifics, not fluff.
 2. Use primary keyword naturally 5-8 times. Use each secondary keyword 2-3 times.
 3. Internal links: <a href="/blog/SLUG">descriptive text</a> for every slug in the list.
 4. ALSO link to: <a href="/">FouriqTech</a> and <a href="/#contact">our services</a>.
@@ -347,32 +348,39 @@ async function qaAgent(draft, strategy, knowledgeCtx) {
   return await healedCall('QA Inspector', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
 
-    // Pre-compute checks
+    // Pre-compute basic checks
     const content = draft.content || '';
     const lowerContent = content.toLowerCase();
     const primaryKw = strategy.primary_keyword.toLowerCase();
     const wordCount = draft.wordCount || 0;
     const kwCount = draft.keywordCount || 0;
     const kwDensity = wordCount > 0 ? ((kwCount / wordCount) * 100).toFixed(2) : 0;
-    const hasCodeBlock = content.includes('<code') || content.includes('<pre');
+    
+    // Formatting & Visual Break Checks
+    const codeBlockCount = (content.match(/<pre|<code/gi) || []).length;
+    const listCount = (content.match(/<ul|<ol/gi) || []).length;
+    const insightCount = (content.match(/<blockquote><strong>Key Insight:<\/strong>/gi) || []).length;
     const hasFAQ = lowerContent.includes('frequently asked') || lowerContent.includes('faq') || (content.match(/<h3>/g) || []).length >= 3;
     const internalLinkCount = (content.match(/href="\/blog\//g) || []).length;
     const externalLinkCount = (content.match(/target="_blank"/g) || []).length;
-    const h2Count = (content.match(/<h2>/gi) || []).length;
+    
+    // Redundancy check heuristic (simple count of common enterprise fluff phrases)
+    const redundancyCount = (lowerContent.match(/enterprise performance|enterprise scalability|enterprise user experience|in today's digital age/gi) || []).length;
 
-    const raw = await smartCall(model, `You are the QA Inspector at FouriqTech. You are STRICT but FAIR.
+    const raw = await smartCall(model, `You are the QA Inspector for a top-tier Engineering Blog (like Stripe/Vercel). You are STRICT but FAIR.
 
 ARTICLE METRICS (PRE-COMPUTED):
-- Word Count: ${wordCount}
-- Primary Keyword: "${strategy.primary_keyword}" (used ${kwCount} times, density: ${kwDensity}%)
+- Word Count: ${wordCount} (Target: 2000+)
+- Keyword Density: ${kwDensity}% (Target: ~1%)
 - Secondary Keywords: ${JSON.stringify(strategy.secondary_keywords)}
-- Has Code Examples: ${hasCodeBlock}
+- Code Examples: ${codeBlockCount} (Target: 2+)
+- Bullet/Numbered Lists: ${listCount}
+- Key Insight Blocks: ${insightCount} (Target: 2-4)
 - Has FAQ Section: ${hasFAQ}
 - Internal Links: ${internalLinkCount}
 - External Links: ${externalLinkCount}
-- H2 Headings: ${h2Count}
+- Redundant Buzzwords Found: ${redundancyCount}
 
-ARTICLE TITLE: "${draft.title}"
 ARTICLE CONTENT (first 10000 chars):
 ${content.substring(0, 10000)}
 
@@ -384,36 +392,36 @@ ${fix}
 
 ═══ QA CHECKLIST — SCORE EACH 1-10 ═══
 
-1. WORD_COUNT: Is it genuinely 2000+ words of substance? (${wordCount} words detected)
-2. PRIMARY_KEYWORD: Used naturally 5-8 times? Density 1-1.5%? (${kwCount} times, ${kwDensity}%)
-3. SECONDARY_KEYWORDS: Each of ${JSON.stringify(strategy.secondary_keywords)} used 2-3 times?
-4. INTERNAL_LINKS: At least 3 internal links present? (${internalLinkCount} found)
-5. EXTERNAL_LINKS: At least 1 authority external link? (${externalLinkCount} found)
-6. CODE_EXAMPLES: Code blocks present if topic is technical? (${hasCodeBlock})
-7. FAQ_SECTION: FAQ with 4-5 questions included? (${hasFAQ})
-8. HEADING_STRUCTURE: Proper H1 > H2 > H3 hierarchy? (${h2Count} H2s found)
-9. READABILITY: Conversational, varied sentences, no AI cliches?
-10. TONE_BALANCE: 70% educational, 20% technical, 10% promotional?
+1. PARAGRAPH_LENGTH: Are paragraphs consistently short (under 80 words)? Are there walls of text?
+2. VISUAL_BREAKS: Are there enough bullet lists (${listCount}) and Key Insight blocks (${insightCount}) to make it scannable?
+3. TECHNICAL_AUTHORITY: Are there at least 2 code examples (${codeBlockCount}) and actionable technical advice?
+4. REDUNDANCY: Is the writing varied? Does it repeat phrases like "enterprise performance" constantly? (${redundancyCount} found)
+5. KEYWORD_USAGE: Primary used naturally? (${kwCount} times, ${kwDensity}%). Secondary keywords included?
+6. WORD_COUNT: Is it genuinely 2000+ words of substance? (${wordCount} words detected)
+7. INTERNAL_LINKS: At least 3 internal links present? (${internalLinkCount} found)
+8. EXTERNAL_LINKS: At least 1 authority external link? (${externalLinkCount} found)
+9. HEADING_STRUCTURE: Proper H1 > H2 > H3 hierarchy? Quick summary and FAQ present?
+10. OVERALL_TONE: Does it sound like a premium engineering blog (Stripe/Vercel) rather than cheap SEO content?
 
 SCORING RULES:
-- Each criterion is 1-10 points
-- Overall score = average of all × 10 (max 100)
+- Each criterion is 1-10 points. Avoid giving 10 unless it is perfect.
+- Overall score = sum of all points (max 100)
 - Article PASSES if overallScore >= 80
-- Be FAIR: if the article genuinely covers the topic well, approve it
+- Be FAIR: if the article genuinely covers the topic well in a scannable format, approve it.
 
 RETURN VALID JSON:
 {
   "scores": {
+    "paragraph_length": 0,
+    "visual_breaks": 0,
+    "technical_authority": 0,
+    "redundancy": 0,
+    "keyword_usage": 0,
     "word_count": 0,
-    "primary_keyword": 0,
-    "secondary_keywords": 0,
     "internal_links": 0,
     "external_links": 0,
-    "code_examples": 0,
-    "faq_section": 0,
     "heading_structure": 0,
-    "readability": 0,
-    "tone_balance": 0
+    "overall_tone": 0
   },
   "overallScore": 0,
   "approved": false,
