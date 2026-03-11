@@ -12,8 +12,8 @@ interface SEOProps {
 export default function SEO({ 
   title, 
   description, 
-  url = 'https://four-iq-tech.vercel.app', 
-  image = 'https://four-iq-tech.vercel.app/og-image.jpg',
+  url = 'https://fouriqtech.com', 
+  image = 'https://fouriqtech.com/og-image.jpg',
   schema,
   article = false
 }: SEOProps) {
@@ -22,9 +22,9 @@ export default function SEO({
     "@context": "https://schema.org",
     "@type": ["Organization", "LocalBusiness"],
     "name": "FouriqTech",
-    "url": "https://four-iq-tech.vercel.app",
-    "logo": "https://four-iq-tech.vercel.app/logo.png",
-    "image": "https://four-iq-tech.vercel.app/og-image.jpg",
+    "url": "https://fouriqtech.com",
+    "logo": "https://fouriqtech.com/logo.png",
+    "image": "https://fouriqtech.com/og-image.jpg",
     "description": "Leading web design and digital marketing agency in Gujarat. Custom websites, SEO, social media marketing.",
     "telephone": "+910000000000",
     "priceRange": "$$",

@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /wp-admin/
 
-Sitemap: https://four-iq-tech.vercel.app/sitemap.xml
+Sitemap: https://fouriqtech.com/sitemap.xml

@@ -4,7 +4,7 @@
 
 company:
   name: "FouriqTech"
-  website: "https://four-iq-tech.vercel.app"
+  website: "https://fouriqtech.com"
   tagline: "Next-Gen Digital Services"
   
   services:
@@ -39,7 +39,7 @@ company:
   cms:
     type: "detect_automatically"  # Antigravity will check
     # If WordPress, add these later:
-    # admin_url: "https://four-iq-tech.vercel.app/wp-admin"
+    # admin_url: "https://fouriqtech.com/wp-admin"
     # username: "admin"
     # password: "your_password"
 

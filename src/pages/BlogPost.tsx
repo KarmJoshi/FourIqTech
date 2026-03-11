@@ -30,7 +30,7 @@ export default function BlogPost() {
     "@type": "Article",
     "headline": post.title,
     "description": post.excerpt,
-    "image": post.imageUrl || "https://four-iq-tech.vercel.app/og-image.jpg",
+    "image": post.imageUrl || "https://fouriqtech.com/og-image.jpg",
     "datePublished": post.date,
     "author": {
       "@type": "Person",
@@ -41,7 +41,7 @@ export default function BlogPost() {
       "name": "FouriqTech",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://four-iq-tech.vercel.app/logo.png"
+        "url": "https://fouriqtech.com/logo.png"
       }
     }
   };
@@ -51,7 +51,7 @@ export default function BlogPost() {
       <SEO 
         title={`${post.title} | FouriqTech Blog`}
         description={post.excerpt}
-        url={`https://four-iq-tech.vercel.app/blog/${post.slug}`}
+        url={`https://fouriqtech.com/blog/${post.slug}`}
         image={post.imageUrl}
         article={true}
         schema={articleSchema}
