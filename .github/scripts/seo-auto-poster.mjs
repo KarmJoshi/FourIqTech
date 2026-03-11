@@ -7,7 +7,7 @@ const CONFIG_PATH = path.join(process.cwd(), 'fouriqtech-seo-config.yaml');
 const BLOG_DATA_PATH = path.join(process.cwd(), 'src/data/blogPosts.ts');
 const KNOWLEDGE_BASE_DIR = path.join(process.cwd(), '.github/knowledge_base');
 
-const PRO_MODEL = 'gemini-2.5-pro';
+const PRO_MODEL = 'gemini-2.5-flash';
 const FLASH_MODEL = 'gemini-2.5-flash';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
