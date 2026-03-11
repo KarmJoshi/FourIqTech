@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://fouriqtech.com/</loc>
+    <loc>https://four-iq-tech.vercel.app/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://fouriqtech.com/blog</loc>
+    <loc>https://four-iq-tech.vercel.app/blog</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://fouriqtech.com/blog/how-to-choose-web-design-company-gujarat</loc>
+    <loc>https://four-iq-tech.vercel.app/blog/how-to-choose-web-design-company-gujarat</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://fouriqtech.com/blog/web-design-cost-breakdown-gujarat-2026</loc>
+    <loc>https://four-iq-tech.vercel.app/blog/web-design-cost-breakdown-gujarat-2026</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://fouriqtech.com/blog/why-gujarat-businesses-need-mobile-first-websites</loc>
+    <loc>https://four-iq-tech.vercel.app/blog/why-gujarat-businesses-need-mobile-first-websites</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

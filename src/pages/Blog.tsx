@@ -22,7 +22,7 @@ export default function Blog() {
       <SEO 
         title="FouriqTech Blog | Web Design & Marketing Insights"
         description="Read the latest insights, strategies, and technical guides on web design, SEO, and digital marketing for growing your business in Gujarat."
-        url="https://fouriqtech.com/blog"
+        url="https://four-iq-tech.vercel.app/blog"
       />
       <Navbar isVisible={navVisible} />
       

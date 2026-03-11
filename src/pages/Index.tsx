@@ -33,7 +33,7 @@ const Index = () => {
       <SEO 
         title="FouriqTech - Web Design & Digital Marketing Agency in Gujarat"
         description="Leading web design and digital marketing agency in Gujarat. Custom websites, SEO, social media marketing. Affordable packages for startups & SMEs. Get a free quote!"
-        url="https://fouriqtech.com"
+        url="https://four-iq-tech.vercel.app"
       />
       <Navbar isVisible={navVisible} />
       <HeroSection onComplete={() => setNavVisible(true)} />
