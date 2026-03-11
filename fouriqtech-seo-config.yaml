@@ -86,6 +86,11 @@ keywords:
     - custom web animations for enterprise user experience
     - React GSAP integration strategies for large applications
     - measuring animation impact on enterprise web conversion
+    - Next.js architecture for scalable global enterprise applications
+    - Next.js multi-tenant architecture best practices
+    - microservices vs monolithic Next.js for enterprise
+    - serverless Next.js development for global scale
+    - TypeScript large-scale Next.js projects strategy
 content:
   blog_frequency: 3 posts per week
   content_types:

@@ -39,7 +39,7 @@ function getModel(taskType, escalation = 0) {
   return MODEL_LADDER[Math.min(base + escalation, MODEL_LADDER.length - 1)];
 }
 
-// ── Multi-API Key Rotation ──
+// ── Multi-API Key Rotation & Rate Limit Handling ──
 const API_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
   .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
@@ -52,35 +52,54 @@ function rotateKey() {
   console.log(`   🔑 Rotated → Key #${currentKeyIdx + 1}/${API_KEYS.length}`);
 }
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 async function smartCall(model, contents) {
   let tries = 0;
-  while (tries < API_KEYS.length) {
+  let backoffMs = 5000; // Start with 5 second backoff for rate limits
+
+  while (tries < API_KEYS.length * 2) { // Allow trying each key twice with backoff
     try {
       const resp = await aiClient.models.generateContent({
         model, contents, config: { responseMimeType: "application/json" }
       });
+      // Add a small mandatory delay after EVERY successful call to prevent bursting
+      await sleep(3000); 
       return resp.candidates[0].content.parts[0].text;
     } catch (err) {
       if (err.status === 429 || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
+        console.log(`   ⏳ Rate limit hit! Backing off for ${backoffMs/1000}s...`);
+        await sleep(backoffMs);
         tries++;
-        if (tries < API_KEYS.length) { rotateKey(); await sleep(2000); continue; }
+        
+        // Every other attempt, rotate the key
+        if (tries % 2 !== 0 && API_KEYS.length > 1) {
+          rotateKey();
+        } else {
+          // If we didn't rotate, increase the backoff exponentially
+          backoffMs *= 2; 
+        }
+        continue;
       }
       throw err;
     }
   }
-  throw new Error('All API keys exhausted.');
+  throw new Error('All API keys and backoff attempts exhausted.');
 }
-
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function healedCall(agent, fn, retries = 2) {
   let lastErr = null;
   for (let i = 1; i <= retries; i++) {
-    try { return await fn(lastErr); }
+    try { 
+      return await fn(lastErr); 
+    }
     catch (e) {
       console.error(`   ⚠️ [${agent}] Attempt ${i}: ${e.message?.substring(0, 120)}`);
       lastErr = e;
-      if (i < retries) { console.log(`   🩹 [${agent}] Retrying...`); await sleep(3000); }
+      if (i < retries) { 
+        console.log(`   🩹 [${agent}] Self-healing: cooling down for 10s...`); 
+        await sleep(10000); // Massive 10s cooldown before self-healing retry
+      }
     }
   }
   throw lastErr;
