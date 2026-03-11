@@ -19,24 +19,17 @@ const BLOG_DATA_PATH = path.join(process.cwd(), 'src/data/blogPosts.ts');
 const KNOWLEDGE_BASE_DIR = path.join(process.cwd(), '.github/knowledge_base');
 const PUBLISH_LOG_PATH = path.join(process.cwd(), '.github/publish_log.json');
 
-// ── Model Ladder ──
-const MODEL_LADDER = [
-  'gemini-2.5-flash',
-  'gemini-3-flash-preview',
-  'gemini-3.1-pro-preview',
-];
-
-const TASK_MODELS = {
-  research:  { start: 0 },
-  strategy:  { start: 0 },
-  writing:   { start: 0 },
-  rewrite:   { start: 1 },
-  qa:        { start: 0 },
-};
-
+// ── Task-Specific AI Models (Free-Tier Optimized) ──
 function getModel(taskType, escalation = 0) {
-  const base = TASK_MODELS[taskType]?.start || 0;
-  return MODEL_LADDER[Math.min(base + escalation, MODEL_LADDER.length - 1)];
+  const tasks = {
+    'research': 'gemini-3.1-flash-lite-preview',  // The Researcher: Ultra-fast for high volumes of SERP data
+    'strategy': 'gemini-2.5-flash',                 // General Assistant: Good for formatting and planning
+    'writing':  'gemini-3-flash-preview',           // The Writer: Fast, high-quality drafting
+    // Writer escalates to Editor reasoning if QA continually rejects it
+    'rewrite':   escalation > 0 ? 'gemini-2.5-pro' : 'gemini-3-flash-preview',
+    'qa':       'gemini-2.5-pro'                    // The Editor/QA: Deep reasoning for SEO checks
+  };
+  return tasks[taskType] || 'gemini-2.5-flash';
 }
 
 // ── Multi-API Key Rotation & Rate Limit Handling ──
@@ -462,10 +455,10 @@ RETURN VALID JSON:
 // ═══════════════════════════════════════════════════════════════════════
 async function managerAgent() {
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  👔 FOURIQTECH AI SEO ENGINE v2.0 — Professional Grade  ║');
+  console.log('║  👔 FOURIQTECH AI SEO ENGINE v2.0 — Free-Tier Optimized ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log(`⏰ ${new Date().toISOString()}`);
-  console.log(`🔑 API Keys: ${API_KEYS.length} | 🧠 Models: ${MODEL_LADDER.join(' → ')}`);
+  console.log(`🔑 API Keys: ${API_KEYS.length} | 🧠 Models: 3.1-flash-lite → 2.5-flash → 3.0-flash → 2.5-pro`);
 
   if (API_KEYS.length === 0) {
     console.error('❌ No API keys. Set GEMINI_API_KEYS. Exiting.');

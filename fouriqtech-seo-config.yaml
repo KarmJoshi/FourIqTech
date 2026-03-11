@@ -91,6 +91,21 @@ keywords:
     - microservices vs monolithic Next.js for enterprise
     - serverless Next.js development for global scale
     - TypeScript large-scale Next.js projects strategy
+    - implementing headless CMS with Next.js for global startups
+    - Next.js internationalization headless CMS
+    - scalable headless CMS architecture for enterprise
+    - choosing headless CMS for rapid startup growth
+    - Next.js content modeling best practices
+    - react performance optimization techniques
+    - react rendering
+    - react memo
+    - useMemo performance
+    - react profiler
+    - nextjs serverless architecture for high-traffic enterprise applications
+    - optimizing cold starts in nextjs serverless
+    - scalable nextjs infrastructure for global startups
+    - nextjs enterprise deployment best practices
+    - managing database connections in serverless nextjs
 content:
   blog_frequency: 3 posts per week
   content_types:
