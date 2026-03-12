@@ -136,6 +136,11 @@ keywords:
     - saas user retention ux patterns
     - complex data visualization design best practices
     - reducing cognitive load in enterprise software
+    - enterprise react performance audit for high traffic applications
+    - react rendering performance bottlenecks analysis
+    - identifying memory leaks in complex react dashboards
+    - react application performance monitoring for enterprise
+    - optimizing react bundle size for large scale platforms
 content:
   blog_frequency: 3 posts per week
   content_types:
