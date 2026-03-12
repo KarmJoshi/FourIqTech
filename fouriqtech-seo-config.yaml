@@ -141,6 +141,13 @@ keywords:
     - identifying memory leaks in complex react dashboards
     - react application performance monitoring for enterprise
     - optimizing react bundle size for large scale platforms
+    - >-
+      optimizing nextjs server-side rendering for high-traffic enterprise
+      applications
+    - nextjs serverless cold start mitigation
+    - reducing ttfb in complex react applications
+    - scaling nextjs for high concurrency traffic
+    - caching strategies for dynamic nextjs enterprise apps
 content:
   blog_frequency: 3 posts per week
   content_types:
