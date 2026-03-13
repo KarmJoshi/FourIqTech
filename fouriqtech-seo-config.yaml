@@ -148,6 +148,11 @@ keywords:
     - reducing ttfb in complex react applications
     - scaling nextjs for high concurrency traffic
     - caching strategies for dynamic nextjs enterprise apps
+    - optimizing framer motion animations for enterprise react applications
+    - reducing layout shift with framer motion
+    - framer motion performance best practices 2026
+    - maintaining 60fps in complex react dashboards
+    - framer motion vs gsap for enterprise performance
 content:
   blog_frequency: 3 posts per week
   content_types:
