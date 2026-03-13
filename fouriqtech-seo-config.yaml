@@ -153,6 +153,31 @@ keywords:
     - framer motion performance best practices 2026
     - maintaining 60fps in complex react dashboards
     - framer motion vs gsap for enterprise performance
+    - implementing micro-frontend architecture in nextjs for enterprise
+    - nextjs modular architecture for large scale applications
+    - scaling enterprise react applications with micro-frontends
+    - nextjs federation plugin configuration guide
+    - managing state across micro-frontends in nextjs
+    - enterprise react application performance audit services
+    - react performance bottlenecks analysis
+    - enterprise web app scalability audit
+    - react memory leak debugging service
+    - optimizing react bundle size for enterprise
+    - react dashboard performance optimization
+    - enterprise frontend monitoring strategy
+    - professional react code review services
+    - web application audit checklist 2026
+    - improving TTFB for complex web apps
+    - react app slow rendering
+    - high bounce rate due to dashboard latency
+    - unexplained memory leaks in react frontend
+    - bloated bundle size preventing scaling
+    - React Profiler API
+    - Webpack Bundle Analyzer
+    - Lighthouse CI integration
+    - monolithic vs modular architecture scaling
+    - react tree reconciliation performance
+    - client-side hydration patterns
 content:
   blog_frequency: 3 posts per week
   content_types:
