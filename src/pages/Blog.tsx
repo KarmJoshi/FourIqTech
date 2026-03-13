@@ -64,7 +64,7 @@ export default function Blog() {
                 </h2>
               </div>
               
-              <p className="text-zinc-300 text-base md:text-lg leading-relaxed mb-8 flex-1">
+              <p className="text-zinc-300 text-base md:text-lg leading-relaxed mb-8 flex-1 line-clamp-3">
                 {post.excerpt}
               </p>
               
