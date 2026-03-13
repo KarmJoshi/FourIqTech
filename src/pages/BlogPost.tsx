@@ -90,12 +90,22 @@ export default function BlogPost() {
           </header>
           
           <div 
-            className="prose prose-invert prose-lg max-w-none 
-              prose-headings:font-display prose-headings:font-bold prose-headings:text-zinc-100
-              prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:border-b prose-h2:border-white/10 prose-h2:pb-4
-              prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-6
-              prose-a:text-primary hover:prose-a:text-primary/80 prose-a:transition-colors
-              prose-strong:text-zinc-200"
+            className="prose prose-invert lg:prose-xl max-w-none 
+              prose-headings:font-display prose-headings:font-bold prose-headings:text-zinc-100 prose-headings:tracking-tight
+              prose-h1:text-4xl prose-h1:mt-12 prose-h1:mb-8
+              prose-h2:text-3xl prose-h2:mt-16 prose-h2:mb-6 prose-h2:border-b prose-h2:border-white/10 prose-h2:pb-4 text-glow-subtle
+              prose-h3:text-2xl prose-h3:mt-10 prose-h3:mb-4
+              prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:mb-8 prose-p:text-lg
+              prose-a:text-primary hover:prose-a:text-primary/80 prose-a:transition-colors prose-a:underline-offset-4
+              prose-strong:text-zinc-100 prose-strong:font-semibold
+              prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-8 prose-ul:text-zinc-300 prose-ul:text-lg
+              prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-8 prose-ol:text-zinc-300 prose-ol:text-lg
+              prose-li:mb-2 prose-li:marker:text-primary/70
+              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-zinc-400 prose-blockquote:bg-white/5 prose-blockquote:py-2 prose-blockquote:pr-4 prose-blockquote:rounded-r-lg prose-blockquote:my-10
+              prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
+              prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl prose-pre:shadow-2xl
+              prose-img:rounded-2xl prose-img:border prose-img:border-white/10 prose-img:shadow-2xl prose-img:my-12
+              prose-hr:border-white/10 prose-hr:my-12"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </article>
