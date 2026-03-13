@@ -49,27 +49,27 @@ export default function Blog() {
             >
               <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               
-              <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground mb-6 uppercase tracking-wider">
-                <span className="flex items-center gap-1.5"><Calendar size={14} /> {post.date}</span>
+              <div className="flex items-center gap-4 text-sm font-medium text-zinc-400 mb-6 uppercase tracking-wider">
+                <span className="flex items-center gap-1.5"><Calendar size={14} className="text-primary/70" /> {post.date}</span>
                 <span className="w-1 h-1 rounded-full bg-primary/50" />
-                <span className="flex items-center gap-1.5"><Clock size={14} /> {post.readTime}</span>
+                <span className="flex items-center gap-1.5"><Clock size={14} className="text-primary/70" /> {post.readTime}</span>
               </div>
               
-              <div className="mb-4">
-                <span className="inline-block px-3 py-1 bg-white/5 rounded-full text-xs font-medium text-white/70 mb-4 border border-white/10">
+              <div className="mb-6">
+                <span className="inline-block px-3 py-1 bg-white/5 rounded-full text-xs font-medium text-zinc-300 mb-4 border border-white/10 shadow-sm">
                   {post.category}
                 </span>
-                <h2 className="text-2xl font-display font-bold text-zinc-100 group-hover:text-primary transition-colors duration-300">
+                <h2 className="text-2xl md:text-3xl font-display font-bold text-zinc-100 group-hover:text-primary transition-colors duration-300 leading-tight">
                   {post.title}
                 </h2>
               </div>
               
-              <p className="text-muted-foreground text-sm leading-relaxed mb-8 flex-1">
+              <p className="text-zinc-300 text-base md:text-lg leading-relaxed mb-8 flex-1">
                 {post.excerpt}
               </p>
               
-              <div className="mt-auto flex items-center gap-2 text-sm font-medium text-primary">
-                Read Article <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <div className="mt-auto flex items-center gap-2 text-base font-medium text-primary uppercase tracking-wide">
+                Read Article <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
               </div>
             </Link>
           ))}
