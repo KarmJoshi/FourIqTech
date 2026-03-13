@@ -46,6 +46,73 @@ export default function BlogPost() {
     }
   };
 
+  // Helper to parse HTML string and convert FAQs into accordion details
+  const createInteractiveFAQs = (htmlContent: string) => {
+    // 1. In standard markdown-to-html, an FAQ section is usually an <h2> followed by <h3> questions.
+    // We look for <h3> tags inside the content that appear to be questions.
+    
+    // This regex looks for <h3>Question</h3> followed by <p>Answer</p>
+    // It is a simple heuristic to wrap them in <details> tags
+    let processedHtml = htmlContent;
+    
+    // Advanced parsing: replace <h3> Q </h3> <p> A </p> with <details><summary> Q </summary> <div class="faq-content"> <p> A </p> </div></details>
+    // Since regex on HTML is fragile, we'll do a simple string replacement pattern for the common AI output structures
+    
+    // Find all H3s (which are the FAQ questions) and wrap them and the following P tags until the next H3 or H2
+    try {
+      if (typeof window !== 'undefined') {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
+        
+        // Find the FAQ h2 section if it exists
+        const headings = Array.from(doc.querySelectorAll('h2, h3'));
+        let inFAQSection = false;
+        
+        headings.forEach((heading) => {
+          if (heading.tagName === 'H2' && heading.textContent?.toLowerCase().includes('faq')) {
+            inFAQSection = true;
+          } else if (heading.tagName === 'H2') {
+            inFAQSection = false; // Left FAQ section
+          }
+          
+          // If we are an H3 (often used for questions whether under an FAQ H2 or not)
+          if (heading.tagName === 'H3' && (inFAQSection || heading.textContent?.endsWith('?'))) {
+            const details = doc.createElement('details');
+            details.className = 'group my-6 border border-white/10 bg-white/5 rounded-xl transition-all duration-300 open:bg-white/10 hover:border-primary/50';
+            
+            const summary = doc.createElement('summary');
+            summary.className = 'flex items-center justify-between cursor-pointer p-6 font-display font-semibold text-xl text-zinc-100 list-none [&::-webkit-details-marker]:hidden';
+            summary.innerHTML = `${heading.innerHTML} <span class="transition-transform duration-300 group-open:-rotate-180 text-primary opacity-70">▼</span>`;
+            
+            const contentDiv = doc.createElement('div');
+            contentDiv.className = 'p-6 pt-0 text-zinc-300 leading-relaxed border-t border-white/10 mt-2';
+            
+            // Gather all sibling elements until the next H2 or H3
+            let nextSibling = heading.nextElementSibling;
+            while (nextSibling && nextSibling.tagName !== 'H2' && nextSibling.tagName !== 'H3') {
+              const toMove = nextSibling;
+              nextSibling = nextSibling.nextElementSibling;
+              contentDiv.appendChild(toMove);
+            }
+            
+            details.appendChild(summary);
+            details.appendChild(contentDiv);
+            
+            heading.parentNode?.replaceChild(details, heading);
+          }
+        });
+        
+        processedHtml = doc.body.innerHTML;
+      }
+    } catch (e) {
+      console.error("Error parsing FAQs", e);
+    }
+    
+    return processedHtml;
+  };
+
+  const parsedContent = createInteractiveFAQs(post.content);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col pt-32">
       <SEO 
@@ -106,7 +173,7 @@ export default function BlogPost() {
               prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl prose-pre:shadow-2xl
               prose-img:rounded-2xl prose-img:border prose-img:border-white/10 prose-img:shadow-2xl prose-img:my-12
               prose-hr:border-white/10 prose-hr:my-12"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: parsedContent }}
           />
         </article>
       </main>
