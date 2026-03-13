@@ -1,5 +1,6 @@
 /* Fonts loaded via <link> in index.html for better performance */
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-border: hsl(var(--border));
