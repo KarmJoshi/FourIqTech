@@ -824,6 +824,57 @@ async function managerAgent() {
     process.exit(0);
   }
 
+  // ── DEV AGENT INTERCEPTION ──
+  if (leadScore.intent_category === 'buyer_commercial' && leadScore.lead_intent_score >= 8) {
+    console.log('\n╔═══════════════════════════════════════════════════════════╗');
+    console.log('║  🚀 HIGH BUYER INTENT DETECTED — Routing to Dev Agent   ║');
+    console.log('╠═══════════════════════════════════════════════════════════╣');
+    console.log(`║  Keyword: "${research.primary_keyword}"`);
+    console.log(`║  Lead Score: ${leadScore.lead_intent_score}/10`);
+    console.log('║  This keyword needs a landing page, not a blog post.    ║');
+    console.log('╚═══════════════════════════════════════════════════════════╝');
+
+    try {
+      const QUEUE_PATH = path.join(process.cwd(), '.github/dev-tasks/queue.json');
+      let queue = { tasks: [], completed: [] };
+      if (fs.existsSync(QUEUE_PATH)) {
+        queue = JSON.parse(fs.readFileSync(QUEUE_PATH, 'utf8'));
+      }
+      
+      const crypto = require('crypto');
+      const routeSlug = research.primary_keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const componentName = routeSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+      
+      queue.tasks.push({
+        id: crypto.randomUUID(),
+        type: 'landing_page',
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        keyword: research.primary_keyword,
+        secondary_keywords: research.secondary_keywords,
+        route: `/services/\${routeSlug}`,
+        page_title: `\${componentName} Services`,
+        target_file: `src/pages/services/\${componentName}.tsx`,
+        seo: {
+          meta_title: `\${research.primary_keyword} | FouriqTech`,
+          meta_description: `Premium \${research.primary_keyword} services by FouriqTech.`
+        },
+        design_brief: { "note": "Use the /dev-tasks workflow to complete the brief and build the page." }
+      });
+      
+      queue.last_updated = new Date().toISOString();
+      fs.writeFileSync(QUEUE_PATH, JSON.stringify(queue, null, 2));
+      console.log('   ✅ Task queued in .github/dev-tasks/queue.json');
+      
+    } catch (e) {
+      console.error(`   ❌ Failed to queue task: \${e.message}`);
+    }
+    
+    writeResearchTempFile(research, leadScore, null, null);
+    console.log('\n👔 MANAGER: Engine signing off. ✅');
+    process.exit(0);
+  }
+
   // ══════════════════════════════════════
   // Stage 3: Strategist
   // ══════════════════════════════════════
