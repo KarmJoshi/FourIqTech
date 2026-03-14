@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import CursorFollower from "./components/CursorFollower";
 import SmoothScroll from "./components/SmoothScroll";
 
 import Blog from "./pages/Blog";
@@ -24,7 +23,6 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SmoothScroll>
-          <CursorFollower />
           <Toaster />
           <Sonner />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

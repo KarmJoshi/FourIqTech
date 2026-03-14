@@ -199,20 +199,11 @@
 
   body {
     @apply bg-background text-foreground font-body antialiased relative;
-    cursor: none;
     overflow-x: hidden;
     /* overflow-y managed by index.html (overflow-y: scroll) to avoid scrollbar CLS */
   }
 
-  a,
-  button,
-  [role="button"],
-  input,
-  textarea,
-  select,
-  label {
-    cursor: none;
-  }
+  /* Removed cursor hiding for interactive elements */
 
   /* Hide Scrollbar */
   ::-webkit-scrollbar {
