@@ -11,6 +11,7 @@ import SmoothScroll from "./components/SmoothScroll";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CustomSaasPlatformDevelopment from "./pages/services/CustomSaasPlatformDevelopment";
+import LegacyWebApplicationModernization from "./pages/services/LegacyWebApplicationModernization";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/blog/:slug" element={<BlogPost />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="/services/custom-saas-platform-development" element={<CustomSaasPlatformDevelopment />} />
+            <Route path="/services/legacy-web-application-modernization" element={<LegacyWebApplicationModernization />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
