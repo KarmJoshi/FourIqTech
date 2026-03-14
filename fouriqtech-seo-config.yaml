@@ -178,6 +178,17 @@ keywords:
     - monolithic vs modular architecture scaling
     - react tree reconciliation performance
     - client-side hydration patterns
+    - enterprise react dashboard performance optimization strategies
+    - react data visualization performance tuning
+    - reducing memory leaks in react dashboards
+    - optimizing react bundle size for large scale apps
+    - fast react data rendering techniques
+    - react performance audit services for enterprise
+    - react high-traffic dashboard architecture
+    - custom react development for B2B SaaS
+    - scaling enterprise react application frontend
+    - react app slow rendering on large datasets
+    - React Query performance
 content:
   blog_frequency: 3 posts per week
   content_types:
