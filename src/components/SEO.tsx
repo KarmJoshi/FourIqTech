@@ -20,19 +20,13 @@ export default function SEO({
   // Base site-wide Organization / LocalBusiness schema
   const baseSchema = {
     "@context": "https://schema.org",
-    "@type": ["Organization", "LocalBusiness"],
+    "@type": "Organization",
     "name": "FouriqTech",
     "url": "https://fouriqtech.com",
     "logo": "https://fouriqtech.com/logo.png",
     "image": "https://fouriqtech.com/og-image.jpg",
-    "description": "Leading web design and digital marketing agency in Gujarat. Custom websites, SEO, social media marketing.",
-    "telephone": "+910000000000",
-    "priceRange": "$$",
-    "address": {
-      "@type": "PostalAddress",
-      "addressRegion": "Gujarat",
-      "addressCountry": "IN"
-    }
+    "description": "Leading global web design agency. Custom websites and SEO.",
+    "telephone": "+910000000000"
   };
 
   const schemasToRender = schema 

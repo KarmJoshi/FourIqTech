@@ -20,8 +20,8 @@ export default function Blog() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col pt-32">
       <SEO 
-        title="FouriqTech Blog | Web Design & Marketing Insights"
-        description="Read the latest insights, strategies, and technical guides on web design, SEO, and digital marketing for growing your business in Gujarat."
+        title="FouriqTech Blog | Global Web Design Insights"
+        description="Read the latest insights, strategies, and technical guides on web design and SEO for growing your business globally."
         url="https://fouriqtech.com/blog"
       />
       <Navbar isVisible={navVisible} />
@@ -36,7 +36,7 @@ export default function Blog() {
             Our <span className="text-gradient">Blog</span>
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl">
-            Strategies, insights, and technical guides on web design, digital marketing, and growing your business in Gujarat.
+            Strategies, insights, and technical guides on web design and growing your business globally.
           </p>
         </div>
 

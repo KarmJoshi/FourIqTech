@@ -31,8 +31,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO 
-        title="FouriqTech - Web Design & Digital Marketing Agency in Gujarat"
-        description="Leading web design and digital marketing agency in Gujarat. Custom websites, SEO, social media marketing. Affordable packages for startups & SMEs. Get a free quote!"
+        title="FouriqTech - Global Web Design Agency"
+        description="Leading global web design agency. Custom websites and SEO. Affordable packages for startups & SMEs worldwide. Get a free quote!"
         url="https://fouriqtech.com"
       />
       <Navbar isVisible={navVisible} />

@@ -5,7 +5,7 @@ company:
   services:
     primary:
       - Web Design & Development
-      - Digital Marketing
+      - digital strategy
       - SEO Services
       - Custom Web Applications
     secondary:
@@ -48,11 +48,11 @@ keywords:
     - best web development company India
     - custom website design India
   tier_2_marketing:
-    - digital marketing agency India
+    - web design agency India
     - SEO services India
     - social media marketing India
     - Google Ads agency India
-    - digital marketing company India
+    - digital strategy company India
   tier_3_longtail:
     - affordable web design for small business India
     - freelance web developer India prices
@@ -64,7 +64,7 @@ keywords:
     - startup website design packages
     - business website design India
     - professional web design services India
-    - complete digital marketing services India
+    - complete digital strategy services India
   auto_discovered:
     - enterprise web portal development India
     - strategic digital transformation consulting for global startups
@@ -72,7 +72,7 @@ keywords:
     - B2B SaaS product website design agency India
     - AI-powered website development for enterprise solutions India
     - custom enterprise web application development for global startups
-    - ROI-driven digital marketing strategies for B2B SaaS companies India
+    - ROI-driven digital strategy strategies for B2B SaaS companies India
     - high-performance React Next.js development for scalable web platforms
     - luxury UI UX design agency for high-end brands Middle East
     - automated lead generation funnels for enterprise businesses UK
@@ -208,7 +208,7 @@ content:
       examples:
         - Web Design Trends in India 2026
         - Why India Businesses Need Mobile-First Websites
-        - Digital Marketing ROI for Small Businesses
+        - digital strategy ROI for Small Businesses
     - type: Comparison Posts
       frequency: 1 per month
       examples:
@@ -219,7 +219,7 @@ content:
       examples:
         - Top 10 Successful Websites from India-Based Companies
         - How India SMEs Can Compete Online with Larger Brands
-        - Digital Marketing for Textile Businesses in India
+        - digital strategy for Textile Businesses in India
   content_specs:
     min_word_count: 1500
     max_word_count: 2500
@@ -236,7 +236,7 @@ content:
         - How to Brief a Web Designer
         - Web Design Timeline Explained
     cluster_2:
-      pillar: Digital Marketing Masterclass for India Businesses
+      pillar: digital strategy Masterclass for India Businesses
       supporting:
         - SEO Basics for Local Business
         - Social Media Strategy for SMEs
@@ -251,12 +251,12 @@ content:
         - Shipping Solutions for Online Stores
 onpage_seo:
   homepage:
-    title: FouriqTech - Web Design & Digital Marketing Agency in India
+    title: FouriqTech - Web Design & web design agency in India
     meta_description: >-
-      Leading web design and digital marketing agency in India. Custom websites,
+      Leading web design agency in India. Custom websites,
       SEO, social media marketing. Affordable packages for startups & SMEs. Get
       a free quote!
-    h1: Next-Gen Web Design & Digital Marketing Services in India
+    h1: Next-Gen Web Design & digital strategy Services in India
   service_pages:
     - page: Web Design Services
       url: /web-design-services
@@ -264,11 +264,11 @@ onpage_seo:
       meta: >-
         Custom, responsive web design services in India. Mobile-first designs
         that convert. Portfolio of 50+ successful projects. Free consultation.
-    - page: Digital Marketing
+    - page: digital strategy
       url: /digital-marketing-services
-      title: Digital Marketing Agency India | SEO, Social Media & Ads
+      title: web design agency India | SEO, Social Media & Ads
       meta: >-
-        Complete digital marketing services in India - SEO, Google Ads, Social
+        Complete digital strategy services in India - SEO, Google Ads, Social
         Media Marketing. Proven results for 30+ businesses. Free strategy call.
     - page: E-commerce Development
       url: /ecommerce-development
@@ -354,7 +354,7 @@ backlinks:
         - State of Web Design in India 2026 [Annual Report]
         - Free Website Audit Tool
         - Web Design Cost Calculator
-        - Digital Marketing ROI Calculator
+        - digital strategy ROI Calculator
       expected: 2-3 natural backlinks/month
     2_guest_posting:
       method: AI writes, you review & pitch
@@ -387,7 +387,7 @@ backlinks:
 conversion:
   lead_magnets:
     - Free Website Audit (worth ₹5,000)
-    - Digital Marketing Strategy Template
+    - digital strategy Strategy Template
     - Web Design Checklist PDF
     - E-commerce Launch Guide
   ctas:
