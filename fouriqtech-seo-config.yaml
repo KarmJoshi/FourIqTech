@@ -189,6 +189,20 @@ keywords:
     - scaling enterprise react application frontend
     - react app slow rendering on large datasets
     - React Query performance
+    - react dashboard performance monitoring for enterprise
+    - scaling enterprise react applications for high traffic
+    - reducing layout shifts in data-heavy react apps
+    - professional react code review for performance
+    - react dashboard unresponsive after data load
+    - browser memory leaks in long-running react apps
+    - react application slow rendering on large datasets
+    - React Query performance tuning
+    - Framer Motion performance in dashboards
+    - Webpack Bundle Analyzer for enterprise
+    - React Profiler API deep dive
+    - micro-frontend architecture for dashboards
+    - server-side rendering vs client-side hydration for dashboards
+    - multi-tenant architecture performance considerations
 content:
   blog_frequency: 3 posts per week
   content_types:
@@ -253,9 +267,8 @@ onpage_seo:
   homepage:
     title: FouriqTech - Web Design & web design agency in India
     meta_description: >-
-      Leading web design agency in India. Custom websites,
-      SEO, social media marketing. Affordable packages for startups & SMEs. Get
-      a free quote!
+      Leading web design agency in India. Custom websites, SEO, social media
+      marketing. Affordable packages for startups & SMEs. Get a free quote!
     h1: Next-Gen Web Design & digital strategy Services in India
   service_pages:
     - page: Web Design Services

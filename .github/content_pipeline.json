@@ -111,7 +111,77 @@
       "source_keyword": "enterprise react dashboard performance optimization strategies",
       "added_date": "2026-03-14",
       "status": "queued"
+    },
+    {
+      "title": "Deep Dive: React Query Performance Tuning for Real-time Enterprise Dashboards",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "Architecting for Scale: Micro-frontend Strategies for High-Performance React Dashboards",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "Browser Memory Leaks in Enterprise React Apps: Advanced Debugging and Prevention",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "Optimizing Large React Bundles: A Webpack and ESBuild Guide for Enterprise SaaS",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "Server-Side Rendering vs. Client-Side Hydration: Performance Trade-offs in Enterprise React Dashboards",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "The Role of Web Workers in Boosting React Data Visualization Performance",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "Enterprise Frontend Monitoring: A Strategy for Proactive Dashboard Performance Management",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "Mastering React Profiler API for Deep Performance Audits in B2B SaaS",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "Garbage Collection and Memory Optimization in Long-Running React Browser Sessions",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
+    },
+    {
+      "title": "Advanced Virtualization Techniques for Ultra-Large Datasets in Enterprise React",
+      "cluster": "Enterprise React Performance & Scalability",
+      "source_keyword": "enterprise react dashboard performance optimization strategies",
+      "added_date": "2026-03-14",
+      "status": "queued"
     }
   ],
-  "last_updated": "2026-03-14T05:32:27.513Z"
+  "last_updated": "2026-03-14T16:58:02.326Z"
 }
