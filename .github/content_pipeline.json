@@ -181,7 +181,63 @@
       "source_keyword": "enterprise react dashboard performance optimization strategies",
       "added_date": "2026-03-14",
       "status": "queued"
+    },
+    {
+      "title": "Advanced React Profiler Techniques for Enterprise Dashboard Optimization",
+      "cluster": "Enterprise React Performance & Real-Time Data Visualization",
+      "source_keyword": "optimizing real-time data visualization performance in enterprise react dashboards",
+      "added_date": "2026-03-15",
+      "status": "queued"
+    },
+    {
+      "title": "Architecting Scalable Micro-Frontend Dashboards for High-Concurrency Data",
+      "cluster": "Enterprise React Performance & Real-Time Data Visualization",
+      "source_keyword": "optimizing real-time data visualization performance in enterprise react dashboards",
+      "added_date": "2026-03-15",
+      "status": "queued"
+    },
+    {
+      "title": "State Management Strategies for Real-Time Data in Large-Scale React Applications",
+      "cluster": "Enterprise React Performance & Real-Time Data Visualization",
+      "source_keyword": "optimizing real-time data visualization performance in enterprise react dashboards",
+      "added_date": "2026-03-15",
+      "status": "queued"
+    },
+    {
+      "title": "Implementing WebAssembly for Ultra-High Performance Data Processing in React",
+      "cluster": "Enterprise React Performance & Real-Time Data Visualization",
+      "source_keyword": "optimizing real-time data visualization performance in enterprise react dashboards",
+      "added_date": "2026-03-15",
+      "status": "queued"
+    },
+    {
+      "title": "Choosing Between SVG and HTML5 Canvas for Enterprise Data Visualization: A Performance Benchmark",
+      "cluster": "Enterprise React Performance & Real-Time Data Visualization",
+      "source_keyword": "optimizing real-time data visualization performance in enterprise react dashboards",
+      "added_date": "2026-03-15",
+      "status": "queued"
+    },
+    {
+      "title": "Mitigating Browser Memory Leaks in Long-Running Enterprise React Applications",
+      "cluster": "Enterprise React Performance & Real-Time Data Visualization",
+      "source_keyword": "optimizing real-time data visualization performance in enterprise react dashboards",
+      "added_date": "2026-03-15",
+      "status": "queued"
+    },
+    {
+      "title": "Optimizing WebSocket Communication for Real-Time Data Feeds in React Micro-Frontends",
+      "cluster": "Enterprise React Performance & Real-Time Data Visualization",
+      "source_keyword": "optimizing real-time data visualization performance in enterprise react dashboards",
+      "added_date": "2026-03-15",
+      "status": "queued"
+    },
+    {
+      "title": "Performance Monitoring & Alerting for Enterprise React Dashboards (APM Integration)",
+      "cluster": "Enterprise React Performance & Real-Time Data Visualization",
+      "source_keyword": "optimizing real-time data visualization performance in enterprise react dashboards",
+      "added_date": "2026-03-15",
+      "status": "queued"
     }
   ],
-  "last_updated": "2026-03-14T16:58:02.326Z"
+  "last_updated": "2026-03-15T05:51:15.809Z"
 }

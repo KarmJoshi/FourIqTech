@@ -203,6 +203,15 @@ keywords:
     - micro-frontend architecture for dashboards
     - server-side rendering vs client-side hydration for dashboards
     - multi-tenant architecture performance considerations
+    - >-
+      optimizing real-time data visualization performance in enterprise react
+      dashboards
+    - react dashboard performance tuning strategies
+    - rendering massive datasets in react efficiently
+    - reducing memory leaks in complex react dashboards
+    - high-performance canvas-based data visualization react
+    - optimizing react data visualization for performance
+    - improving data-heavy dashboard performance
 content:
   blog_frequency: 3 posts per week
   content_types:
