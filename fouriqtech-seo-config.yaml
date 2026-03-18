@@ -238,6 +238,8 @@ keywords:
     - enterprise frontend performance audit checklist
     - enterprise web application performance monitoring strategy
     - performance audit services for saas dashboards
+    - react profiler api deep dive
+    - webpack bundle analyzer for enterprise
 content:
   blog_frequency: 3 posts per week
   content_types:
