@@ -29,6 +29,15 @@ const RESEARCH_TEMP_PATH = path.join(process.cwd(), 'seo_research_temp.md');
 const GSC_REPORT_PATH = path.join(process.cwd(), '.github/gsc-reports/latest.json');
 const SITEMAP_PATH = path.join(process.cwd(), 'public/sitemap.xml');
 
+// ── V5.0: RAG Memory System Paths ──
+const RAG_DIR = path.join(process.cwd(), '.github/knowledge_base/rag_memory');
+const RAG_WINNING = path.join(RAG_DIR, 'winning_patterns.json');
+const RAG_FAILED = path.join(RAG_DIR, 'failed_patterns.json');
+const RAG_KEYWORD_HISTORY = path.join(RAG_DIR, 'keyword_history.json');
+const RAG_ARTICLES_DIR = path.join(RAG_DIR, 'articles');
+const RAG_GSC_SNAPSHOTS = path.join(RAG_DIR, 'gsc_snapshots');
+
+
 // ── Task-Specific AI Models & Fallback (Free-Tier Optimized) ──
 function getModels(taskType, escalation = 0) {
   const tasks = {
@@ -151,8 +160,426 @@ function saveContentPipeline(pipeline) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🔍 V4: GSC DATA LOADER — Feed search performance into decisions
+// 📦 V5: RAG MEMORY SYSTEM — Self-Learning Brain
 // ═══════════════════════════════════════════════════════════════════════
+function ensureRagDirs() {
+  [RAG_DIR, RAG_ARTICLES_DIR, RAG_GSC_SNAPSHOTS].forEach(d => {
+    if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+  });
+}
+
+function loadRagFile(filePath, fallback = []) {
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
+  catch { return fallback; }
+}
+
+function saveRagFile(filePath, data) {
+  ensureRagDirs();
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+// Save article to RAG memory after publishing
+function saveArticleToRag(draft, strategy, research, qaResult) {
+  ensureRagDirs();
+  const record = {
+    slug: draft.slug,
+    title: draft.title,
+    keyword: strategy.primary_keyword,
+    secondary_keywords: strategy.secondary_keywords,
+    cluster: strategy.cluster_topic,
+    word_count: draft.wordCount,
+    qa_score: qaResult?.overallScore || 0,
+    human_tone: qaResult?.scores?.human_tone || 0,
+    published_date: new Date().toISOString().split('T')[0],
+    prediction: 'Page 1 within 30 days',
+    prediction_checked: false,
+    actual_position: null
+  };
+
+  // Save article content
+  const articlePath = path.join(RAG_ARTICLES_DIR, `${draft.slug}.md`);
+  const articleMd = `# ${draft.title}\n\n**Keyword:** ${strategy.primary_keyword}\n**Date:** ${record.published_date}\n**Words:** ${draft.wordCount}\n**QA:** ${record.qa_score}/100\n\n---\n\n${(draft.content || '').replace(/<[^>]+>/g, ' ').substring(0, 3000)}`;
+  fs.writeFileSync(articlePath, articleMd);
+
+  // Save to keyword history
+  const history = loadRagFile(RAG_KEYWORD_HISTORY, []);
+  history.push(record);
+  saveRagFile(RAG_KEYWORD_HISTORY, history);
+
+  console.log(`   📦 RAG: Saved article "${draft.slug}" to memory`);
+  console.log(`   📦 RAG: Keyword history now has ${history.length} entries`);
+}
+
+// Load winning patterns for the Writer to learn from
+function loadWinningPatterns() {
+  const winning = loadRagFile(RAG_WINNING, []);
+  if (winning.length === 0) return '';
+  // Get top 3 winners
+  const top3 = winning.sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 3);
+  return `\n\n═══ RAG WINNING PATTERNS (replicate these) ═══\nThese are your TOP performing articles. Mimic their structure, tone, and length:\n${top3.map(w => `- "${w.keyword}" → ${w.word_count} words, ${w.clicks} clicks, CTR ${w.ctr}%, Avg Pos ${w.position}`).join('\n')}\n`;
+}
+
+// Run the 30-day prediction check using GSC data
+function checkPredictions(gscInsights) {
+  if (!gscInsights) return;
+  const history = loadRagFile(RAG_KEYWORD_HISTORY, []);
+  const winning = loadRagFile(RAG_WINNING, []);
+  const failed = loadRagFile(RAG_FAILED, []);
+  const today = new Date();
+  let updated = false;
+
+  for (const entry of history) {
+    if (entry.prediction_checked) continue;
+    const pubDate = new Date(entry.published_date);
+    const daysSince = Math.floor((today - pubDate) / (1000 * 60 * 60 * 24));
+    if (daysSince < 28) continue; // Wait 28 days
+
+    // Check GSC data for this slug
+    const pageData = gscInsights?.page_analysis?.find(
+      p => p.page?.includes(entry.slug)
+    );
+
+    entry.prediction_checked = true;
+    entry.actual_position = pageData?.position || null;
+    entry.actual_clicks = pageData?.clicks || 0;
+    entry.actual_impressions = pageData?.impressions || 0;
+    entry.actual_ctr = pageData?.ctr || 0;
+    updated = true;
+
+    if (pageData && pageData.position <= 10) {
+      // Winner! Page 1.
+      winning.push({
+        slug: entry.slug, keyword: entry.keyword,
+        word_count: entry.word_count, qa_score: entry.qa_score,
+        human_tone: entry.human_tone,
+        clicks: pageData.clicks, impressions: pageData.impressions,
+        ctr: pageData.ctr, position: pageData.position,
+        date: entry.published_date
+      });
+      console.log(`   🏆 RAG: "${entry.keyword}" → Page 1! (Pos ${pageData.position}) → WINNING PATTERN`);
+    } else {
+      // Failed or still in progress
+      failed.push({
+        slug: entry.slug, keyword: entry.keyword,
+        word_count: entry.word_count, qa_score: entry.qa_score,
+        position: pageData?.position || 'unranked',
+        clicks: pageData?.clicks || 0,
+        date: entry.published_date
+      });
+      console.log(`   ❌ RAG: "${entry.keyword}" → ${pageData ? `Pos ${pageData.position}` : 'Unranked'} → FAILED PATTERN`);
+    }
+  }
+
+  if (updated) {
+    saveRagFile(RAG_KEYWORD_HISTORY, history);
+    saveRagFile(RAG_WINNING, winning);
+    saveRagFile(RAG_FAILED, failed);
+    console.log(`   📦 RAG: ${winning.length} winners, ${failed.length} failures tracked`);
+  }
+}
+
+// Load keyword history for the Researcher to avoid repeats
+function getKeywordHistoryContext() {
+  const history = loadRagFile(RAG_KEYWORD_HISTORY, []);
+  if (history.length === 0) return '';
+  const keywords = history.map(h => h.keyword);
+  return `\n\nRAG KEYWORD HISTORY (DO NOT repeat these):\n${keywords.join(', ')}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🕸️ V5: SPIDER AGENT — Reverse Internal Link Injection
+// ═══════════════════════════════════════════════════════════════════════
+function spiderReverseLink(newSlug, newTitle, newKeyword, blogDataFile) {
+  console.log(`\n🕸️ SPIDER: Reverse-linking to new article "${newSlug}"...`);
+  let updatedBlogData = blogDataFile;
+  let injectedCount = 0;
+
+  // Find existing slugs and their content boundaries
+  const slugMatches = [...updatedBlogData.matchAll(/slug:\s*'([^']+)'/g)];
+  const existingSlugs = slugMatches.map(m => m[1]).filter(s => s !== newSlug);
+
+  // For each existing article, check if it mentions the keyword topic
+  const keywordWords = newKeyword.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+
+  for (const slug of existingSlugs) {
+    if (injectedCount >= 3) break; // Max 3 reverse links
+
+    // Find content section for this slug
+    const slugIdx = updatedBlogData.indexOf(`slug: '${slug}'`);
+    if (slugIdx === -1) continue;
+
+    // Find the content field
+    const contentStart = updatedBlogData.indexOf('content: `', slugIdx);
+    if (contentStart === -1) continue;
+    const contentEnd = updatedBlogData.indexOf('`,', contentStart + 10);
+    if (contentEnd === -1) continue;
+
+    const existingContent = updatedBlogData.substring(contentStart, contentEnd);
+
+    // Check if already linked to newSlug
+    if (existingContent.includes(`/blog/${newSlug}`)) continue;
+
+    // Check if content is semantically related (shares keyword words)
+    const lowerContent = existingContent.toLowerCase();
+    const matchCount = keywordWords.filter(w => lowerContent.includes(w)).length;
+
+    if (matchCount >= 2) {
+      // Find a good insertion point (before FAQ or before last </p>)
+      const faqMarker = existingContent.match(/<h2[^>]*>.*(?:FAQ|Frequently)/i);
+      let insertPoint;
+      if (faqMarker) {
+        insertPoint = existingContent.indexOf(faqMarker[0]) + contentStart;
+      } else {
+        // Insert before the last paragraph
+        const lastP = existingContent.lastIndexOf('</p>');
+        insertPoint = lastP > 0 ? lastP + contentStart : -1;
+      }
+
+      if (insertPoint > 0 && insertPoint < contentEnd) {
+        const linkHtml = `<p>You might also find our guide on <a href="/blog/${newSlug}">${newTitle}</a> useful for deeper insights on this topic.</p>\n`;
+        updatedBlogData = updatedBlogData.slice(0, insertPoint) + linkHtml + updatedBlogData.slice(insertPoint);
+        injectedCount++;
+        console.log(`   🔗 SPIDER: Injected link in "${slug}" → "/blog/${newSlug}"`);
+      }
+    }
+  }
+
+  if (injectedCount === 0) {
+    console.log(`   🕸️ SPIDER: No semantically related articles found for reverse linking.`);
+  } else {
+    console.log(`   🕸️ SPIDER: ${injectedCount} reverse links injected into existing articles.`);
+  }
+
+  return updatedBlogData;
+}
+
+// Orphan page detection
+function detectOrphanPages(blogDataFile) {
+  const slugs = [...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]);
+  const orphans = [];
+
+  for (const slug of slugs) {
+    // Count how many times this slug appears as a link target
+    const linkPattern = new RegExp(`/blog/${slug}["']`, 'g');
+    const linkCount = (blogDataFile.match(linkPattern) || []).length;
+    // Subtract 1 for the slug declaration itself
+    if (linkCount <= 1) {
+      orphans.push(slug);
+    }
+  }
+
+  if (orphans.length > 0) {
+    console.log(`   🕸️ SPIDER: Found ${orphans.length} orphan pages: ${orphans.join(', ')}`);
+  }
+  return orphans;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🔧 V5: OPTIMIZER AGENT — Stale Content, Schema, Title Rewrite
+// ═══════════════════════════════════════════════════════════════════════
+function injectSchemaMarkup(draft, strategy) {
+  let content = draft.content || '';
+
+  // Check if FAQ schema already exists
+  if (content.includes('application/ld+json')) return content;
+
+  // Build FAQ schema from any H3 question/answer pairs
+  const faqRegex = /<h3>(.*?\?)<\/h3>\s*<p>([\s\S]*?)<\/p>/gi;
+  const faqs = [];
+  let match;
+  while ((match = faqRegex.exec(content)) !== null) {
+    faqs.push({
+      '@type': 'Question',
+      name: match[1].replace(/<[^>]+>/g, ''),
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: match[2].replace(/<[^>]+>/g, '').substring(0, 500)
+      }
+    });
+  }
+
+  if (faqs.length >= 2) {
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs
+    };
+    const schemaTag = `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+    // Inject at the end of the content
+    content = content + `\n${schemaTag}`;
+    console.log(`   📋 SCHEMA: Injected FAQPage schema with ${faqs.length} Q&As`);
+  }
+
+  // Add Article schema
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: draft.title,
+    description: draft.excerpt,
+    author: { '@type': 'Organization', name: 'FouriqTech' },
+    publisher: { '@type': 'Organization', name: 'FouriqTech' },
+    datePublished: new Date().toISOString().split('T')[0],
+    keywords: strategy.primary_keyword
+  };
+  const articleSchemaTag = `<script type="application/ld+json">${JSON.stringify(articleSchema)}</script>`;
+  content = content + `\n${articleSchemaTag}`;
+  console.log(`   📋 SCHEMA: Injected Article schema`);
+
+  return content;
+}
+
+// Detect stale articles from GSC data
+function findStaleArticles(gscInsights, blogDataFile) {
+  if (!gscInsights?.page_analysis) return [];
+  const stale = [];
+  const today = new Date();
+
+  // Find articles published > 90 days ago with dropping rank  
+  const dates = [...blogDataFile.matchAll(/date:\s*'(\d{4}-\d{2}-\d{2})'/g)].map(m => m[1]);
+  const slugs = [...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]);
+
+  for (let i = 0; i < slugs.length; i++) {
+    const pubDate = new Date(dates[i]);
+    const daysSince = Math.floor((today - pubDate) / (1000 * 60 * 60 * 24));
+    if (daysSince < 90) continue;
+
+    const pageData = gscInsights.page_analysis?.find(p => p.page?.includes(slugs[i]));
+    if (pageData && pageData.position > 10) {
+      stale.push({ slug: slugs[i], position: pageData.position, daysSince, clicks: pageData.clicks });
+    }
+  }
+
+  if (stale.length > 0) {
+    console.log(`   🔧 OPTIMIZER: ${stale.length} stale articles detected (>90 days old, pos > 10)`);
+  }
+  return stale;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 📊 V5: GSC DIAGNOSTIC ANALYST — Root Cause Analysis
+// ═══════════════════════════════════════════════════════════════════════
+async function gscDiagnosticAgent(gscInsights) {
+  if (!gscInsights?.summary) return null;
+
+  const models = getModels('research');
+  console.log(`\n📊 GSC DIAGNOSTIC: Running Root Cause Analysis...`);
+
+  try {
+    return await healedCall('GSC Diagnostic', async (prevErr) => {
+      const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
+
+      const raw = await smartCall(models, `You are a Google Search Console performance analyst for FouriqTech.com.
+
+GSC PERFORMANCE DATA:
+${JSON.stringify(gscInsights.summary, null, 2)}
+
+PAGE ANALYSIS:
+${JSON.stringify((gscInsights.page_analysis || []).slice(0, 15), null, 2)}
+
+QUERY ANALYSIS:
+${JSON.stringify((gscInsights.query_analysis || []).slice(0, 20), null, 2)}
+
+${fix}
+
+Analyze this GSC data and produce a diagnostic report. For EACH finding, identify:
+1. The pattern (what the data shows)
+2. The root cause (WHY this is happening)
+3. The specific action to fix it
+
+Categories of diagnosis:
+- HIGH_IMP_LOW_CTR: Pages with impressions > 50 but CTR < 2% → Title/meta needs rewriting
+- LOW_IMP_HIGH_CTR: Good CTR but few impressions → Low volume keyword, find bigger one
+- DROPPING: Pages that lost position → Content is stale, needs refresh
+- RISING: Pages gaining position → Double down with supporting content
+- UNINDEXED: Pages with zero impressions → Technical issue or no backlinks
+
+RETURN VALID JSON:
+{
+  "overall_health": "good/warning/critical",
+  "total_clicks": 0,
+  "total_impressions": 0,
+  "findings": [
+    {
+      "type": "HIGH_IMP_LOW_CTR",
+      "slug": "article-slug",
+      "data": "100 impressions, 0.5% CTR",
+      "diagnosis": "Title is generic and not compelling",
+      "action": "Rewrite title to include power words and specific numbers",
+      "priority": "high"
+    }
+  ],
+  "recommended_next_action": "What the engine should do next cycle",
+  "strategy_adjustment": "Any changes to the overall content strategy"
+}`, 'GSC Diagnostic');
+
+      const result = JSON.parse(raw);
+      console.log(`   📊 Health: ${result.overall_health}`);
+      console.log(`   📊 Findings: ${result.findings?.length || 0}`);
+      console.log(`   📊 Next: ${result.recommended_next_action}`);
+
+      // Save diagnostic report
+      const diagnosticPath = path.join(process.cwd(), '.github/gsc-reports/diagnostic.md');
+      const reportMd = `# 📊 GSC Diagnostic Report — ${new Date().toISOString().split('T')[0]}\n\n**Health:** ${result.overall_health}\n\n## Findings\n${(result.findings || []).map(f => `### ${f.type}: ${f.slug || 'General'}\n- **Data:** ${f.data}\n- **Diagnosis:** ${f.diagnosis}\n- **Action:** ${f.action}\n- **Priority:** ${f.priority}`).join('\n\n')}\n\n## Recommended Next Action\n${result.recommended_next_action}\n\n## Strategy Adjustment\n${result.strategy_adjustment || 'None'}`;
+      fs.writeFileSync(diagnosticPath, reportMd);
+      console.log(`   📊 Diagnostic report saved → gsc-reports/diagnostic.md`);
+
+      return result;
+    });
+  } catch (e) {
+    console.error(`   ⚠️ GSC Diagnostic failed: ${e.message}`);
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🧠 V5: META-MANAGER DECISION ENGINE
+// ═══════════════════════════════════════════════════════════════════════
+function metaManagerDecision(gscInsights, gscDiag, publishCount, staleArticles, orphanPages) {
+  console.log(`\n🧠 META-MANAGER: Making autonomous decision...`);
+
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0=Sun, 6=Sat
+
+  // Rule 1: No weekends for B2B
+  if (dayOfWeek === 0 || dayOfWeek === 6) {
+    console.log(`   📅 Weekend detected (${dayOfWeek === 0 ? 'Sunday' : 'Saturday'}). B2B audience is offline.`);
+    console.log(`   🧠 DECISION: OPTIMIZE existing content instead of publishing.`);
+    return { action: 'optimize', reason: 'Weekend - B2B audience offline' };
+  }
+
+  // Rule 2: Already published today
+  if (publishCount >= 1) {
+    console.log(`   📰 Already published ${publishCount} article(s) today.`);
+    console.log(`   🧠 DECISION: WAIT. Google rewards consistency, not spam.`);
+    return { action: 'wait', reason: 'Daily limit reached' };
+  }
+
+  // Rule 3: Stale content is urgent
+  if (staleArticles.length > 0) {
+    const worst = staleArticles.sort((a, b) => b.position - a.position)[0];
+    console.log(`   🔧 Stale article detected: "${worst.slug}" (pos ${worst.position}, ${worst.daysSince} days old)`);
+    console.log(`   🧠 DECISION: PUBLISH new content + flag stale articles for refresh.`);
+    return { action: 'publish_and_flag', reason: `Stale content: ${worst.slug}`, staleArticle: worst };
+  }
+
+  // Rule 4: Orphan pages need links
+  if (orphanPages.length > 0) {
+    console.log(`   🕸️ ${orphanPages.length} orphan pages need internal links.`);
+    console.log(`   🧠 DECISION: PUBLISH new content to naturally create linking opportunities.`);
+    return { action: 'publish', reason: `${orphanPages.length} orphan pages need linking` };
+  }
+
+  // Rule 5: GSC diagnostic says something specific
+  if (gscDiag?.recommended_next_action) {
+    console.log(`   📊 GSC Diagnostic recommends: ${gscDiag.recommended_next_action}`);
+  }
+
+  // Default: publish
+  console.log(`   🧠 DECISION: PUBLISH new content.`);
+  return { action: 'publish', reason: 'Standard publishing cycle' };
+}
+
+
 function loadGscInsights() {
   try {
     if (!fs.existsSync(GSC_REPORT_PATH)) {
@@ -946,16 +1373,22 @@ async function managerAgent() {
     process.exit(1);
   }
 
-  // ── Check daily publish limit (V4: reduced to 1/day for quality) ──
+  // ── V5: Check daily publish limit via Meta-Manager ──
   const todayCount = getTodayPublishCount();
-  if (todayCount >= 1) {
-    console.log('🚫 MANAGER: Daily limit reached (1 article/day for new domain quality). Skipping.');
-    process.exit(0);
-  }
   console.log(`📰 Published today: ${todayCount}/1`);
 
-  // ── V4: Load GSC Insights ──
+  // ── V5: Load GSC Insights ──
   const gscInsights = loadGscInsights();
+
+  // ── V5: RAG prediction check (30-day feedback loop) ──
+  console.log(`\n📦 RAG: Checking past predictions...`);
+  checkPredictions(gscInsights);
+
+  // ── V5: GSC Diagnostic Agent (Root Cause Analysis) ──
+  let gscDiag = null;
+  if (gscInsights) {
+    gscDiag = await gscDiagnosticAgent(gscInsights);
+  }
 
   // ── Load Resources ──
   let knowledgeCtx = "";
@@ -967,7 +1400,7 @@ async function managerAgent() {
     }
   }
 
-  const blogDataFile = fs.readFileSync(BLOG_DATA_PATH, 'utf8');
+  let blogDataFile = fs.readFileSync(BLOG_DATA_PATH, 'utf8');
   const existingSlugs = [...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]);
   const existingTitles = [...blogDataFile.matchAll(/title:\s*'([^']+)'/g)].map(m => m[1]);
   const blogHistory = blogDataFile.substring(0, 8000);
@@ -985,6 +1418,21 @@ async function managerAgent() {
 
   console.log(`📰 Existing posts: ${existingSlugs.length} | 🔑 Keywords: ${flatKw.length}`);
 
+  // V5: Detect stale articles and orphan pages
+  const staleArticles = findStaleArticles(gscInsights, blogDataFile);
+  const orphanPages = detectOrphanPages(blogDataFile);
+
+  // ═══ V5: META-MANAGER AUTONOMOUS DECISION ═══
+  const decision = metaManagerDecision(gscInsights, gscDiag, todayCount, staleArticles, orphanPages);
+  if (decision.action === 'wait') {
+    console.log('\n🧠 META-MANAGER: Decided to WAIT. Signing off. ✅');
+    process.exit(0);
+  }
+  if (decision.action === 'optimize') {
+    console.log('\n🧠 META-MANAGER: Weekend optimization mode. Signing off. ✅');
+    process.exit(0);
+  }
+
   // V4: Inject GSC boost keywords into the keyword pool
   if (gscInsights?.for_auto_poster?.boost_keywords?.length > 0) {
     const boostKws = gscInsights.for_auto_poster.boost_keywords;
@@ -996,7 +1444,9 @@ async function managerAgent() {
   const risingStarCtx = gscInsights?.for_auto_poster?.rising_star_slugs?.length > 0
     ? `\n\nGSC RISING STARS (position 8-15, need supporting articles): ${gscInsights.for_auto_poster.rising_star_slugs.join(', ')}`
     : '';
-  knowledgeCtx += risingStarCtx;
+  // V5: Add RAG keyword history and winning patterns to context
+  knowledgeCtx += getKeywordHistoryContext();
+  knowledgeCtx += loadWinningPatterns();
 
   console.log('');
 
@@ -1239,6 +1689,9 @@ async function managerAgent() {
   if (published && draft) {
     console.log('\n👔 PUBLISHING approved content...');
 
+    // V5: Inject Schema Markup (FAQ + Article)
+    draft.content = injectSchemaMarkup(draft, strategy);
+
     const safe = s => (s || '').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\${/g, '\\${');
 
     const newPost = `
@@ -1254,15 +1707,22 @@ async function managerAgent() {
       ${(draft.content || '').replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`,
   },`;
 
-    const updated = blogDataFile.replace(
+    let updated = blogDataFile.replace(
       'export const blogPosts: BlogPost[] = [',
       `export const blogPosts: BlogPost[] = [${newPost}`
     );
+
+    // V5: Spider Agent — Reverse link injection into existing articles
+    updated = spiderReverseLink(draft.slug, draft.title, strategy.primary_keyword, updated);
+
     fs.writeFileSync(BLOG_DATA_PATH, updated);
     incrementPublishCount();
 
     // V4: Auto-update sitemap
     updateSitemap(draft.slug);
+
+    // V5: Save to RAG Memory
+    saveArticleToRag(draft, strategy, research, qaResult);
 
     console.log('\n╔═══════════════════════════════════════════════════════════╗');
     console.log('║  📋 RUN REPORT — ✅ PUBLISHED                            ║');
@@ -1274,6 +1734,9 @@ async function managerAgent() {
     console.log(`║  🎯 Lead Score: ${leadScore.lead_intent_score}/10 | Biz Rel: ${leadScore.business_relevance}/10`);
     console.log(`║  🧬 Semantic: ${draft.semanticHits} KWs integrated`);
     console.log(`║  🏗️ Cluster: ${strategy.cluster_topic}`);
+    console.log(`║  🕸️ Spider: Reverse links injected`);
+    console.log(`║  📋 Schema: FAQ + Article injected`);
+    console.log(`║  📦 RAG: Saved to memory`);
     console.log(`║  🔗 /blog/${draft.slug}`);
     console.log('╚═══════════════════════════════════════════════════════════╝');
   } else {
