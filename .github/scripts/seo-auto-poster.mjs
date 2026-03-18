@@ -306,6 +306,116 @@ RETURN VALID JSON:
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// 🧑‍💻 V5: KEYWORD REALISM AGENT — Human Search Simplification
+// ═══════════════════════════════════════════════════════════════════════
+// Intercepts AI-generated keywords and converts them to what humans
+// ACTUALLY type into Google. Strips filler words, shortens phrases,
+// and generates natural variations.
+// ═══════════════════════════════════════════════════════════════════════
+const AI_FILLER_WORDS = new Set([
+  'enterprise', 'comprehensive', 'advanced', 'strategies', 'solutions',
+  'services', 'methodology', 'implementation', 'architecture',
+  'optimization', 'leveraging', 'utilizing', 'innovative', 'cutting-edge',
+  'next-generation', 'state-of-the-art', 'high-performance', 'scalable',
+  'robust', 'seamless', 'holistic', 'transformative', 'strategic',
+  'dynamic', 'systematic', 'integrated', 'professional', 'premium',
+  'best-in-class', 'world-class', 'mission-critical'
+]);
+
+function quickSimplifyKeyword(keyword) {
+  const words = keyword.toLowerCase().split(/\s+/);
+  const cleaned = words.filter(w => !AI_FILLER_WORDS.has(w));
+  // If we stripped too much, keep the original minus only the worst offenders
+  if (cleaned.length < 2) return words.filter(w => !['comprehensive','leveraging','utilizing','holistic'].includes(w)).join(' ');
+  return cleaned.join(' ');
+}
+
+async function keywordRealismAgent(research) {
+  const models = getModels('research');
+  console.log(`\n🧑‍💻 KEYWORD REALISM: Humanizing AI keyword...`);
+  console.log(`   📥 Original: "${research.primary_keyword}"`);
+
+  // Quick rule-based check first
+  const wordCount = research.primary_keyword.split(/\s+/).length;
+  const quickSimplified = quickSimplifyKeyword(research.primary_keyword);
+
+  // If keyword is already short and natural, skip the AI call
+  if (wordCount <= 4 && quickSimplified === research.primary_keyword.toLowerCase()) {
+    console.log(`   ✅ Already natural (${wordCount} words). No changes needed.`);
+    return research;
+  }
+
+  return await healedCall('Keyword Realism', async (prevErr) => {
+    const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
+
+    const raw = await smartCall(models, `You are a search behavior expert. Your job is to convert AI-generated keywords into what REAL HUMANS actually type into Google.
+
+AI-GENERATED KEYWORD: "${research.primary_keyword}"
+QUICK SIMPLIFIED VERSION: "${quickSimplified}"
+
+═══ RULES ═══
+1. Real humans type SHORT queries (2-4 words ideal, max 5 words).
+2. Real humans DON'T use formal words like: enterprise, comprehensive, methodology, leveraging, strategic, holistic, transformative, innovative.
+3. Real humans use PROBLEM language: "react app slow", "nextjs build error", "webpack bundle too big".
+4. Real humans use SIMPLE language: "react performance tips" NOT "react application performance optimization strategies".
+5. Keep the CORE MEANING. Don't change the topic, just simplify the phrasing.
+
+═══ EXAMPLES ═══
+"enterprise react application performance audit services" → "react performance audit"
+"comprehensive nextjs server side rendering optimization" → "nextjs ssr optimization"
+"advanced react dashboard performance optimization strategies" → "react dashboard performance"
+"enterprise continuous integration deployment strategies" → "CI/CD pipeline setup"
+"implementing micro frontend architecture in nextjs for enterprise" → "nextjs micro frontend"
+"optimizing react bundle size for large scale applications" → "react bundle size optimization"
+
+${fix}
+
+Generate 5-8 human variations and pick the BEST one as the new primary keyword.
+
+RETURN VALID JSON:
+{
+  "original_keyword": "${research.primary_keyword}",
+  "naturalness_score": 0,
+  "is_natural": false,
+  "normalized_primary": "short human keyword here",
+  "human_variations": ["var1", "var2", "var3", "var4", "var5"],
+  "reasoning": "Why the original is unnatural and what humans actually search"
+}`, 'Keyword Realism');
+
+    const result = JSON.parse(raw);
+
+    console.log(`   🎯 Naturalness Score: ${result.naturalness_score}/10`);
+    console.log(`   📤 Normalized: "${result.normalized_primary}"`);
+    console.log(`   🔄 Variations: ${result.human_variations?.join(', ')}`);
+
+    // Apply the normalization
+    if (result.naturalness_score < 7) {
+      // Move original to secondary keywords, use normalized as primary
+      const originalKw = research.primary_keyword;
+      research.primary_keyword = result.normalized_primary;
+      research.secondary_keywords = [
+        originalKw,
+        ...(result.human_variations || []).slice(0, 3),
+        ...(research.secondary_keywords || [])
+      ];
+      // Deduplicate
+      research.secondary_keywords = [...new Set(research.secondary_keywords)];
+      console.log(`   ✅ Keyword REPLACED: "${originalKw}" → "${result.normalized_primary}"`);
+    } else {
+      console.log(`   ✅ Keyword is already natural enough. Keeping original.`);
+      // Still add variations as secondary keywords
+      research.secondary_keywords = [
+        ...(result.human_variations || []).slice(0, 3),
+        ...(research.secondary_keywords || [])
+      ];
+      research.secondary_keywords = [...new Set(research.secondary_keywords)];
+    }
+
+    return research;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // 🎯 LEAD SCORER — Intent Detection & Priority Gate
 // ═══════════════════════════════════════════════════════════════════════
 async function leadScorerAgent(research, knowledgeCtx) {
@@ -596,10 +706,22 @@ Your article MUST include ALL of these:
 3. At least ONE performance metric or benchmark (numbers, percentages, ms)
 4. At least ONE implementation workflow (step-by-step process)
 
-═══ TONE REQUIREMENTS ═══
-- 65% educational (teach something valuable to senior engineers)
-- 20% technical insight (show expertise with specifics, benchmarks, metrics)
-- 15% promotional (mention FouriqTech naturally through conversion blocks)
+═══ TONE REQUIREMENTS (V5: SENIOR DEVELOPER PERSONA) ═══
+You are NOT a marketing writer. You ARE a grizzled senior frontend engineer with 12+ years of experience who has shipped production code for Fortune 500 companies. Write like you're explaining something to a smart colleague over coffee.
+
+PERSONA RULES:
+- Use "I" and "we" naturally. Engineers talk in first person. ("I've seen this break production three times.")
+- Include at least ONE admitted mistake or trade-off. ("We tried X but it broke Y" or "Honestly, this approach has downsides.")
+- Use contractions always. "Don't", "won't", "can't", "it's". Never "do not", "will not".
+- Start the article with a REAL-WORLD PROBLEM, never a definition or "In today's world...".
+- Vary sentence length WILDLY. Mix 5-word punches with 25-word explanations.
+- Use code comments that sound human: // this took me 3 hours to debug, // don't ask why this works
+- Never use a perfect 5-paragraph essay structure. Real blog posts are messy and organic.
+- Use casual transitions: "Here's the thing.", "Look.", "So what actually happens is...", "The real problem?"
+
+═══ 🚫 BANNED AI VOCABULARY (INSTANT FAIL IF USED) ═══
+NEVER use ANY of these words or phrases. If you catch yourself writing one, DELETE IT and rephrase:
+delve, tapestry, crucial, comprehensive, navigate, landscape, leverage, utilize, cutting-edge, game-changer, paradigm, synergy, robust, seamless, holistic, multifaceted, nuanced, intricate, pivotal, transformative, revolutionize, empower, harness, facilitate, streamline, elevate, in conclusion, furthermore, moreover, it's worth noting, it's important to note, in today's world, in today's digital age, in this article we will, let's dive in, without further ado, at the end of the day, needless to say, it goes without saying, as we all know, the fact of the matter, first and foremost, last but not least, in a nutshell, by and large, when it comes to, in order to, due to the fact that, on the other hand, having said that, that being said, it should be noted, interestingly enough, moving forward
 
 ═══ GENERAL WRITING RULES ═══
 1. MINIMUM 2000 words. Non-negotiable. Expand with technical specifics.
@@ -692,6 +814,10 @@ async function qaAgent(draft, strategy, knowledgeCtx) {
 
     const raw = await smartCall(models, `You are the QA Inspector for a top-tier Engineering Blog (like Stripe/Vercel). You are STRICT but FAIR.
 
+You have TWO JOBS:
+1. Check technical SEO quality (word count, links, keywords, etc.)
+2. CHECK IF THE CONTENT SOUNDS LIKE AI-GENERATED TEXT. This is your MOST IMPORTANT job.
+
 ARTICLE METRICS (PRE-COMPUTED):
 - Word Count: ${wordCount} (Target: 2000+)
 - Keyword Density: ${kwDensity}% (Target: ~1%)
@@ -738,12 +864,20 @@ ${fix}
 10. TECHNICAL_DEPTH: Code example, real-world scenario, metrics, workflow present?
 11. ENTERPRISE_TONE: No beginner explanations (${beginnerCount} found)? Written for senior engineers?
 12. SEMANTIC_COVERAGE: At least 8 semantic keywords integrated? (${semanticHits} found)
+13. HUMAN_TONE: Does this sound like a REAL human engineer wrote it? Check for:
+    - Banned AI words (delve, tapestry, crucial, comprehensive, leverage, utilize, seamless, robust, holistic, transformative, pivotal, harness, streamline, elevate, nuanced, multifaceted, intricate, paradigm, synergy, cutting-edge, game-changer, furthermore, moreover, in conclusion, it's worth noting, in today's world, without further ado, let's dive in, needless to say, first and foremost)
+    - Uniform sentence lengths (AI writes every sentence the same length)
+    - Overly formal tone (AI avoids contractions and first person)
+    - Perfect essay structure (AI writes neat intro→body→conclusion)
+    - Missing personality (no admitted mistakes, no casual language, no humor)
+    Score 1-3 if ANY banned words found. Score 4-6 if tone is formal/robotic. Score 7-10 if it genuinely sounds human.
 
 SCORING RULES:
-- Each of the 12 criteria is scored 1-10 points, for a total of 120 raw points.
-- Normalize: overallScore = round((sum / 120) * 100)
+- Each of the 13 criteria is scored 1-10, for a total of 130 raw points.
+- Normalize: overallScore = round((sum / 130) * 100)
 - Article PASSES if overallScore >= 80
-- Be FAIR: if the article genuinely covers the topic well, approve it.
+- CRITICAL: If human_tone score is below 5, the article MUST FAIL regardless of other scores.
+- Be FAIR: if the article genuinely covers the topic well AND sounds human, approve it.
 
 RETURN VALID JSON:
 {
@@ -759,16 +893,34 @@ RETURN VALID JSON:
     "conversion_blocks": 0,
     "technical_depth": 0,
     "enterprise_tone": 0,
-    "semantic_coverage": 0
+    "semantic_coverage": 0,
+    "human_tone": 0
   },
   "overallScore": 0,
   "approved": false,
   "issues": ["issue1", "issue2"],
+  "ai_words_found": ["word1", "word2"],
   "feedback": "Detailed actionable feedback if rejected",
   "summary": "One-line quality summary"
 }`, 'QA Inspector');
 
     const result = JSON.parse(raw);
+
+    // V5: Hard fail if human_tone is too low (AI-detected content)
+    if (result.scores?.human_tone && result.scores.human_tone < 5) {
+      result.approved = false;
+      result.issues = result.issues || [];
+      result.issues.unshift(`🚨 AI TONE DETECTED (human_tone: ${result.scores.human_tone}/10). Content sounds robotic.`);
+      if (result.ai_words_found?.length > 0) {
+        result.issues.push(`Banned AI words found: ${result.ai_words_found.join(', ')}`);
+      }
+      result.feedback = (result.feedback || '') + '\n\nCRITICAL: Rewrite with human voice. Use contractions, first person, admit a mistake, vary sentence lengths wildly, and remove ALL banned AI vocabulary.';
+      console.log(`   🚨 ANTI-AI GATE: FAILED (human_tone: ${result.scores.human_tone}/10)`);
+      if (result.ai_words_found?.length > 0) {
+        console.log(`   🚫 Banned words: ${result.ai_words_found.join(', ')}`);
+      }
+    }
+
     console.log(`   📊 Score: ${result.overallScore}/100 ${result.approved ? '✅ PASSED' : '❌ FAILED'}`);
     if (result.issues?.length > 0) console.log(`   🔍 Issues: ${result.issues.slice(0, 3).join('; ')}`);
     console.log(`   💬 ${result.summary}`);
@@ -781,7 +933,7 @@ RETURN VALID JSON:
 // ═══════════════════════════════════════════════════════════════════════
 async function managerAgent() {
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  👔 FOURIQTECH AI SEO ENGINE v4.0 — Enterprise Grade    ║');
+  console.log('║  🧠 FOURIQTECH AI SEO ENGINE v5.0 — Autonomous Intel  ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log(`⏰ ${new Date().toISOString()}`);
   console.log(`🔑 API Keys: ${API_KEYS.length} | 🧠 Models: 3.1-flash-lite → 2.5-flash → 3.0-flash`);
@@ -864,6 +1016,14 @@ async function managerAgent() {
       serp_analysis: { avg_word_count: 2200, common_h2_headings: [], common_h3_headings: [], has_code_examples: true, has_faq: true, has_tables_checklists: false, content_gaps: [], serp_summary: 'N/A' },
       semantic_cluster: { primary: 'enterprise react performance audit methodology', supporting_longtail: [], problem_based: [], technology_specific: [], architecture_specific: [] }
     };
+  }
+
+  // ══════════════════════════════════════
+  // Stage 1.5: V5 Keyword Realism (Human Search Simplification)
+  // ══════════════════════════════════════
+  try { research = await keywordRealismAgent(research); }
+  catch (e) {
+    console.error(`   ⚠️ Keyword Realism failed: ${e.message}. Continuing with original keyword.`);
   }
 
   // Save new keywords to config
