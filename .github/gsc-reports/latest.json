@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-03-18T05:17:56.110Z",
+  "date_range": {
+    "start": "2026-02-15",
+    "end": "2026-03-15"
+  },
+  "summary": {
+    "total_pages_tracked": 3,
+    "total_clicks": 10,
+    "total_impressions": 44,
+    "avg_position": 2.6,
+    "avg_ctr": 22.73,
+    "pages_on_page_1": 3,
+    "total_queries": 0
+  },
+  "categories": {
+    "winners": [],
+    "rising_stars": [],
+    "hidden_gems": [],
+    "underperformers": [],
+    "unexpected_winners": []
+  },
+  "opportunity_keywords": [],
+  "action_items": [],
+  "for_auto_poster": {
+    "rising_star_slugs": [],
+    "boost_keywords": [],
+    "avoid_topics": [],
+    "top_performing_topics": []
+  }
+}

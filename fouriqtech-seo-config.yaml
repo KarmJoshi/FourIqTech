@@ -1,6 +1,6 @@
 company:
   name: FouriqTech
-  website: https://fouriqtech.com
+  website: https://www.fouriqtech.com
   tagline: Next-Gen Digital Services
   services:
     primary:
@@ -189,57 +189,19 @@ keywords:
     - scaling enterprise react application frontend
     - react app slow rendering on large datasets
     - React Query performance
-    - react dashboard performance monitoring for enterprise
-    - scaling enterprise react applications for high traffic
-    - reducing layout shifts in data-heavy react apps
-    - professional react code review for performance
-    - react dashboard unresponsive after data load
-    - browser memory leaks in long-running react apps
-    - react application slow rendering on large datasets
-    - React Query performance tuning
-    - Framer Motion performance in dashboards
-    - Webpack Bundle Analyzer for enterprise
-    - React Profiler API deep dive
-    - micro-frontend architecture for dashboards
-    - server-side rendering vs client-side hydration for dashboards
-    - multi-tenant architecture performance considerations
-    - >-
-      optimizing real-time data visualization performance in enterprise react
-      dashboards
-    - react dashboard performance tuning strategies
-    - rendering massive datasets in react efficiently
-    - reducing memory leaks in complex react dashboards
-    - high-performance canvas-based data visualization react
-    - optimizing react data visualization for performance
-    - improving data-heavy dashboard performance
-    - enterprise headless commerce development services
-    - custom headless storefront development
-    - next.js ecommerce agency for enterprise
-    - high-performance headless retail platforms
-    - scalable ecommerce architecture for global brands
-    - enterprise react dashboard performance audit services
-    - react dashboard slow rendering solutions
-    - enterprise frontend performance monitoring strategy
-    - react dashboard memory leak debugging service
-    - react dashboard performance tuning for saas
-    - improving react data visualization speed
-    - enterprise web application frontend audit checklist
-    - reducing layout shifts in complex data dashboards
-    - how to fix unresponsive react dashboards
-    - server-side rendering vs client-side hydration
-    - enterprise react dashboard performance optimization service
-    - enterprise frontend performance audit services
-    - optimizing large scale react applications for speed
-    - react dashboard memory leak debugging services
-    - performance monitoring for b2b saas dashboards
-    - custom react development for enterprise scale
-    - optimizing complex react data structures
-    - Framer Motion for dashboard animations
-    - enterprise frontend performance audit checklist
-    - enterprise web application performance monitoring strategy
-    - performance audit services for saas dashboards
-    - react profiler api deep dive
-    - webpack bundle analyzer for enterprise
+    - custom SaaS platform development services
+    - saas product development company
+    - enterprise saas solutions development
+    - scalable web application development for startups
+    - bespoke saas platform agency
+    - legacy web application modernization services
+    - enterprise application re-platforming
+    - modern web application development for legacy systems
+    - react modernization services
+    - nextjs application migration
+    - outdated web app upgrade
+    - high performance application modernization
+    - enterprise react frontend monitoring strategy
 content:
   blog_frequency: 3 posts per week
   content_types:

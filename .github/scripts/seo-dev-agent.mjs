@@ -24,17 +24,18 @@ const APP_TSX_PATH      = path.join(process.cwd(), 'src/App.tsx');
 const KNOWLEDGE_DIR     = path.join(process.cwd(), '.github/knowledge_base');
 const QUEUE_PATH        = path.join(process.cwd(), '.github/dev-tasks/queue.json');
 
-// ── AI Models — Gemini 3 Flash primary (per user request) ──
+// ── AI Models — Gemini 2.5 Flash primary ──
 function getModels(taskType) {
   const tasks = {
-    'scanning':    ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-3.1-flash-lite-preview'],
-    'architecting': ['gemini-3-flash-preview', 'gemini-2.5-flash'],
+    'scanning':    ['gemini-2.5-flash', 'gemini-1.5-flash'],
+    'architecting': ['gemini-2.5-flash', 'gemini-1.5-flash'],
   };
-  return tasks[taskType] || ['gemini-3-flash-preview'];
+  return tasks[taskType] || ['gemini-2.5-flash'];
 }
 
 // ── Multi-API Key Rotation ──
 const API_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+  .replace(/["']/g, '')
   .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
 let currentKeyIdx = 0;
@@ -64,7 +65,9 @@ async function smartCall(modelArray, contents, agentName = 'AI') {
     while (tries < API_KEYS.length * 2) {
       try {
         const resp = await aiClient.models.generateContent({
-          model, contents, config: { responseMimeType: "application/json" }
+          model, 
+          contents: contents, 
+          config: { responseMimeType: "application/json" }
         });
         await sleep(3000);
         return resp.candidates[0].content.parts[0].text;

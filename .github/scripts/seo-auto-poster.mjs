@@ -4,7 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🏢 FOURIQTECH AI SEO ENGINE — Enterprise Grade v3.0
+// 🏢 FOURIQTECH AI SEO ENGINE — Enterprise Grade v4.0
 // ═══════════════════════════════════════════════════════════════════════
 // Autonomous SEO content engine with:
 //   🔑 Multi-API Key Rotation       🧠 Dynamic Model Escalation
@@ -13,8 +13,11 @@ import yaml from 'js-yaml';
 //   🧬 Semantic Keyword Clustering   💰 Conversion Block Injection
 //   🔗 Intelligent Internal Linking  🏛️ Topic Authority Expansion
 //   🔬 Technical Depth Detection     👔 Enterprise Audience Filter
-//   ✍️ Technical Content w/ Code     ✅ Strict QA (80+ to publish)
-//   📋 Technical SEO Automation      🚫 Max 2 articles/day
+//   ✍️ Technical Content w/ Code     ✅ Strict QA (90+ to publish)
+//   📋 Technical SEO Automation      🚫 Max 1 article/day
+// V4.0 ADDITIONS:
+//   🔍 GSC-Informed Research         🔧 Auto-Fix Loop (targeted rewrites)
+//   📊 Cluster-Based Publishing      🗺️ Auto-Sitemap Updates
 // ═══════════════════════════════════════════════════════════════════════
 
 const CONFIG_PATH = path.join(process.cwd(), 'fouriqtech-seo-config.yaml');
@@ -23,6 +26,8 @@ const KNOWLEDGE_BASE_DIR = path.join(process.cwd(), '.github/knowledge_base');
 const PUBLISH_LOG_PATH = path.join(process.cwd(), '.github/publish_log.json');
 const CONTENT_PIPELINE_PATH = path.join(process.cwd(), '.github/content_pipeline.json');
 const RESEARCH_TEMP_PATH = path.join(process.cwd(), 'seo_research_temp.md');
+const GSC_REPORT_PATH = path.join(process.cwd(), '.github/gsc-reports/latest.json');
+const SITEMAP_PATH = path.join(process.cwd(), 'public/sitemap.xml');
 
 // ── Task-Specific AI Models & Fallback (Free-Tier Optimized) ──
 function getModels(taskType, escalation = 0) {
@@ -143,6 +148,67 @@ function loadContentPipeline() {
 function saveContentPipeline(pipeline) {
   pipeline.last_updated = new Date().toISOString();
   fs.writeFileSync(CONTENT_PIPELINE_PATH, JSON.stringify(pipeline, null, 2));
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🔍 V4: GSC DATA LOADER — Feed search performance into decisions
+// ═══════════════════════════════════════════════════════════════════════
+function loadGscInsights() {
+  try {
+    if (!fs.existsSync(GSC_REPORT_PATH)) {
+      console.log('   📊 No GSC report found. Running without search data.');
+      return null;
+    }
+    const report = JSON.parse(fs.readFileSync(GSC_REPORT_PATH, 'utf8'));
+    console.log(`   📊 GSC data loaded (${report.generated_at})`);
+    console.log(`   ⭐ Rising Stars: ${report.for_auto_poster?.rising_star_slugs?.length || 0}`);
+    console.log(`   🎯 Boost keywords: ${report.for_auto_poster?.boost_keywords?.length || 0}`);
+    return report;
+  } catch (e) {
+    console.log(`   ⚠️ GSC report parse error: ${e.message}. Continuing without it.`);
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🗺️ V4: AUTO-SITEMAP UPDATER — Append new URLs after publishing
+// ═══════════════════════════════════════════════════════════════════════
+function updateSitemap(slug) {
+  // We now use regenerateFullSitemap for consistency
+  regenerateFullSitemap();
+}
+
+function regenerateFullSitemap() {
+  try {
+    console.log('   🗺️ Regenerating full sitemap...');
+    const blogDataFile = fs.readFileSync(BLOG_DATA_PATH, 'utf8');
+    const slugs = [...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]);
+    
+    let entries = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    
+    // Static Pages
+    const staticPages = [
+      { loc: 'https://www.fouriqtech.com/', freq: 'weekly', p: '1.0' },
+      { loc: 'https://www.fouriqtech.com/blog', freq: 'daily', p: '0.8' },
+      { loc: 'https://www.fouriqtech.com/services/custom-saas-platform-development', freq: 'monthly', p: '0.9' },
+      { loc: 'https://www.fouriqtech.com/services/legacy-web-application-modernization', freq: 'monthly', p: '0.9' },
+    ];
+
+    for (const page of staticPages) {
+      entries += `  <url>\n    <loc>${page.loc}</loc>\n    <changefreq>${page.freq}</changefreq>\n    <priority>${page.p}</priority>\n  </url>\n`;
+    }
+
+    // Dynamic Blog Posts
+    for (const slug of slugs) {
+      entries += `  <url>\n    <loc>https://www.fouriqtech.com/blog/${slug}</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+    }
+
+    entries += `</urlset>`;
+    fs.writeFileSync(SITEMAP_PATH, entries);
+    console.log(`   🗺️ Sitemap fully regenerated with ${staticPages.length + slugs.length} URLs.`);
+  } catch (e) {
+    console.error(`   ⚠️ Sitemap regeneration failed: ${e.message}`);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -711,27 +777,33 @@ RETURN VALID JSON:
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 👔 MANAGER — CEO & Orchestrator (V3.0)
+// 👔 MANAGER — CEO & Orchestrator (V4.0)
 // ═══════════════════════════════════════════════════════════════════════
 async function managerAgent() {
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  👔 FOURIQTECH AI SEO ENGINE v3.0 — Enterprise Grade    ║');
+  console.log('║  👔 FOURIQTECH AI SEO ENGINE v4.0 — Enterprise Grade    ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log(`⏰ ${new Date().toISOString()}`);
   console.log(`🔑 API Keys: ${API_KEYS.length} | 🧠 Models: 3.1-flash-lite → 2.5-flash → 3.0-flash`);
+
+  // V4.1: Ensure sitemap is fully in sync at the start of every run
+  try { regenerateFullSitemap(); } catch (e) {}
 
   if (API_KEYS.length === 0) {
     console.error('❌ No API keys. Set GEMINI_API_KEYS. Exiting.');
     process.exit(1);
   }
 
-  // ── Check daily publish limit ──
+  // ── Check daily publish limit (V4: reduced to 1/day for quality) ──
   const todayCount = getTodayPublishCount();
-  if (todayCount >= 2) {
-    console.log('🚫 MANAGER: Daily limit reached (2 articles). Skipping this run.');
+  if (todayCount >= 1) {
+    console.log('🚫 MANAGER: Daily limit reached (1 article/day for new domain quality). Skipping.');
     process.exit(0);
   }
-  console.log(`📰 Published today: ${todayCount}/2`);
+  console.log(`📰 Published today: ${todayCount}/1`);
+
+  // ── V4: Load GSC Insights ──
+  const gscInsights = loadGscInsights();
 
   // ── Load Resources ──
   let knowledgeCtx = "";
@@ -759,7 +831,23 @@ async function managerAgent() {
   }
   config._flatKeywords = flatKw;
 
-  console.log(`📰 Existing posts: ${existingSlugs.length} | 🔑 Keywords: ${flatKw.length}\n`);
+  console.log(`📰 Existing posts: ${existingSlugs.length} | 🔑 Keywords: ${flatKw.length}`);
+
+  // V4: Inject GSC boost keywords into the keyword pool
+  if (gscInsights?.for_auto_poster?.boost_keywords?.length > 0) {
+    const boostKws = gscInsights.for_auto_poster.boost_keywords;
+    config._flatKeywords = [...new Set([...config._flatKeywords, ...boostKws])];
+    console.log(`📊 V4: Injected ${boostKws.length} GSC opportunity keywords into research pool`);
+  }
+
+  // V4: Log rising stars for the Researcher to consider
+  const risingStarCtx = gscInsights?.for_auto_poster?.rising_star_slugs?.length > 0
+    ? `\n\nGSC RISING STARS (position 8-15, need supporting articles): ${gscInsights.for_auto_poster.rising_star_slugs.join(', ')}`
+    : '';
+  knowledgeCtx += risingStarCtx;
+
+  console.log('');
+
 
   // ══════════════════════════════════════
   // Stage 1: Researcher (SERP + Semantic)
@@ -929,15 +1017,52 @@ async function managerAgent() {
       qaResult = { approved: false, overallScore: 0, feedback: 'QA engine unavailable', issues: ['QA unavailable'] };
     }
 
-    if (qaResult.approved && qaResult.overallScore >= 80) {
+    if (qaResult.approved && qaResult.overallScore >= 90) {
       published = true;
       break;
     }
 
-    if (qaResult.overallScore >= 80 && !qaResult.approved) {
+    if (qaResult.overallScore >= 90 && !qaResult.approved) {
       qaResult.approved = true;
       published = true;
       break;
+    }
+
+    // V4: Auto-fix — if score is 80-89, try targeted fixes before full rewrite
+    if (qaResult.overallScore >= 80 && qaResult.overallScore < 90 && draft) {
+      console.log(`\n   🔧 V4 AUTO-FIX: Score ${qaResult.overallScore}/100 — attempting targeted fixes...`);
+      
+      // Auto-fix: Boost internal links if insufficient
+      const internalLinkCount = (draft.content?.match(/href="\/blog\//g) || []).length;
+      if (internalLinkCount < 4) {
+        const linksToAdd = existingSlugs
+          .filter(s => !draft.content?.includes(s))
+          .slice(0, 4 - internalLinkCount);
+        let fixedContent = draft.content;
+        const existingTitlesMap = existingSlugs.map((s, i) => ({ slug: s, title: existingTitles[i] || s }));
+        for (const linkSlug of linksToAdd) {
+          const linkTitle = existingTitlesMap.find(e => e.slug === linkSlug)?.title || linkSlug;
+          // Insert before the FAQ section
+          const faqMarker = fixedContent.match(/<h2[^>]*>.*(?:FAQ|Frequently)/i);
+          if (faqMarker) {
+            const insertPoint = fixedContent.indexOf(faqMarker[0]);
+            const linkHtml = `<p>For more insights, explore our guide on <a href="/blog/${linkSlug}">${linkTitle}</a>.</p>\n\n`;
+            fixedContent = fixedContent.slice(0, insertPoint) + linkHtml + fixedContent.slice(insertPoint);
+          }
+        }
+        draft.content = fixedContent;
+        console.log(`   🔗 Auto-injected ${linksToAdd.length} internal links`);
+      }
+
+      // Auto-fix: Boost word count if below 2000
+      if (draft.wordCount < 2000) {
+        console.log(`   📝 Word count ${draft.wordCount} < 2000 — will be addressed in rewrite`);
+      }
+
+      // Re-count after fixes
+      draft.wordCount = draft.content?.split(/\s+/).length || 0;
+      const kwCountFixed = (draft.content?.toLowerCase().match(new RegExp(strategy.primary_keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+      draft.keywordCount = kwCountFixed;
     }
 
     if (attempt < MAX_ATTEMPTS - 1) {
@@ -976,6 +1101,9 @@ async function managerAgent() {
     fs.writeFileSync(BLOG_DATA_PATH, updated);
     incrementPublishCount();
 
+    // V4: Auto-update sitemap
+    updateSitemap(draft.slug);
+
     console.log('\n╔═══════════════════════════════════════════════════════════╗');
     console.log('║  📋 RUN REPORT — ✅ PUBLISHED                            ║');
     console.log('╠═══════════════════════════════════════════════════════════╣');
@@ -992,7 +1120,7 @@ async function managerAgent() {
     console.log('\n╔═══════════════════════════════════════════════════════════╗');
     console.log('║  📋 RUN REPORT — 🚫 NOT PUBLISHED                       ║');
     console.log('╠═══════════════════════════════════════════════════════════╣');
-    console.log(`║  Score: ${qaResult?.overallScore || 0}/100 (need 80+)`);
+    console.log(`║  Score: ${qaResult?.overallScore || 0}/100 (need 90+)`);
     console.log('║  Quality standards not met after all escalations.        ║');
     console.log('║  Skipping. Will retry next cycle.                        ║');
     console.log('╚═══════════════════════════════════════════════════════════╝');
@@ -1030,7 +1158,7 @@ function writeResearchTempFile(research, leadScore, strategy, qaResult) {
       ? strategy.cluster_future_articles.map(t => "- " + t).join('\n')
       : '*(Not yet generated)*';
 
-    const content = `# SEO Automation Research Log — V3.0
+    const content = `# SEO Automation Research Log — V4.0
 
 > **Generated at:** ${new Date().toISOString()}
 > Each blog generation cycle **overwrites** this file so you can monitor the AI's thought process.

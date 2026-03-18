@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /wp-admin/
 
 Sitemap: https://fouriqtech.com/sitemap.xml

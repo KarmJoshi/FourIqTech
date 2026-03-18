@@ -2,8 +2,8 @@ name: Autonomous SEO Content Loop
 
 on:
   schedule:
-    # Runs at 04:30 UTC (10:00 AM IST) and 16:30 UTC (10:00 PM IST) EVERY DAY
-    - cron: '30 4,16 * * *'
+    # V4: Reduced to 1x/day (04:30 UTC = 10:00 AM IST) — quality over quantity
+    - cron: '30 4 * * *'
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
           git config --global user.name "FouriqTech AI Bot"
           git config --global user.email "ai@fouriqtech.com"
           
-          git add src/data/blogPosts.ts fouriqtech-seo-config.yaml .github/publish_log.json .github/content_pipeline.json .github/dev-tasks/queue.json seo_research_temp.md || true
+          git add src/data/blogPosts.ts fouriqtech-seo-config.yaml .github/publish_log.json .github/content_pipeline.json .github/dev-tasks/queue.json public/sitemap.xml seo_research_temp.md || true
           
           # Check if there are actual changes before committing
           if git diff --staged --quiet; then
@@ -43,5 +43,5 @@ jobs:
             exit 0
           fi
           
-          git commit -m "Auto-post: SEO Content Pipeline Run"
+          git commit -m "Auto-post: SEO V4 Content Pipeline Run"
           git push origin main

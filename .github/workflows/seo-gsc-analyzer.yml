@@ -1,0 +1,48 @@
+name: Weekly GSC Analysis
+
+on:
+  schedule:
+    # Runs every Sunday at 05:00 UTC (10:30 AM IST)
+    - cron: '0 5 * * 0'
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  analyze-gsc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run GSC Analyzer
+        env:
+          GSC_CLIENT_ID: ${{ secrets.GSC_CLIENT_ID }}
+          GSC_CLIENT_SECRET: ${{ secrets.GSC_CLIENT_SECRET }}
+          GSC_REFRESH_TOKEN: ${{ secrets.GSC_REFRESH_TOKEN }}
+        run: node .github/scripts/seo-gsc-analyzer.mjs
+
+      - name: Commit GSC Report
+        run: |
+          git config --global user.name "FouriqTech AI Bot"
+          git config --global user.email "ai@fouriqtech.com"
+
+          git add .github/gsc-reports/ || true
+
+          if git diff --staged --quiet; then
+            echo "No GSC data changes."
+            exit 0
+          fi
+
+          git commit -m "Auto-report: Weekly GSC Analysis"
+          git push origin main
