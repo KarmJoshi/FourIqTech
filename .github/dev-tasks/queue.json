@@ -171,6 +171,33 @@
       "lead_score": 10,
       "business_relevance": 10,
       "reasoning": "This keyword targets the $25k+ budget tier perfectly as headless commerce migrations are complex, high-value projects. It leverages FouriqTech's specific expertise in Next.js, React, and high-performance animations (GSAP/Framer Motion) to provide the 'luxury' frontend experience global brands demand, while the ROI focus justifies the premium price point."
+    },
+    {
+      "id": "420938d0-ff84-4c4e-acef-58d5a22f7e9c",
+      "type": "landing_page",
+      "status": "pending",
+      "created_at": "2026-03-18T14:28:09.377Z",
+      "keyword": "react dashboard performance audit",
+      "secondary_keywords": [
+        "enterprise react dashboard performance audit services",
+        "react dashboard performance audit",
+        "fix slow react dashboard",
+        "react app performance tuning",
+        "react dashboard performance tuning for real-time finance data",
+        "react dashboard slow performance debugging",
+        "identifying memory leaks in complex react dashboards",
+        "enterprise frontend performance monitoring strategy"
+      ],
+      "route": "/services/react-dashboard-performance-audit",
+      "page_title": "ReactDashboardPerformanceAudit Services",
+      "target_file": "src/pages/services/ReactDashboardPerformanceAudit.tsx",
+      "seo": {
+        "meta_title": "react dashboard performance audit | FouriqTech",
+        "meta_description": "Premium react dashboard performance audit services by FouriqTech."
+      },
+      "design_brief": {
+        "note": "Use the /dev-tasks workflow to complete the brief and build the page."
+      }
     }
   ],
   "completed": [
@@ -551,5 +578,5 @@
       "reasoning": "This keyword directly targets companies (both startups and enterprises) looking to build a proprietary SaaS product, which inherently involves high-performance, scalable web application development—a core strength of FouriqTech. Such projects typically exceed the $25,000 minimum budget and require premium UI/UX. The intent is explicitly commercial, signaling a desire to hire an agency. While FouriqTech targets 'custom enterprise web application development for global startups' generally, 'custom SaaS platform development' is a distinct and highly specific sub-service with unique requirements (e.g., multi-tenancy, subscription billing, specific security protocols) that warrants a dedicated landing page. It's not covered by existing blog posts or general web design/marketing keywords."
     }
   ],
-  "last_updated": "2026-03-15T06:06:15.069Z"
+  "last_updated": "2026-03-18T14:28:09.377Z"
 }

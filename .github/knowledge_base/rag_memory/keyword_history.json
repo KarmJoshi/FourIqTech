@@ -1,0 +1,101 @@
+[
+  {
+    "article_id": "react-dashboard-slow-enterprise-performance-audit",
+    "metadata": {
+      "published_date": "2026-03-18",
+      "word_count": 1965,
+      "keyword_primary": "react dashboard slow",
+      "keyword_density": 0,
+      "internal_links_injected": 0,
+      "qa_score": 90,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": false,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Dashboard Performance & Auditing"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-18",
+      "day3_due": "2026-03-21",
+      "day7_due": "2026-03-25",
+      "day14_due": "2026-04-01",
+      "day28_due": "2026-04-15",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "react-real-time-chart-performance-webgl-web-workers",
+    "metadata": {
+      "published_date": "2026-03-18",
+      "word_count": 1988,
+      "keyword_primary": "react real-time chart performance",
+      "keyword_density": 0.3,
+      "internal_links_injected": 3,
+      "qa_score": 92,
+      "human_tone_score": 6,
+      "rewrite_attempts": 1,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "commercial",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-19",
+      "day3_due": "2026-03-21",
+      "day7_due": "2026-03-25",
+      "day14_due": "2026-04-01",
+      "day28_due": "2026-04-15",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "fix-react-memory-leaks-enterprise-saas",
+    "metadata": {
+      "published_date": "2026-03-18",
+      "word_count": 1874,
+      "keyword_primary": "fix react memory leaks",
+      "keyword_density": 1.01,
+      "internal_links_injected": 3,
+      "qa_score": 90,
+      "human_tone_score": 9,
+      "rewrite_attempts": 1,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "commercial",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-19",
+      "day3_due": "2026-03-21",
+      "day7_due": "2026-03-25",
+      "day14_due": "2026-04-01",
+      "day28_due": "2026-04-15",
+      "last_checked": null
+    }
+  }
+]

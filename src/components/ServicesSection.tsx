@@ -191,34 +191,34 @@ export default function ServicesSection() {
       {/* Horizontal strip */}
       <div
         ref={stripRef}
-        className="flex h-screen items-center gap-8 px-12 will-change-transform"
-        style={{ width: 'max-content' }}
+        className="flex min-h-screen flex-col items-stretch gap-6 px-4 py-16 will-change-transform sm:px-6 sm:py-20 lg:h-screen lg:flex-row lg:items-center lg:gap-8 lg:px-12 lg:py-0"
+        style={{ width: '100%' }}
       >
         {/* Intro header column */}
-        <div className="flex h-full w-[480px] flex-shrink-0 flex-col items-start justify-center pr-8">
+        <div className="flex h-auto w-full flex-shrink-0 flex-col items-start justify-center pr-0 lg:h-full lg:w-[480px] lg:pr-8">
           <span
             ref={kickerRef}
-            className="inline-flex items-center gap-3 text-sm font-heading font-medium uppercase tracking-[0.3em] text-primary"
+            className="inline-flex items-center gap-2 text-xs font-heading font-medium uppercase tracking-[0.22em] text-primary sm:gap-3 sm:text-sm sm:tracking-[0.3em]"
           >
-            <span className="h-[2px] w-12 bg-gradient-to-r from-transparent via-primary to-transparent" />
+            <span className="h-[2px] w-8 bg-gradient-to-r from-transparent via-primary to-transparent sm:w-12" />
             What We Do
-            <span className="h-[2px] w-12 bg-gradient-to-r from-transparent via-primary to-transparent" />
+            <span className="h-[2px] w-8 bg-gradient-to-r from-transparent via-primary to-transparent sm:w-12" />
           </span>
 
           <h2
             ref={titleRef}
-            className="mt-6 font-display text-6xl font-bold lg:text-7xl xl:text-8xl"
+            className="mt-5 font-display text-4xl font-bold leading-tight sm:text-5xl lg:mt-6 lg:text-7xl xl:text-8xl"
           >
             Our
             <br />
             <span className="text-gradient">Services</span>
           </h2>
 
-          <p ref={subtitleRef} className="mt-7 max-w-sm text-lg text-muted-foreground">
+          <p ref={subtitleRef} className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:mt-7 sm:text-lg">
             End-to-end digital solutions tailored to your unique business needs.
           </p>
 
-          <div className="mt-10 text-[11px] font-heading uppercase tracking-[0.28em] text-white/40">
+          <div className="mt-8 hidden text-[11px] font-heading uppercase tracking-[0.28em] text-white/40 lg:block">
             ← Scroll down to explore →
           </div>
         </div>
@@ -231,31 +231,31 @@ export default function ServicesSection() {
               key={service.title}
               ref={(el) => setCardRef(el, index)}
               // Removed backdrop-blur-md; changed bg-zinc-900/30 to bg-[#0d0d0d] for better render perf
-              className="service-card group relative h-[500px] w-[380px] flex-shrink-0 overflow-hidden rounded-3xl border border-white/10 bg-[#0d0d0d] p-10 transition-[border-color,transform] duration-500 hover:border-primary/45 md:w-[420px]"
+              className="service-card group relative min-h-[320px] w-full overflow-hidden rounded-3xl border border-white/10 bg-[#0d0d0d] p-6 transition-[border-color,transform] duration-500 hover:border-primary/45 sm:min-h-[360px] sm:p-8 lg:h-[500px] lg:w-[380px] lg:flex-shrink-0 lg:p-10 xl:w-[420px]"
               style={{ willChange: 'transform' }}
             >
               <div className="service-anim absolute inset-0 bg-gradient-to-br from-primary/12 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               {/* Reduced blur radius from blur-3xl to blur-2xl to save GPU cycles */}
-              <div className="service-anim absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/15 blur-2xl opacity-40" />
+              <div className="service-anim absolute -right-10 -top-10 h-28 w-28 rounded-full bg-primary/15 blur-2xl opacity-40 sm:-right-16 sm:-top-16 sm:h-40 sm:w-40" />
 
               <div className="relative z-10 flex h-full flex-col">
                 <span className="service-anim text-[11px] font-heading uppercase tracking-[0.32em] text-white/45">
                   {(index + 1).toString().padStart(2, '0')}
                 </span>
 
-                <div className="service-anim mt-7 inline-flex w-fit rounded-2xl border border-zinc-700/40 bg-zinc-800/55 p-5 text-zinc-100 shadow-xl transition-all duration-500 group-hover:scale-105 group-hover:border-primary/35 group-hover:bg-primary/15 group-hover:text-primary">
-                  <Icon size={38} strokeWidth={1.6} />
+                <div className="service-anim mt-5 inline-flex w-fit rounded-2xl border border-zinc-700/40 bg-zinc-800/55 p-4 text-zinc-100 shadow-xl transition-all duration-500 group-hover:scale-105 group-hover:border-primary/35 group-hover:bg-primary/15 group-hover:text-primary sm:mt-7 sm:p-5">
+                  <Icon size={32} strokeWidth={1.6} className="sm:h-[38px] sm:w-[38px]" />
                 </div>
 
-                <h3 className="service-anim mt-8 font-display text-3xl font-bold text-foreground transition-colors duration-500 group-hover:text-primary">
+                <h3 className="service-anim mt-6 font-display text-2xl font-bold text-foreground transition-colors duration-500 group-hover:text-primary sm:mt-8 sm:text-3xl">
                   {service.title}
                 </h3>
 
-                <p className="service-anim mt-5 mb-auto text-base leading-relaxed text-muted-foreground">
+                <p className="service-anim mb-auto mt-4 text-sm leading-relaxed text-muted-foreground sm:mt-5 sm:text-base">
                   {service.description}
                 </p>
 
-                <div className="service-anim mt-8 inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-all duration-500 group-hover:text-primary">
+                <div className="service-anim mt-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-all duration-500 group-hover:text-primary sm:mt-8">
                   <span>Explore Service</span>
                   <svg
                     className="h-5 w-5 transition-transform duration-500 group-hover:translate-x-1.5"

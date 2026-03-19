@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
+import crypto from 'crypto';
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🏢 FOURIQTECH AI SEO ENGINE — Enterprise Grade v4.0
@@ -28,6 +29,9 @@ const CONTENT_PIPELINE_PATH = path.join(process.cwd(), '.github/content_pipeline
 const RESEARCH_TEMP_PATH = path.join(process.cwd(), 'seo_research_temp.md');
 const GSC_REPORT_PATH = path.join(process.cwd(), '.github/gsc-reports/latest.json');
 const SITEMAP_PATH = path.join(process.cwd(), 'public/sitemap.xml');
+
+// ── V7.0: Topic Cluster Map Path ──
+const CLUSTER_MAP_PATH = path.join(process.cwd(), '.github/knowledge_base/cluster_map.json');
 
 // ── V5.0: RAG Memory System Paths ──
 const RAG_DIR = path.join(process.cwd(), '.github/knowledge_base/rag_memory');
@@ -178,31 +182,107 @@ function saveRagFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+function addDays(dateStr, days) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+// ── V6: Helper to load and migrate history on read ──
+function loadAndMigrateHistory() {
+  const rawHistory = loadRagFile(RAG_KEYWORD_HISTORY, []);
+  let mutated = false;
+  const history = rawHistory.map(r => {
+    if ('prediction' in r || !r.metadata) {
+      mutated = true;
+      const pDate = r.published_date || new Date().toISOString().split('T')[0];
+      return {
+        article_id: r.slug,
+        metadata: {
+          published_date: pDate,
+          word_count: r.word_count || 0,
+          keyword_primary: r.keyword || '',
+          keyword_density: 0,
+          internal_links_injected: 0,
+          qa_score: r.qa_score || 0,
+          human_tone_score: r.human_tone || 0,
+          rewrite_attempts: 0,
+          schema_injected: false,
+          lead_score: 7,
+          business_relevance: 7,
+          intent_type: 'informational',
+          cluster: r.cluster || ''
+        },
+        performance: {
+          day1_indexed: null,
+          day3_impressions: null,
+          day7_ctr: null,
+          day14_avg_position: null,
+          day28_classification: "pending"
+        },
+        check_schedule: {
+          day1_due: addDays(pDate, 1),
+          day3_due: addDays(pDate, 3),
+          day7_due: addDays(pDate, 7),
+          day14_due: addDays(pDate, 14),
+          day28_due: addDays(pDate, 28),
+          last_checked: null
+        }
+      };
+    }
+    return r;
+  });
+  if (mutated) saveRagFile(RAG_KEYWORD_HISTORY, history);
+  return history;
+}
+
 // Save article to RAG memory after publishing
-function saveArticleToRag(draft, strategy, research, qaResult) {
+function saveArticleToRag(draft, strategy, research, qaResult, rewriteAttempts, linksInjected) {
   ensureRagDirs();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const kwDensity = draft.wordCount > 0 ? Number(((draft.keywordCount / draft.wordCount) * 100).toFixed(2)) : 0;
+  
   const record = {
-    slug: draft.slug,
-    title: draft.title,
-    keyword: strategy.primary_keyword,
-    secondary_keywords: strategy.secondary_keywords,
-    cluster: strategy.cluster_topic,
-    word_count: draft.wordCount,
-    qa_score: qaResult?.overallScore || 0,
-    human_tone: qaResult?.scores?.human_tone || 0,
-    published_date: new Date().toISOString().split('T')[0],
-    prediction: 'Page 1 within 30 days',
-    prediction_checked: false,
-    actual_position: null
+    article_id: draft.slug,
+    metadata: {
+      published_date: todayStr,
+      word_count: draft.wordCount,
+      keyword_primary: strategy.primary_keyword,
+      keyword_density: kwDensity,
+      internal_links_injected: linksInjected || 0,
+      qa_score: qaResult?.overallScore || 0,
+      human_tone_score: qaResult?.scores?.human_tone || 0,
+      rewrite_attempts: rewriteAttempts || 0,
+      schema_injected: true,
+      lead_score: 7, 
+      business_relevance: 7, 
+      intent_type: research?.search_intent || 'informational',
+      cluster: strategy.cluster_topic || ''
+    },
+    performance: {
+      day1_indexed: null,
+      day3_impressions: null,
+      day7_ctr: null,
+      day14_avg_position: null,
+      day28_classification: "pending"
+    },
+    check_schedule: {
+      day1_due: addDays(todayStr, 1),
+      day3_due: addDays(todayStr, 3),
+      day7_due: addDays(todayStr, 7),
+      day14_due: addDays(todayStr, 14),
+      day28_due: addDays(todayStr, 28),
+      last_checked: null
+    }
   };
 
   // Save article content
   const articlePath = path.join(RAG_ARTICLES_DIR, `${draft.slug}.md`);
-  const articleMd = `# ${draft.title}\n\n**Keyword:** ${strategy.primary_keyword}\n**Date:** ${record.published_date}\n**Words:** ${draft.wordCount}\n**QA:** ${record.qa_score}/100\n\n---\n\n${(draft.content || '').replace(/<[^>]+>/g, ' ').substring(0, 3000)}`;
+  const articleMd = `# ${draft.title}\n\n**Keyword:** ${strategy.primary_keyword}\n**Date:** ${todayStr}\n**Words:** ${draft.wordCount}\n**QA:** ${record.metadata.qa_score}/100\n\n---\n\n${(draft.content || '').replace(/<[^>]+>/g, ' ').substring(0, 3000)}`;
   fs.writeFileSync(articlePath, articleMd);
 
-  // Save to keyword history
-  const history = loadRagFile(RAG_KEYWORD_HISTORY, []);
+  // Load and migrate keyword history, then push
+  const history = loadAndMigrateHistory();
   history.push(record);
   saveRagFile(RAG_KEYWORD_HISTORY, history);
 
@@ -219,70 +299,192 @@ function loadWinningPatterns() {
   return `\n\n═══ RAG WINNING PATTERNS (replicate these) ═══\nThese are your TOP performing articles. Mimic their structure, tone, and length:\n${top3.map(w => `- "${w.keyword}" → ${w.word_count} words, ${w.clicks} clicks, CTR ${w.ctr}%, Avg Pos ${w.position}`).join('\n')}\n`;
 }
 
-// Run the 30-day prediction check using GSC data
-function checkPredictions(gscInsights) {
-  if (!gscInsights) return;
-  const history = loadRagFile(RAG_KEYWORD_HISTORY, []);
-  const winning = loadRagFile(RAG_WINNING, []);
+// V7: Improves keyword selection by avoiding patterns that previously failed QA or ranking
+function loadFailurePatterns() {
   const failed = loadRagFile(RAG_FAILED, []);
-  const today = new Date();
-  let updated = false;
+  if (failed.length === 0) return '';
+  const patterns = failed.slice(-5).map(f => {
+    const issues = [];
+    if (f.word_count && f.word_count < 2000) issues.push(`low word count (${f.word_count})`);
+    if (f.qa_score && f.qa_score < 85) issues.push(`low QA score (${f.qa_score})`);
+    if (f.position === 'unranked') issues.push('never indexed');
+    else if (f.position && f.position > 50) issues.push(`poor position (${f.position})`);
+    return `- "${f.keyword}" failed: ${issues.join(', ') || 'unknown reason'}`;
+  });
+  return `\n═══ RAG FAILURE PATTERNS — AVOID THESE MISTAKES ═══\nThese keyword types have failed before — avoid similar angles:\n${patterns.join('\n')}\n`;
+}
 
-  for (const entry of history) {
-    if (entry.prediction_checked) continue;
-    const pubDate = new Date(entry.published_date);
-    const daysSince = Math.floor((today - pubDate) / (1000 * 60 * 60 * 24));
-    if (daysSince < 28) continue; // Wait 28 days
+// V7: Improves topical authority by tracking which clusters are complete vs incomplete
+function loadClusterMap() {
+  try { return JSON.parse(fs.readFileSync(CLUSTER_MAP_PATH, 'utf8')); }
+  catch { return { clusters: [] }; }
+}
 
-    // Check GSC data for this slug
-    const pageData = gscInsights?.page_analysis?.find(
-      p => p.page?.includes(entry.slug)
-    );
+// V7: Updates the cluster map after every publish to track authority building progress
+function updateClusterMap(strategy, draft) {
+  const map = loadClusterMap();
+  const clusterName = strategy.cluster_topic || '';
+  if (!clusterName) return;
 
-    entry.prediction_checked = true;
-    entry.actual_position = pageData?.position || null;
-    entry.actual_clicks = pageData?.clicks || 0;
-    entry.actual_impressions = pageData?.impressions || 0;
-    entry.actual_ctr = pageData?.ctr || 0;
-    updated = true;
+  let cluster = map.clusters.find(c => c.cluster_name === clusterName);
+  if (!cluster) {
+    cluster = {
+      cluster_name: clusterName,
+      pillar_slug: null,
+      pillar_published: false,
+      supporting_articles: [],
+      target_supporting_count: 5,
+      cluster_complete: false
+    };
+    map.clusters.push(cluster);
+  }
 
-    if (pageData && pageData.position <= 10) {
-      // Winner! Page 1.
-      winning.push({
-        slug: entry.slug, keyword: entry.keyword,
-        word_count: entry.word_count, qa_score: entry.qa_score,
-        human_tone: entry.human_tone,
-        clicks: pageData.clicks, impressions: pageData.impressions,
-        ctr: pageData.ctr, position: pageData.position,
-        date: entry.published_date
-      });
-      console.log(`   🏆 RAG: "${entry.keyword}" → Page 1! (Pos ${pageData.position}) → WINNING PATTERN`);
-    } else {
-      // Failed or still in progress
-      failed.push({
-        slug: entry.slug, keyword: entry.keyword,
-        word_count: entry.word_count, qa_score: entry.qa_score,
-        position: pageData?.position || 'unranked',
-        clicks: pageData?.clicks || 0,
-        date: entry.published_date
-      });
-      console.log(`   ❌ RAG: "${entry.keyword}" → ${pageData ? `Pos ${pageData.position}` : 'Unranked'} → FAILED PATTERN`);
+  const articleType = strategy.article_type || 'supporting';
+  if (articleType === 'pillar') {
+    cluster.pillar_slug = draft.slug;
+    cluster.pillar_published = true;
+  } else {
+    if (!cluster.supporting_articles.includes(draft.slug)) {
+      cluster.supporting_articles.push(draft.slug);
     }
   }
 
+  if (cluster.supporting_articles.length >= cluster.target_supporting_count) {
+    cluster.cluster_complete = true;
+  }
+
+  fs.writeFileSync(CLUSTER_MAP_PATH, JSON.stringify(map, null, 2));
+  console.log(`   🗺️ CLUSTER MAP: Updated "${clusterName}" (${cluster.supporting_articles.length}/${cluster.target_supporting_count} supporting articles)`);
+}
+
+// V7: Prioritizes filling incomplete clusters over starting new ones
+function getIncompleteClusterContext() {
+  const map = loadClusterMap();
+  const incomplete = map.clusters.filter(c => c.pillar_published && !c.cluster_complete);
+  if (incomplete.length === 0) return '';
+  const lines = incomplete.map(c => `- "${c.cluster_name}": ${c.supporting_articles.length}/${c.target_supporting_count} supporting articles (NEEDS ${c.target_supporting_count - c.supporting_articles.length} MORE)`);
+  return `\n═══ INCOMPLETE CLUSTERS — PRIORITIZE THESE ═══\nThese clusters have a pillar article but need more supporting articles. Fill these gaps FIRST before starting a new cluster:\n${lines.join('\n')}\n`;
+}
+
+// ── V6: Multi-Stage Feedback Engine ──
+function runFeedbackChecks(gscInsights) {
+  if (!gscInsights || !gscInsights.page_analysis) {
+    console.log("   📊 No GSC data available — skipping feedback checks");
+    return;
+  }
+  const history = loadAndMigrateHistory();
+  const winning = loadRagFile(RAG_WINNING, []);
+  const failed = loadRagFile(RAG_FAILED, []);
+  const todayStr = new Date().toISOString().split('T')[0];
+  let updated = false;
+
+  const optQueuePath = path.join(process.cwd(), '.github/gsc-reports/optimization_queue.json');
+  let optQueue = [];
+  try { optQueue = JSON.parse(fs.readFileSync(optQueuePath, 'utf8')); } catch {}
+
+  const updatedHistory = history.map(entry => {
+    if (entry.performance.day28_classification !== 'pending') return entry;
+
+    const pageData = gscInsights.page_analysis.find(p => p.page?.includes(entry.article_id));
+    
+    // Day 1 Check
+    if (todayStr >= entry.check_schedule.day1_due && entry.performance.day1_indexed === null) {
+      if (pageData && pageData.impressions >= 1) {
+        entry.performance.day1_indexed = true;
+      } else {
+        entry.performance.day1_indexed = false;
+        console.log(`   ⚠️ [${entry.article_id}] not indexed at Day 1`);
+      }
+      updated = true;
+    }
+
+    // Day 3 Check
+    if (todayStr >= entry.check_schedule.day3_due && entry.performance.day3_impressions === null) {
+      entry.performance.day3_impressions = pageData?.impressions || 0;
+      if (entry.performance.day3_impressions === 0) {
+        console.log(`   ⚠️ Zero impressions at Day 3: ${entry.article_id}`);
+      }
+      updated = true;
+    }
+
+    // Day 7 Check
+    if (todayStr >= entry.check_schedule.day7_due && entry.performance.day7_ctr === null) {
+      entry.performance.day7_ctr = pageData?.ctr || 0;
+      if (entry.performance.day7_ctr < 0.5 && (pageData?.impressions || 0) > 50) {
+        console.log(`   📝 Low CTR at Day 7 for ${entry.article_id} — title may need rewrite`);
+        optQueue.push({ slug: entry.article_id, issue: "low_ctr", ctr: pageData.ctr, impressions: pageData.impressions, flagged_date: todayStr });
+      }
+      updated = true;
+    }
+
+    // Day 14 Check
+    if (todayStr >= entry.check_schedule.day14_due && entry.performance.day14_avg_position === null) {
+      entry.performance.day14_avg_position = pageData?.position || 0;
+      if (pageData && pageData.position > 50) {
+        console.log(`   🔴 Position > 50 at Day 14 for ${entry.article_id} — content may need expansion`);
+        optQueue.push({ slug: entry.article_id, issue: "low_position", position: pageData.position, flagged_date: todayStr });
+      }
+      updated = true;
+    }
+
+    // Day 28 Check
+    if (todayStr >= entry.check_schedule.day28_due && entry.performance.day28_classification === 'pending') {
+      const pos = pageData?.position || 999;
+      const ctr = pageData?.ctr || 0;
+      const imp = pageData?.impressions || 0;
+      
+      if (pos <= 10 && ctr > 2) {
+        entry.performance.day28_classification = 'winner';
+        winning.push({
+          slug: entry.article_id, keyword: entry.metadata.keyword_primary,
+          word_count: entry.metadata.word_count, qa_score: entry.metadata.qa_score,
+          human_tone: entry.metadata.human_tone_score,
+          clicks: pageData?.clicks || 0, impressions: imp,
+          ctr: ctr, position: pos,
+          date: entry.metadata.published_date
+        });
+        console.log(`   🏆 RAG: "${entry.metadata.keyword_primary}" → WINNER PATTERN`);
+      } else if (pos > 10 && pos <= 30) {
+        entry.performance.day28_classification = 'rising';
+        entry.check_schedule.day45_due = addDays(entry.metadata.published_date, 45);
+        console.log(`   📈 RAG: "${entry.metadata.keyword_primary}" → RISING PATTERN`);
+      } else {
+        entry.performance.day28_classification = 'failed';
+        failed.push({
+          slug: entry.article_id, keyword: entry.metadata.keyword_primary,
+          word_count: entry.metadata.word_count, qa_score: entry.metadata.qa_score,
+          position: pos === 999 ? 'unranked' : pos,
+          clicks: pageData?.clicks || 0,
+          date: entry.metadata.published_date
+        });
+        console.log(`   ❌ RAG: "${entry.metadata.keyword_primary}" → FAILED PATTERN`);
+      }
+      updated = true;
+    }
+    
+    if (updated) {
+      entry.check_schedule.last_checked = todayStr;
+    }
+    return entry;
+  });
+
   if (updated) {
-    saveRagFile(RAG_KEYWORD_HISTORY, history);
+    saveRagFile(RAG_KEYWORD_HISTORY, updatedHistory);
     saveRagFile(RAG_WINNING, winning);
     saveRagFile(RAG_FAILED, failed);
-    console.log(`   📦 RAG: ${winning.length} winners, ${failed.length} failures tracked`);
+    if (optQueue.length > 0) {
+      if (!fs.existsSync(path.dirname(optQueuePath))) fs.mkdirSync(path.dirname(optQueuePath), { recursive: true });
+      fs.writeFileSync(optQueuePath, JSON.stringify(optQueue, null, 2));
+    }
+    console.log(`   📦 RAG: Feedback checks completed and updated.`);
   }
 }
 
 // Load keyword history for the Researcher to avoid repeats
 function getKeywordHistoryContext() {
-  const history = loadRagFile(RAG_KEYWORD_HISTORY, []);
+  const history = loadAndMigrateHistory();
   if (history.length === 0) return '';
-  const keywords = history.map(h => h.keyword);
+  const keywords = history.map(h => h.metadata?.keyword_primary || h.keyword);
   return `\n\nRAG KEYWORD HISTORY (DO NOT repeat these):\n${keywords.join(', ')}`;
 }
 
@@ -350,7 +552,7 @@ function spiderReverseLink(newSlug, newTitle, newKeyword, blogDataFile) {
     console.log(`   🕸️ SPIDER: ${injectedCount} reverse links injected into existing articles.`);
   }
 
-  return updatedBlogData;
+  return { updated: updatedBlogData, injectedCount };
 }
 
 // Orphan page detection
@@ -532,52 +734,178 @@ RETURN VALID JSON:
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🧠 V5: META-MANAGER DECISION ENGINE
+// 🧠 V6: META-MANAGER DECISION ENGINE
 // ═══════════════════════════════════════════════════════════════════════
 function metaManagerDecision(gscInsights, gscDiag, publishCount, staleArticles, orphanPages) {
   console.log(`\n🧠 META-MANAGER: Making autonomous decision...`);
+
+  const history = loadAndMigrateHistory();
+  const lastArticle = history.length > 0 ? history[history.length - 1] : null;
+  const leadScoreVal = lastArticle?.metadata?.lead_score || 7;
+  const businessRelVal = lastArticle?.metadata?.business_relevance || 7;
+  
+  // Calculate Base Publish Score
+  const gscHealthScore = gscDiag?.overall_health === 'good' ? 8 : (gscDiag?.overall_health === 'warning' ? 5 : 3);
+  let publish_score = (leadScoreVal * 0.35) + ((10 - 5) * 0.25) + (businessRelVal * 0.25) + (gscHealthScore * 0.15);
+  publish_score = Number(publish_score.toFixed(1));
+
+  const decisionObj = {
+    action: 'publish',
+    score: publish_score,
+    reasoning: '',
+    confidence: 'low'
+  };
 
   const today = new Date();
   const dayOfWeek = today.getDay(); // 0=Sun, 6=Sat
 
   // Rule 1: No weekends for B2B
   if (dayOfWeek === 0 || dayOfWeek === 6) {
-    console.log(`   📅 Weekend detected (${dayOfWeek === 0 ? 'Sunday' : 'Saturday'}). B2B audience is offline.`);
-    console.log(`   🧠 DECISION: OPTIMIZE existing content instead of publishing.`);
-    return { action: 'optimize', reason: 'Weekend - B2B audience offline' };
+    decisionObj.action = 'optimize';
+    decisionObj.reasoning = 'Weekend - B2B audience offline';
   }
-
   // Rule 2: Already published today
-  if (publishCount >= 1) {
-    console.log(`   📰 Already published ${publishCount} article(s) today.`);
-    console.log(`   🧠 DECISION: WAIT. Google rewards consistency, not spam.`);
-    return { action: 'wait', reason: 'Daily limit reached' };
+  else if (publishCount >= 1) {
+    decisionObj.action = 'wait';
+    decisionObj.reasoning = 'Daily limit reached';
   }
-
   // Rule 3: Stale content is urgent
-  if (staleArticles.length > 0) {
+  else if (staleArticles.length > 0) {
     const worst = staleArticles.sort((a, b) => b.position - a.position)[0];
-    console.log(`   🔧 Stale article detected: "${worst.slug}" (pos ${worst.position}, ${worst.daysSince} days old)`);
-    console.log(`   🧠 DECISION: PUBLISH new content + flag stale articles for refresh.`);
-    return { action: 'publish_and_flag', reason: `Stale content: ${worst.slug}`, staleArticle: worst };
+    decisionObj.action = 'publish_and_flag';
+    decisionObj.reasoning = `Stale content flagged: ${worst.slug}`;
+    decisionObj.staleArticle = worst;
   }
-
   // Rule 4: Orphan pages need links
-  if (orphanPages.length > 0) {
-    console.log(`   🕸️ ${orphanPages.length} orphan pages need internal links.`);
-    console.log(`   🧠 DECISION: PUBLISH new content to naturally create linking opportunities.`);
-    return { action: 'publish', reason: `${orphanPages.length} orphan pages need linking` };
+  else if (orphanPages.length > 0) {
+    decisionObj.action = 'publish';
+    decisionObj.reasoning = `${orphanPages.length} orphan pages need internal linking`;
+  }
+  // Default
+  else {
+    decisionObj.action = 'publish';
+    decisionObj.reasoning = 'Standard publishing cycle based on scoring metrics';
   }
 
-  // Rule 5: GSC diagnostic says something specific
-  if (gscDiag?.recommended_next_action) {
-    console.log(`   📊 GSC Diagnostic recommends: ${gscDiag.recommended_next_action}`);
+  // Calculate Confidence
+  if (decisionObj.score >= 7.5 && staleArticles.length === 0 && orphanPages.length === 0) {
+    decisionObj.confidence = 'high';
+  } else if (decisionObj.score >= 5.0 && decisionObj.score < 7.5) {
+    decisionObj.confidence = 'medium';
+  } else {
+    decisionObj.confidence = 'low';
   }
 
-  // Default: publish
-  console.log(`   🧠 DECISION: PUBLISH new content.`);
-  return { action: 'publish', reason: 'Standard publishing cycle' };
+  console.log(`   🧠 DECISION: ${decisionObj.action.toUpperCase()} | Score: ${decisionObj.score}/10 | Confidence: ${decisionObj.confidence.toUpperCase()} | ${decisionObj.reasoning}`);
+
+  // Log decision
+  const logPath = path.join(process.cwd(), '.github/gsc-reports/decision_log.json');
+  let dlog = [];
+  try { dlog = JSON.parse(fs.readFileSync(logPath, 'utf8')); } catch {}
+  dlog.push({
+    timestamp: new Date().toISOString(),
+    action: decisionObj.action,
+    score: decisionObj.score,
+    confidence: decisionObj.confidence,
+    reasoning: decisionObj.reasoning
+  });
+  if (dlog.length > 10) dlog = dlog.slice(-10);
+  if (!fs.existsSync(path.dirname(logPath))) fs.mkdirSync(path.dirname(logPath), { recursive: true });
+  fs.writeFileSync(logPath, JSON.stringify(dlog, null, 2));
+
+  return decisionObj;
 }
+
+// ── V6: Drift Control System ──
+function runDriftCheck(gscInsights) {
+  const today = new Date();
+  if (today.getDay() !== 0) return; // Only run on Sunday
+
+  const driftPath = path.join(process.cwd(), '.github/drift_detected.json');
+  const history = loadAndMigrateHistory();
+  const decisionLogPath = path.join(process.cwd(), '.github/gsc-reports/decision_log.json');
+  let dlog = [];
+  try { dlog = JSON.parse(fs.readFileSync(decisionLogPath, 'utf8')); } catch {}
+
+  const signals = [];
+  
+  // 1. QA Drift
+  const last5QA = history.slice(-5).filter(h => h.metadata?.qa_score !== undefined);
+  if (last5QA.filter(h => h.metadata.qa_score < 88).length >= 3) {
+    signals.push("QA_DRIFT");
+  }
+
+  // 2. Decision Drift
+  const last10Decisions = dlog.slice(-10);
+  let consecutiveWait = 0;
+  for (const dec of last10Decisions) {
+    if (dec.action === 'wait') consecutiveWait++;
+    else consecutiveWait = 0;
+    if (consecutiveWait >= 5) {
+      signals.push("DECISION_DRIFT");
+      break;
+    }
+  }
+
+  // 3. Indexing Drift
+  if (gscInsights?.summary) {
+    if (gscInsights.summary.total_impressions === 0 && gscInsights.summary.total_pages_tracked > 5) {
+      signals.push("INDEXING_DRIFT");
+    }
+  }
+
+  // 4. CTR Drift
+  const prevGscPath = path.join(process.cwd(), '.github/gsc-reports/previous.json');
+  if (fs.existsSync(prevGscPath) && gscInsights?.summary?.avg_ctr) {
+    try {
+      const prevReport = JSON.parse(fs.readFileSync(prevGscPath, 'utf8'));
+      if (prevReport.summary?.avg_ctr > 0) {
+        const drop = (prevReport.summary.avg_ctr - gscInsights.summary.avg_ctr) / prevReport.summary.avg_ctr;
+        if (drop > 0.2) signals.push("CTR_DRIFT");
+      }
+    } catch {}
+  }
+
+  if (signals.length > 0) {
+    const reportPath = path.join(process.cwd(), '.github/gsc-reports/drift_report.md');
+    fs.writeFileSync(driftPath, JSON.stringify({ detected_at: new Date().toISOString(), signals, paused: true }, null, 2));
+    
+    const reportMd = `# ⚠️ Drift Detected — ${new Date().toISOString().split('T')[0]}
+## Signals
+${signals.map(s => `- ${s}`).join('\n')}
+
+## Last 5 QA Scores
+${last5QA.map(h => `- ${h.metadata.keyword_primary}: ${h.metadata.qa_score}`).join('\n')}
+
+## Last 5 Decisions
+${last10Decisions.slice(-5).map(d => `- [${d.action}] Score ${d.score}: ${d.reasoning}`).join('\n')}
+
+## Recommended Action
+Investigate the identified drifts. Pause automation or review prompt constraints if QA scores are dropping consistently.
+
+## Auto-Resume
+System will auto-resume after 7 days unless drift_detected.json is manually deleted.`;
+    
+    fs.writeFileSync(reportPath, reportMd);
+    console.log(`   ⚠️ DRIFT DETECTED: ${signals.join(', ')}. Publishing paused.`);
+    console.log(`   📋 Report saved → .github/gsc-reports/drift_report.md`);
+  } else {
+    // Check if auto-resume is needed
+    if (fs.existsSync(driftPath)) {
+      try {
+        const driftData = JSON.parse(fs.readFileSync(driftPath, 'utf8'));
+        const daysSince = Math.floor((new Date() - new Date(driftData.detected_at)) / (1000 * 60 * 60 * 24));
+        if (daysSince >= 7) {
+          fs.unlinkSync(driftPath);
+          console.log(`   ✅ DRIFT: Auto-resume after 7 days`);
+        }
+      } catch {}
+    } else {
+      console.log(`   ✅ DRIFT CHECK: No drift signals detected`);
+    }
+  }
+}
+
 
 
 function loadGscInsights() {
@@ -648,61 +976,100 @@ async function researcherAgent(config, existingSlugs, knowledgeCtx) {
   return await healedCall('Researcher', async (prevErr) => {
     const fix = prevErr ? `\nFIX PREVIOUS ERROR: "${prevErr.message}". Ensure valid JSON.` : '';
 
+    // V7: Load keyword history for anti-cannibalization
+    const history = loadAndMigrateHistory();
+    const usedKeywords = history.map(h => h.metadata?.keyword_primary || '').filter(k => k);
+    const recentClusters = history
+      .filter(h => {
+        const pubDate = h.metadata?.published_date;
+        if (!pubDate) return false;
+        const daysSince = Math.floor((new Date() - new Date(pubDate)) / (1000 * 60 * 60 * 24));
+        return daysSince <= 14;
+      })
+      .map(h => h.metadata?.cluster || '');
+    // V7: Load failure patterns for avoidance context
+    const failureCtx = loadFailurePatterns();
+    // V7: Load cluster map for gap-filling context
+    const clusterCtx = getIncompleteClusterContext();
+
     const raw = await smartCall(models, `You are an expert SEO keyword researcher for FouriqTech, a web design & development agency targeting global startups and enterprises ($25k+ budgets).
 
 COMPANY CONTEXT: ${knowledgeCtx}
 EXISTING BLOG SLUGS (DO NOT DUPLICATE): ${JSON.stringify(existingSlugs)}
 CURRENT KEYWORDS: ${JSON.stringify(config._flatKeywords || [])}
 
-YOUR MISSION: Find the single best SEO opportunity for a new blog post.
+${failureCtx}
 
-═══ KEYWORD SELECTION CRITERIA (STRICT) ═══
-- MUST be a long-tail keyword (4+ words)
-- MUST have low or medium competition
-- MUST have clear search intent (informational, commercial, or transactional)
-- MUST be specific and actionable, NOT broad
-- PRIORITIZE keywords with problem-solving or buyer/commercial intent over pure learning intent
+${clusterCtx}
 
-GOOD keyword examples:
-- "enterprise react performance optimization service"
-- "nextjs api routes best practices for scale"
-- "react dashboard slow performance debugging"
-- "website speed optimization audit enterprise"
+═══ PHASE 1: KEYWORD EXPANSION ═══
+Generate 40 keyword candidates across ALL of these FouriqTech service areas (8 keywords per area):
 
-BAD keyword examples (NEVER use these):
-- "web development" (too broad)
-- "what is react" (beginner / low lead value)
-- "javascript tutorial" (too generic)
-- "web design India" (already covered)
+SERVICE AREAS:
+1. React and Next.js development
+2. B2B SaaS dashboards
+3. Enterprise web applications
+4. Legacy system modernization
+5. UI/UX for data-heavy products
+
+For EACH service area, generate 8 keywords using these patterns:
+- "why is [X] slow"
+- "how to fix [X] in production"
+- "[X] not working with large dataset"
+- "best way to build [X] for enterprise"
+- "[X] vs [Y] for enterprise performance"
+- "how to optimize [X] for B2B SaaS"
+- "[X] performance audit"
+- "reducing [X] load time in production"
+
+═══ PHASE 2: FILTER (STRICT) ═══
+Remove ANY keyword that matches these conditions:
+1. Keyword already exists in this list: ${JSON.stringify(usedKeywords)}
+2. Keyword is a variation of any keyword published in the last 14 days (same root topic words)
+3. Keyword targets the same root topic as 2+ recent articles. Recent clusters to AVOID: ${JSON.stringify([...new Set(recentClusters)])}
+4. Keyword difficulty above 7 AND intent is not problem-based
+Log every rejected keyword and the reason it was rejected in the "rejected_keywords" array.
+
+═══ PHASE 3: SCORE ═══
+Score every remaining keyword using this formula:
+Final Score = (Lead Intent × 0.35) + (Business Relevance × 0.25) + (Low Competition × 0.25) + (Indexing Speed × 0.15)
+
+- Lead Intent: probability searcher becomes a paying client (1-10)
+- Business Relevance: how closely FouriqTech services solve this problem (1-10)
+- Low Competition: ability for a DR 5 domain to rank (1-10, where 10 = very easy)
+- Indexing Speed: probability Google indexes within 7 days (1-10)
+
+Hard reject if Lead Intent below 5.
+Hard reject if Business Relevance below 7.
+Hard reject if Final Score below 6.0.
+
+═══ PHASE 4: SELECT AND CLASSIFY ═══
+Pick the single highest scoring keyword. Then classify it:
+- PILLAR: if the topic is broad enough to support 5+ sub-articles and no pillar exists for this cluster yet — target word count 2500-3000
+- SUPPORTING: if a related pillar article already exists in keyword history — target word count 2200-2500
+- PROGRAMMATIC: if the topic fits a repeatable template pattern like "how to fix X in React" — target word count 1500-1800
 
 ═══ SERP STRUCTURE ANALYSIS ═══
-For the target keyword, analyze what the top 10 ranking articles would look like and extract:
-- Average word count
-- Common H2 headings used
-- Common H3 headings
-- Whether code examples are present
-- Whether FAQs are present
-- Whether tables or checklists are used
-- Content gaps NOT covered by competitors
+For the selected keyword, analyze what the top 10 ranking articles would look like.
 
 ═══ SEMANTIC KEYWORD CLUSTER ═══
-Generate 15-30 related semantic keywords organized into categories:
-- Supporting long-tail keywords
-- Problem-based keywords (what problems the reader has)
-- Technology-specific keywords
-- Architecture-specific keywords
+Generate 15-30 related semantic keywords organized into categories.
 
 ${fix}
 
 RETURN VALID JSON:
 {
-  "primary_keyword": "specific long-tail keyword here",
+  "primary_keyword": "selected keyword from Phase 4",
+  "article_type": "pillar/supporting/programmatic",
+  "target_word_count": 2200,
   "secondary_keywords": ["kw1", "kw2", "kw3", "kw4"],
   "keyword_difficulty": "low/medium",
   "search_intent": "informational/commercial/transactional",
   "content_angle": "What makes our article unique",
   "competitor_gap_analysis": "What competitors are NOT covering",
   "estimated_volume": "high/medium/low",
+  "rejected_keywords": [{"keyword": "kw", "reason": "duplicate"}],
+  "selection_reasoning": "Why this keyword won Phase 3-4",
   "serp_analysis": {
     "avg_word_count": 2200,
     "common_h2_headings": ["heading1", "heading2", "heading3"],
@@ -726,6 +1093,8 @@ RETURN VALID JSON:
     console.log(`   🎯 Primary: "${result.primary_keyword}" [${result.keyword_difficulty}]`);
     console.log(`   🔍 Intent: ${result.search_intent}`);
     console.log(`   💡 Angle: ${result.content_angle}`);
+    console.log(`   📋 Type: ${result.article_type || 'supporting'} | Target: ${result.target_word_count || 2200} words`);
+    console.log(`   🚫 Rejected: ${result.rejected_keywords?.length || 0} keywords filtered`);
     console.log(`   🔎 SERP: avg ${result.serp_analysis?.avg_word_count || '?'} words, ${result.serp_analysis?.content_gaps?.length || 0} gaps found`);
     console.log(`   🧬 Semantic cluster: ${Object.values(result.semantic_cluster || {}).flat().length} keywords`);
     return result;
@@ -971,6 +1340,9 @@ EXISTING KEYWORDS: ${JSON.stringify(config._flatKeywords || [])}
 YOUR TASKS:
 
 1. INTELLIGENT INTERNAL LINKING:
+   ⚠️ INTERNAL LINK RULE — CRITICAL:
+   You may ONLY select slugs from the EXISTING BLOG PAGES list above. Do not invent slugs. Do not predict future article slugs. Do not use slugs you think might exist. Only use slugs confirmed in the list above. If fewer than 4 valid slugs exist, use all available ones and supplement with homepage "/" and contact page "/#contact" links.
+
    From the existing pages above, select exactly 4-6 that are TOPICALLY RELEVANT to this article.
    Also ALWAYS include "/" (homepage) and "/#contact" (services).
    Do NOT select random pages. Each link must be justified by topical overlap.
@@ -1061,6 +1433,7 @@ async function writerAgent(strategy, research, knowledgeCtx, blogHistory, escala
       : '';
 
     const semanticKws = strategy.semantic_keywords_to_integrate || [];
+    const failureCtx = loadFailurePatterns();
 
     const raw = await smartCall(models, `You are a senior technical content writer for FouriqTech. Your goal is to write an article that rivals Stripe, Vercel, or Cloudflare engineering blogs in readability, technical authority, and scannability.
 
@@ -1085,6 +1458,8 @@ ${knowledgeCtx}
 
 --- TONE REFERENCE ---
 ${blogHistory.substring(0, 2000)}
+
+${failureCtx}
 
 ${rewriteBlock}
 ${fix}
@@ -1133,28 +1508,39 @@ Your article MUST include ALL of these:
 3. At least ONE performance metric or benchmark (numbers, percentages, ms)
 4. At least ONE implementation workflow (step-by-step process)
 
-═══ TONE REQUIREMENTS (V5: SENIOR DEVELOPER PERSONA) ═══
-You are NOT a marketing writer. You ARE a grizzled senior frontend engineer with 12+ years of experience who has shipped production code for Fortune 500 companies. Write like you're explaining something to a smart colleague over coffee.
+═══ YOUR VOICE — STUDY THIS EXAMPLE AND REPLICATE THE STYLE NOT THE WORDS ═══
+"We had a dashboard rendering 8000 candlesticks every 500ms via WebSocket. React re-rendered the entire chart on every tick. By tick 200 the browser tab was consuming 1.4GB of RAM and Chrome was throttling our requestAnimationFrame callbacks. We tried React.memo first. Obviously. Didn't help — the data reference was new on every WebSocket message so memo never short-circuited. Then we tried useRef to store the chart instance and push delta updates only. Better, but now we had stale closure bugs that took two days to find. What actually worked: move the chart off the React render cycle entirely. OffscreenCanvas in a Web Worker, postMessage the data, let the Worker own the animation loop. React just mounts a canvas element and forgets it. Frame rate went from 12FPS to stable 58FPS. Memory dropped to 180MB. The trade-off nobody mentions: debugging is a nightmare. You lose React DevTools visibility into anything in the Worker. Error boundaries don't catch Worker exceptions. You need your own error reporting via postMessage. Annoying but not hard."
 
-PERSONA RULES:
-- Use "I" and "we" naturally. Engineers talk in first person. ("I've seen this break production three times.")
-- Include at least ONE admitted mistake or trade-off. ("We tried X but it broke Y" or "Honestly, this approach has downsides.")
-- Use contractions always. "Don't", "won't", "can't", "it's". Never "do not", "will not".
-- Start the article with a REAL-WORLD PROBLEM, never a definition or "In today's world...".
-- Vary sentence length WILDLY. Mix 5-word punches with 25-word explanations.
-- Use code comments that sound human: // this took me 3 hours to debug, // don't ask why this works
-- Never use a perfect 5-paragraph essay structure. Real blog posts are messy and organic.
-- Use casual transitions: "Here's the thing.", "Look.", "So what actually happens is...", "The real problem?"
+WHY THIS IS HUMAN:
+- Opens with a specific broken situation, not a definition
+- Real numbers: 8000 candlesticks, 500ms, 1.4GB, 12FPS, 58FPS, 180MB
+- Shows two things that FAILED before the solution
+- Solution has a named downside
+- Sentence length varies from 4 words to 25 words
+- Slightly irritated casual tone
+
+MANDATORY RULES (HARD FAIL IF VIOLATED):
+1. Start the article MID-THOUGHT. Never with a definition.
+2. Show minimum 2 failed approaches before the solution.
+3. Show minimum 2 trade-offs with specific downsides named.
+4. Include minimum 3 specific performance numbers in the article.
+5. State opinions as facts, not suggestions.
+6. One section must be noticeably shorter than others.
+7. FAQ answers must read like Slack messages, not documentation.
+8. NEVER use: In this article, Lets explore, It is worth noting, This guide will, By the end of this, In todays world, Let us dive in, Without further ado.
 
 ═══ 🚫 BANNED AI VOCABULARY (INSTANT FAIL IF USED) ═══
 NEVER use ANY of these words or phrases. If you catch yourself writing one, DELETE IT and rephrase:
-delve, tapestry, crucial, comprehensive, navigate, landscape, leverage, utilize, cutting-edge, game-changer, paradigm, synergy, robust, seamless, holistic, multifaceted, nuanced, intricate, pivotal, transformative, revolutionize, empower, harness, facilitate, streamline, elevate, in conclusion, furthermore, moreover, it's worth noting, it's important to note, in today's world, in today's digital age, in this article we will, let's dive in, without further ado, at the end of the day, needless to say, it goes without saying, as we all know, the fact of the matter, first and foremost, last but not least, in a nutshell, by and large, when it comes to, in order to, due to the fact that, on the other hand, having said that, that being said, it should be noted, interestingly enough, moving forward
+delve, tapestry, crucial, comprehensive, navigate, landscape, leverage, utilize, cutting-edge, game-changer, paradigm, synergy, robust, seamless, holistic, multifaceted, nuanced, intricate, pivotal, transformative, revolutionize, empower, harness, facilitate, streamline, elevate, in conclusion, furthermore, moreover, it's worth noting, it's important to note, in today's world, in today's digital age, in this article we will, let's dive in, without further ado, at the end of the day, needless to say, it goes without saying, as we all know, the fact of the matter, first and foremost, last but not least, in a nutshell, by and large, when it comes to, in order to, due to the fact that, on the other hand, having said that, that being said, it should be noted, interestingly enough, moving forward, let's explore, this guide will, by the end of this, in this article
+
+═══ SECTION-LEVEL KEYWORD ENFORCEMENT ═══
+After completing each H2 section, before moving to the next, verify the primary keyword "${strategy.primary_keyword}" appears in that section at least once. If missing, add it naturally before continuing. Every H2 section must contain the primary keyword.
 
 ═══ GENERAL WRITING RULES ═══
-1. MINIMUM 2000 words. Non-negotiable. Expand with technical specifics.
-2. Use primary keyword naturally 5-8 times. Use each secondary keyword 2-3 times.
+1. MINIMUM 2200 words. Count before returning. Do not estimate.
+2. Use primary keyword naturally 15+ times across the full article. Every H2 section must contain it at least once.
 3. Integrate at least 8 semantic keywords from the cluster naturally.
-4. Internal links: <a href="/blog/SLUG">descriptive text</a> for every slug in the list.
+4. Internal links: <a href="/blog/SLUG">descriptive text</a> for every slug in the list. Minimum 4 internal links.
 5. ALSO link to: <a href="/">FouriqTech</a> and <a href="/#contact">our services</a>.
 6. External links: <a href="URL" target="_blank" rel="noopener">text</a> to 1-2 authority sources.
 7. Code examples: Use <pre><code class="language-javascript">...</code></pre> format.
@@ -1162,6 +1548,13 @@ delve, tapestry, crucial, comprehensive, navigate, landscape, leverage, utilize,
 9. Semantic HTML only. NO markdown. NO code fences.
 10. Vary sentence length. Use contractions. Be conversational but authoritative.
 11. NEVER use: "landscape", "leverage", "harness", "cutting-edge", "game-changer", "seamless", "robust", "holistic", "in today's digital age".
+
+═══ PRE-PUBLISH CHECKLIST — COMPLETE BEFORE RETURNING JSON ═══
+Step 1: Count occurrences of primary keyword "${strategy.primary_keyword}" in your content. If count is below 15, add it naturally to every H2 section that is missing it. Do not return until count is 15+.
+Step 2: Count occurrences of href='/blog/' in your HTML. If below 4, inject the required internal links from the internal_link_targets list into relevant paragraphs now. Also confirm href='/' and href='/#contact' exist.
+Step 3: Count your words. If below 2200, expand the implementation section with one more real-world scenario. Do not return until word count is 2200+.
+Step 4: Confirm one external link exists with target='_blank' rel='noopener'.
+Only return JSON after ALL 4 steps pass.
 
 ═══ META GENERATION ═══
 Also generate SEO meta data for this article.
@@ -1246,7 +1639,7 @@ You have TWO JOBS:
 2. CHECK IF THE CONTENT SOUNDS LIKE AI-GENERATED TEXT. This is your MOST IMPORTANT job.
 
 ARTICLE METRICS (PRE-COMPUTED):
-- Word Count: ${wordCount} (Target: 2000+)
+- Word Count: ${wordCount} (Target: 2200+)
 - Keyword Density: ${kwDensity}% (Target: ~1%)
 - Secondary Keywords: ${JSON.stringify(strategy.secondary_keywords)}
 - Code Examples: ${codeBlockCount} (Target: 2+)
@@ -1292,12 +1685,14 @@ ${fix}
 11. ENTERPRISE_TONE: No beginner explanations (${beginnerCount} found)? Written for senior engineers?
 12. SEMANTIC_COVERAGE: At least 8 semantic keywords integrated? (${semanticHits} found)
 13. HUMAN_TONE: Does this sound like a REAL human engineer wrote it? Check for:
-    - Banned AI words (delve, tapestry, crucial, comprehensive, leverage, utilize, seamless, robust, holistic, transformative, pivotal, harness, streamline, elevate, nuanced, multifaceted, intricate, paradigm, synergy, cutting-edge, game-changer, furthermore, moreover, in conclusion, it's worth noting, in today's world, without further ado, let's dive in, needless to say, first and foremost)
-    - Uniform sentence lengths (AI writes every sentence the same length)
-    - Overly formal tone (AI avoids contractions and first person)
-    - Perfect essay structure (AI writes neat intro→body→conclusion)
-    - Missing personality (no admitted mistakes, no casual language, no humor)
-    Score 1-3 if ANY banned words found. Score 4-6 if tone is formal/robotic. Score 7-10 if it genuinely sounds human.
+    - Banned AI words (delve, tapestry, crucial, comprehensive, leverage, utilize, seamless, robust, holistic, transformative, pivotal, harness, streamline, elevate, nuanced, multifaceted, intricate, paradigm, synergy, cutting-edge, game-changer, furthermore, moreover, in conclusion, it's worth noting, in today's world, without further ado, let's dive in, needless to say, first and foremost, let's explore, this guide will, by the end of this, in this article)
+    - Starts mid-thought without formal introductions or definitions?
+    - Uses highly specific numbers and names concrete trade-offs/failures?
+    - Opinions stated as hard facts ("DOM-based charts don't scale. That's not an opinion.")?
+    - Varies sentence lengths wildly (e.g., 4 words next to 25 words)?
+    - Answers FAQs like casual Slack messages between engineers?
+    - Skips transition phrases completely?
+    Score 1-3 if ANY banned words found or formal structure is used. Score 4-6 if tone is just okay but still slightly robotic. Score 7-10 if it genuinely sounds like an imperfect, grizzled senior engineer.
 
 SCORING RULES:
 - Each of the 13 criteria is scored 1-10, for a total of 130 raw points.
@@ -1380,9 +1775,28 @@ async function managerAgent() {
   // ── V5: Load GSC Insights ──
   const gscInsights = loadGscInsights();
 
-  // ── V5: RAG prediction check (30-day feedback loop) ──
-  console.log(`\n📦 RAG: Checking past predictions...`);
-  checkPredictions(gscInsights);
+  // ── V6: Drift Control System ──
+  runDriftCheck(gscInsights);
+
+  const driftPath = path.join(process.cwd(), '.github/drift_detected.json');
+  if (fs.existsSync(driftPath)) {
+    try {
+      const driftData = JSON.parse(fs.readFileSync(driftPath, 'utf8'));
+      if (driftData.paused) {
+        const daysSince = Math.floor((new Date() - new Date(driftData.detected_at)) / (1000 * 60 * 60 * 24));
+        if (daysSince >= 7) {
+          fs.unlinkSync(driftPath);
+        } else {
+          console.log('\n⚠️ System paused due to drift. Delete .github/drift_detected.json to resume manually.');
+          process.exit(0);
+        }
+      }
+    } catch {}
+  }
+
+  // ── V6: Multi-Stage Feedback Engine ──
+  console.log(`\n📦 RAG: Running multi-stage feedback checks...`);
+  runFeedbackChecks(gscInsights);
 
   // ── V5: GSC Diagnostic Agent (Root Cause Analysis) ──
   let gscDiag = null;
@@ -1539,7 +1953,6 @@ async function managerAgent() {
         queue = JSON.parse(fs.readFileSync(QUEUE_PATH, 'utf8'));
       }
       
-      const crypto = require('crypto');
       const routeSlug = research.primary_keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       const componentName = routeSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
       
@@ -1550,12 +1963,12 @@ async function managerAgent() {
         created_at: new Date().toISOString(),
         keyword: research.primary_keyword,
         secondary_keywords: research.secondary_keywords,
-        route: `/services/\${routeSlug}`,
-        page_title: `\${componentName} Services`,
-        target_file: `src/pages/services/\${componentName}.tsx`,
+        route: `/services/${routeSlug}`,
+        page_title: `${componentName} Services`,
+        target_file: `src/pages/services/${componentName}.tsx`,
         seo: {
-          meta_title: `\${research.primary_keyword} | FouriqTech`,
-          meta_description: `Premium \${research.primary_keyword} services by FouriqTech.`
+          meta_title: `${research.primary_keyword} | FouriqTech`,
+          meta_description: `Premium ${research.primary_keyword} services by FouriqTech.`
         },
         design_brief: { "note": "Use the /dev-tasks workflow to complete the brief and build the page." }
       });
@@ -1565,7 +1978,7 @@ async function managerAgent() {
       console.log('   ✅ Task queued in .github/dev-tasks/queue.json');
       
     } catch (e) {
-      console.error(`   ❌ Failed to queue task: \${e.message}`);
+      console.error(`   ❌ Failed to queue task: ${e.message}`);
     }
     
     writeResearchTempFile(research, leadScore, null, null);
@@ -1609,8 +2022,10 @@ async function managerAgent() {
   let draft = null;
   let qaResult = null;
   let published = false;
+  let finalAttemptCount = 0;
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    finalAttemptCount = attempt + 1;
     // Writer
     try {
       const feedback = (attempt > 0 && qaResult && !qaResult.approved) ? qaResult.feedback : null;
@@ -1713,7 +2128,9 @@ async function managerAgent() {
     );
 
     // V5: Spider Agent — Reverse link injection into existing articles
-    updated = spiderReverseLink(draft.slug, draft.title, strategy.primary_keyword, updated);
+    const spiderRes = spiderReverseLink(draft.slug, draft.title, strategy.primary_keyword, updated);
+    updated = spiderRes.updated;
+    let linksInjected = spiderRes.injectedCount;
 
     fs.writeFileSync(BLOG_DATA_PATH, updated);
     incrementPublishCount();
@@ -1721,8 +2138,11 @@ async function managerAgent() {
     // V4: Auto-update sitemap
     updateSitemap(draft.slug);
 
-    // V5: Save to RAG Memory
-    saveArticleToRag(draft, strategy, research, qaResult);
+    // V6: Save to RAG Memory (with rewrite limits and link counts)
+    saveArticleToRag(draft, strategy, research, qaResult, finalAttemptCount, linksInjected);
+
+    // V7: Update Cluster Map Tracking
+    updateClusterMap(strategy, draft);
 
     console.log('\n╔═══════════════════════════════════════════════════════════╗');
     console.log('║  📋 RUN REPORT — ✅ PUBLISHED                            ║');
@@ -1733,10 +2153,11 @@ async function managerAgent() {
     console.log(`║  📏 Words: ${draft.wordCount}`);
     console.log(`║  🎯 Lead Score: ${leadScore.lead_intent_score}/10 | Biz Rel: ${leadScore.business_relevance}/10`);
     console.log(`║  🧬 Semantic: ${draft.semanticHits} KWs integrated`);
-    console.log(`║  🏗️ Cluster: ${strategy.cluster_topic}`);
+    console.log(`║  🏗️ Cluster: ${strategy.cluster_topic} (${strategy.article_type || 'supporting'})`);
     console.log(`║  🕸️ Spider: Reverse links injected`);
     console.log(`║  📋 Schema: FAQ + Article injected`);
     console.log(`║  📦 RAG: Saved to memory`);
+    console.log(`║  🗺️ Map: Cluster progress tracked`);
     console.log(`║  🔗 /blog/${draft.slug}`);
     console.log('╚═══════════════════════════════════════════════════════════╝');
   } else {

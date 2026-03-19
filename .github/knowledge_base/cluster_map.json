@@ -1,0 +1,14 @@
+{
+  "clusters": [
+    {
+      "cluster_name": "React Memory Leak Management for Enterprise SaaS Performance",
+      "pillar_slug": null,
+      "pillar_published": false,
+      "supporting_articles": [
+        "fix-react-memory-leaks-enterprise-saas"
+      ],
+      "target_supporting_count": 5,
+      "cluster_complete": false
+    }
+  ]
+}

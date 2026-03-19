@@ -1,0 +1,72 @@
+[
+  {
+    "timestamp": "2026-03-18T08:17:26.260Z",
+    "action": "publish",
+    "score": 6.2,
+    "confidence": "medium",
+    "reasoning": "7 orphan pages need internal linking"
+  },
+  {
+    "timestamp": "2026-03-18T08:22:43.652Z",
+    "action": "publish",
+    "score": 6.2,
+    "confidence": "medium",
+    "reasoning": "7 orphan pages need internal linking"
+  },
+  {
+    "timestamp": "2026-03-18T08:25:26.986Z",
+    "action": "publish",
+    "score": 6.2,
+    "confidence": "medium",
+    "reasoning": "7 orphan pages need internal linking"
+  },
+  {
+    "timestamp": "2026-03-18T08:39:50.681Z",
+    "action": "publish",
+    "score": 6.2,
+    "confidence": "medium",
+    "reasoning": "4 orphan pages need internal linking"
+  },
+  {
+    "timestamp": "2026-03-18T14:27:52.523Z",
+    "action": "publish",
+    "score": 5.9,
+    "confidence": "medium",
+    "reasoning": "4 orphan pages need internal linking"
+  },
+  {
+    "timestamp": "2026-03-18T14:37:11.973Z",
+    "action": "publish",
+    "score": 5.9,
+    "confidence": "medium",
+    "reasoning": "4 orphan pages need internal linking"
+  },
+  {
+    "timestamp": "2026-03-18T15:23:19.986Z",
+    "action": "publish",
+    "score": 6.2,
+    "confidence": "medium",
+    "reasoning": "4 orphan pages need internal linking"
+  },
+  {
+    "timestamp": "2026-03-18T15:24:12.016Z",
+    "action": "publish",
+    "score": 6.2,
+    "confidence": "medium",
+    "reasoning": "4 orphan pages need internal linking"
+  },
+  {
+    "timestamp": "2026-03-18T16:34:03.663Z",
+    "action": "wait",
+    "score": 6.2,
+    "confidence": "medium",
+    "reasoning": "Daily limit reached"
+  },
+  {
+    "timestamp": "2026-03-18T16:34:46.395Z",
+    "action": "publish",
+    "score": 6.2,
+    "confidence": "medium",
+    "reasoning": "3 orphan pages need internal linking"
+  }
+]

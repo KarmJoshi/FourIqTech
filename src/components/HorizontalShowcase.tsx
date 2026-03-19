@@ -64,11 +64,11 @@ export default function HorizontalShowcase() {
     }, [reducedMotion]);
 
     return (
-        <section ref={sectionRef} id="showcase" className={`relative ${reducedMotion ? 'h-auto py-20' : 'h-screen'} bg-background overflow-hidden`}>
-            <div className={`flex h-full items-center`}>
+        <section ref={sectionRef} id="showcase" className={`relative ${reducedMotion ? 'h-auto py-16 sm:py-20' : 'h-screen'} bg-background overflow-hidden`}>
+            <div className="flex h-full items-center">
                 <div 
                     ref={stripRef} 
-                    className={`flex gap-8 will-change-transform ${reducedMotion ? 'flex-col px-6 md:px-12 w-full' : 'px-12 w-max'}`}
+                    className={`flex gap-6 will-change-transform ${reducedMotion ? 'flex-col px-4 sm:px-6 md:px-12 w-full' : 'px-12 w-max'}`}
                 >
                     <div className={`flex flex-col justify-center ${reducedMotion ? 'min-w-full h-auto' : 'w-[400px] h-full shrink-0 pr-8'}`}>
                         <motion.div
@@ -76,9 +76,9 @@ export default function HorizontalShowcase() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.2 }}
-                            className="mb-4"
+                            className="mb-3 sm:mb-4"
                         >
-                            <span className="text-primary text-sm font-heading font-medium uppercase tracking-[0.2em] flex items-center gap-2">
+                            <span className="flex items-center gap-2 text-xs font-heading font-medium uppercase tracking-[0.18em] text-primary sm:text-sm sm:tracking-[0.2em]">
                                 <span className="inline-block">✦</span>
                                 Showcase
                             </span>
@@ -89,7 +89,7 @@ export default function HorizontalShowcase() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.3 }}
-                            className="font-display text-5xl md:text-6xl font-bold mb-6"
+                            className="mb-4 font-display text-4xl font-bold leading-tight sm:mb-6 sm:text-5xl md:text-6xl"
                         >
                             Featured <br /><span className="text-gradient">Projects</span>
                         </motion.h2>
@@ -99,7 +99,7 @@ export default function HorizontalShowcase() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.4 }}
-                            className="text-muted-foreground text-lg max-w-sm"
+                            className="max-w-md text-base leading-relaxed text-muted-foreground sm:max-w-sm sm:text-lg"
                         >
                             A glimpse into the transformative digital experiences we've crafted for our global clients.
                         </motion.p>
@@ -108,7 +108,7 @@ export default function HorizontalShowcase() {
                     {projects.map((project, index) => (
                         <div
                             key={index}
-                            className={`group relative h-[450px] ${reducedMotion ? 'w-full md:w-[450px]' : 'w-[350px] md:w-[450px] shrink-0'} overflow-hidden rounded-3xl glass-card`}
+                            className={`group relative min-h-[340px] ${reducedMotion ? 'w-full' : 'w-[350px] md:w-[450px] shrink-0'} overflow-hidden rounded-3xl glass-card sm:min-h-[400px] lg:h-[450px] ${reducedMotion ? 'md:w-[450px]' : ''}`}
                         >
                             <div className="absolute inset-0 z-0 transition-transform duration-700 group-hover:scale-110">
                                 <img
@@ -120,10 +120,10 @@ export default function HorizontalShowcase() {
 
                             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent z-10" />
 
-                            <div className="absolute bottom-0 left-0 p-8 z-20 w-full">
+                            <div className="absolute bottom-0 left-0 z-20 w-full p-5 sm:p-8">
                                 <div className="text-primary text-xs font-medium tracking-[0.1em] mb-2 uppercase">{project.category}</div>
-                                <h3 className="text-2xl font-bold text-foreground mb-2">{project.title}</h3>
-                                <p className="text-sm text-neutral-300 mb-4">
+                                <h3 className="mb-2 text-xl font-bold text-foreground sm:text-2xl">{project.title}</h3>
+                                <p className="mb-4 text-sm leading-relaxed text-neutral-300">
                                     {project.description}
                                 </p>
                                 {project.link && (

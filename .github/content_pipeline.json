@@ -169,68 +169,285 @@
       "status": "queued"
     },
     {
-      "title": "Beyond Lighthouse Scores: Deeper Metrics for Enterprise React Performance Monitoring",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "title": "Advanced Memory Leak Detection & Remediation in Enterprise React Applications",
+      "cluster": "Enterprise React Dashboard Performance & Auditing",
       "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "added_date": "2026-03-18",
       "status": "queued"
     },
     {
-      "title": "The ROI of React Performance: Quantifying Technical Debt & Optimization Gains in SaaS",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "title": "Building a Robust Enterprise React Frontend Monitoring Strategy: Tools & KPIs",
+      "cluster": "Enterprise React Dashboard Performance & Auditing",
       "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "added_date": "2026-03-18",
       "status": "queued"
     },
     {
-      "title": "Architecting for Speed: Micro-Frontend vs. Monolithic in High-Traffic React Dashboards",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "title": "Micro-Frontend Architectures for Scalable Enterprise React Dashboards: Performance Considerations",
+      "cluster": "Enterprise React Dashboard Performance & Auditing",
       "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "added_date": "2026-03-18",
       "status": "queued"
     },
     {
-      "title": "Eliminating Memory Leaks in Large-Scale React Applications: A Deep-Dive for Enterprise Developers",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "title": "Beyond Lighthouse: Comprehensive Performance Metrics for Enterprise React Dashboards",
+      "cluster": "Enterprise React Dashboard Performance & Auditing",
       "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "added_date": "2026-03-18",
       "status": "queued"
     },
     {
-      "title": "Advanced Caching Strategies for Dynamic Data in Enterprise React Dashboards",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "title": "The CTO's Guide to Choosing a React Performance Audit Partner: What to Look For",
+      "cluster": "Enterprise React Dashboard Performance & Auditing",
       "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "added_date": "2026-03-18",
       "status": "queued"
     },
     {
-      "title": "Mastering React Query for Enterprise Performance: Beyond Basic Data Fetching",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "title": "Optimizing React Bundle Size in Enterprise: Strategies for Code Splitting and Tree Shaking",
+      "cluster": "Enterprise React Dashboard Performance & Auditing",
       "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "added_date": "2026-03-18",
       "status": "queued"
     },
     {
-      "title": "Server-Side Rendering (SSR) vs. Client-Side Rendering (CSR) for Enterprise React Dashboards: A Performance-Driven Decision",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "title": "React Query Best Practices for High-Performance Enterprise Data Fetching",
+      "cluster": "Enterprise React Dashboard Performance & Auditing",
       "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "added_date": "2026-03-18",
       "status": "queued"
     },
     {
-      "title": "Building Resilient UI: Strategies to Prevent Laggy Interfaces in Real-Time React Dashboards",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "title": "Budgeting for Frontend Performance: Justifying Investment in React Dashboard Optimization",
+      "cluster": "Enterprise React Dashboard Performance & Auditing",
       "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "added_date": "2026-03-18",
       "status": "queued"
     },
     {
-      "title": "Optimizing Third-Party Libraries: Managing Bundle Size and Performance Impact in Enterprise React",
-      "cluster": "Enterprise React Performance Optimization & Auditing",
-      "source_keyword": "react dashboard slow",
-      "added_date": "2026-03-19",
+      "title": "Deep Dive: Implementing GPU-Accelerated Charts in React with WebGL and Three.js",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization",
+      "source_keyword": "react real-time chart performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Architecting High-Frequency Data Streaming for Enterprise React Dashboards: WebSockets & Beyond",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization",
+      "source_keyword": "react real-time chart performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Mastering OffscreenCanvas and Web Workers for Decoupled React Data Visualization",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization",
+      "source_keyword": "react real-time chart performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Advanced State Management Patterns for Real-Time Data in Enterprise React Dashboards",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization",
+      "source_keyword": "react real-time chart performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Performance Benchmarking and Monitoring Strategies for Complex React Data Grids",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization",
+      "source_keyword": "react real-time chart performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Optimizing React-Query for Live Data Feeds in Enterprise Dashboards: Best Practices",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization",
+      "source_keyword": "react real-time chart performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "A Comprehensive Guide to Data Virtualization in React: When to Use react-window vs react-virtuoso",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization",
+      "source_keyword": "react real-time chart performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Debugging Memory Leaks and UI Janks in High-Traffic Enterprise React Applications",
+      "cluster": "React Enterprise Performance Optimization for Data Visualization",
+      "source_keyword": "react real-time chart performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Deep Dive into WebGL Shaders for Real-Time Financial Data Visualization in React",
+      "cluster": "High-Performance React Data Visualization for Enterprise",
+      "source_keyword": "react canvas performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Architecting Scalable React Dashboards with OffscreenCanvas and Micro-Frontends",
+      "cluster": "High-Performance React Data Visualization for Enterprise",
+      "source_keyword": "react canvas performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Benchmarking React Canvas Libraries: Konva, React-Three-Fiber, and Custom Implementations for Enterprise",
+      "cluster": "High-Performance React Data Visualization for Enterprise",
+      "source_keyword": "react canvas performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Implementing an Event-Driven Architecture for High-Frequency Data Streams to React Canvas",
+      "cluster": "High-Performance React Data Visualization for Enterprise",
+      "source_keyword": "react canvas performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Advanced Memory Management for Long-Running React Data Visualization Sessions",
+      "cluster": "High-Performance React Data Visualization for Enterprise",
+      "source_keyword": "react canvas performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Case Study: Achieving 60FPS in a Real-Time Trading Dashboard with React, Web Workers, and WebGL",
+      "cluster": "High-Performance React Data Visualization for Enterprise",
+      "source_keyword": "react canvas performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Beyond 'memo' and 'useMemo': Unlocking Extreme React Performance with Low-Level Optimizations",
+      "cluster": "High-Performance React Data Visualization for Enterprise",
+      "source_keyword": "react canvas performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "From WebSocket to WebGL: Building a Zero-Lag Real-Time Data Pipeline in React",
+      "cluster": "High-Performance React Data Visualization for Enterprise",
+      "source_keyword": "react canvas performance",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Memory Management in React Enterprise Dashboards: Preventing Leaks in Long-Running Sessions",
+      "cluster": "Enterprise React Performance for High-Frequency Data Visualization",
+      "source_keyword": "react dashboard performance optimization",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Architecting Real-Time Data Pipelines for React Enterprise Dashboards: From WebSockets to OffscreenCanvas",
+      "cluster": "Enterprise React Performance for High-Frequency Data Visualization",
+      "source_keyword": "react dashboard performance optimization",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Advanced State Synchronization in React Dashboards: Normalization Strategies for High-Frequency Updates",
+      "cluster": "Enterprise React Performance for High-Frequency Data Visualization",
+      "source_keyword": "react dashboard performance optimization",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Leveraging Web Workers for Off-Main-Thread Processing in React Data Visualization",
+      "cluster": "Enterprise React Performance for High-Frequency Data Visualization",
+      "source_keyword": "react dashboard performance optimization",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Canvas vs. SVG vs. WebGL: Choosing the Right Rendering Tech for Your React Enterprise Dashboard",
+      "cluster": "Enterprise React Performance for High-Frequency Data Visualization",
+      "source_keyword": "react dashboard performance optimization",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Hybrid Animation & Data: Integrating GSAP for Seamless UX in React Enterprise Dashboards",
+      "cluster": "Enterprise React Performance for High-Frequency Data Visualization",
+      "source_keyword": "react dashboard performance optimization",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Implementing Virtualization in React: A Deep Dive into React-Window & React-Virtuoso for Large Datasets",
+      "cluster": "Enterprise React Performance for High-Frequency Data Visualization",
+      "source_keyword": "react dashboard performance optimization",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Performance Auditing Your React Enterprise Dashboard: Tools and Techniques for Identifying Bottlenecks",
+      "cluster": "Enterprise React Performance for High-Frequency Data Visualization",
+      "source_keyword": "react dashboard performance optimization",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Real-Time Performance Monitoring for Enterprise React Applications: A Deep Dive",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
+      "source_keyword": "fix react memory leaks",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Building Resilient React Apps: Strategies for Error Handling and Crash Prevention in B2B SaaS",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
+      "source_keyword": "fix react memory leaks",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Advanced React Profiling: Beyond DevTools for Enterprise Performance Optimization",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
+      "source_keyword": "fix react memory leaks",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "State Management Best Practices to Prevent Memory Leaks in Large-Scale React Applications",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
+      "source_keyword": "fix react memory leaks",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Integrating React Performance Metrics into Your CI/CD Pipeline",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
+      "source_keyword": "fix react memory leaks",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "The CTO's Guide to Reducing Cloud Costs Through Frontend Performance Optimization",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
+      "source_keyword": "fix react memory leaks",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "React Query Optimization: Advanced Caching and Garbage Collection for High-Performance SaaS",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
+      "source_keyword": "fix react memory leaks",
+      "added_date": "2026-03-18",
+      "status": "queued"
+    },
+    {
+      "title": "Mastering useEffect Cleanup: Preventing Common React Performance Pitfalls",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
+      "source_keyword": "fix react memory leaks",
+      "added_date": "2026-03-18",
       "status": "queued"
     }
   ],
-  "last_updated": "2026-03-19T05:41:32.698Z"
+  "last_updated": "2026-03-18T15:24:53.445Z"
 }
