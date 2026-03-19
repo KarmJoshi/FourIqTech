@@ -198,6 +198,33 @@
       "design_brief": {
         "note": "Use the /dev-tasks workflow to complete the brief and build the page."
       }
+    },
+    {
+      "id": "6a77254a-32ad-4868-9f4d-ea173129b5d6",
+      "type": "landing_page",
+      "status": "pending",
+      "created_at": "2026-03-19T16:36:44.475Z",
+      "keyword": "monolith to microservices migration",
+      "secondary_keywords": [
+        "modernizing legacy monolithic architecture for enterprise scale",
+        "monolith to microservices guide",
+        "how to break up monolith",
+        "modernize legacy code",
+        "enterprise software modernization strategies",
+        "legacy to microservices migration roadmap",
+        "strangler fig pattern for enterprise",
+        "modernizing monolithic enterprise software"
+      ],
+      "route": "/services/monolith-to-microservices-migration",
+      "page_title": "MonolithToMicroservicesMigration Services",
+      "target_file": "src/pages/services/MonolithToMicroservicesMigration.tsx",
+      "seo": {
+        "meta_title": "monolith to microservices migration | FouriqTech",
+        "meta_description": "Premium monolith to microservices migration services by FouriqTech."
+      },
+      "design_brief": {
+        "note": "Use the /dev-tasks workflow to complete the brief and build the page."
+      }
     }
   ],
   "completed": [
@@ -578,5 +605,5 @@
       "reasoning": "This keyword directly targets companies (both startups and enterprises) looking to build a proprietary SaaS product, which inherently involves high-performance, scalable web application development—a core strength of FouriqTech. Such projects typically exceed the $25,000 minimum budget and require premium UI/UX. The intent is explicitly commercial, signaling a desire to hire an agency. While FouriqTech targets 'custom enterprise web application development for global startups' generally, 'custom SaaS platform development' is a distinct and highly specific sub-service with unique requirements (e.g., multi-tenancy, subscription billing, specific security protocols) that warrants a dedicated landing page. It's not covered by existing blog posts or general web design/marketing keywords."
     }
   ],
-  "last_updated": "2026-03-18T14:28:09.377Z"
+  "last_updated": "2026-03-19T16:36:44.475Z"
 }

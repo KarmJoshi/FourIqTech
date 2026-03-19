@@ -9,6 +9,16 @@
       ],
       "target_supporting_count": 5,
       "cluster_complete": false
+    },
+    {
+      "cluster_name": "Enterprise Application Modernization & Microservices",
+      "pillar_slug": null,
+      "pillar_published": false,
+      "supporting_articles": [
+        "enterprise-legacy-system-modernization-strategy-nextjs-strangler-fig"
+      ],
+      "target_supporting_count": 5,
+      "cluster_complete": false
     }
   ]
 }

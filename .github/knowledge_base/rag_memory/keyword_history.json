@@ -97,5 +97,38 @@
       "day28_due": "2026-04-15",
       "last_checked": null
     }
+  },
+  {
+    "article_id": "enterprise-legacy-system-modernization-strategy-nextjs-strangler-fig",
+    "metadata": {
+      "published_date": "2026-03-19",
+      "word_count": 2242,
+      "keyword_primary": "Enterprise Legacy System Modernization Strategy",
+      "keyword_density": 0.71,
+      "internal_links_injected": 3,
+      "qa_score": 89,
+      "human_tone_score": 9,
+      "rewrite_attempts": 1,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "commercial",
+      "cluster": "Enterprise Application Modernization & Microservices"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-20",
+      "day3_due": "2026-03-22",
+      "day7_due": "2026-03-26",
+      "day14_due": "2026-04-02",
+      "day28_due": "2026-04-16",
+      "last_checked": null
+    }
   }
 ]

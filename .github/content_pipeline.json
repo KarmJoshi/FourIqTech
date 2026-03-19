@@ -447,7 +447,112 @@
       "source_keyword": "fix react memory leaks",
       "added_date": "2026-03-18",
       "status": "queued"
+    },
+    {
+      "title": "Architecting for Scale: Micro-Frontend Patterns in React/Next.js Enterprise Applications",
+      "cluster": "Enterprise Application Modernization Strategies",
+      "source_keyword": "how to modernize legacy apps",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "The Strangler Fig Pattern Explained: Phased Migration for Large-Scale Legacy Systems",
+      "cluster": "Enterprise Application Modernization Strategies",
+      "source_keyword": "how to modernize legacy apps",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Optimizing State Management & API Integration During Legacy System Migration to React",
+      "cluster": "Enterprise Application Modernization Strategies",
+      "source_keyword": "how to modernize legacy apps",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Calculating ROI for Enterprise Application Modernization: A CTO's Framework",
+      "cluster": "Enterprise Application Modernization Strategies",
+      "source_keyword": "how to modernize legacy apps",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "From Monolith to Modular: Best Practices for Decomposing Enterprise Software with Next.js",
+      "cluster": "Enterprise Application Modernization Strategies",
+      "source_keyword": "how to modernize legacy apps",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Security & Performance: Why Modernizing Outdated Web Applications is Critical for Enterprise",
+      "cluster": "Enterprise Application Modernization Strategies",
+      "source_keyword": "how to modernize legacy apps",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Legacy Database Migration Strategies for High-Performance Enterprise Applications",
+      "cluster": "Enterprise Application Modernization Strategies",
+      "source_keyword": "how to modernize legacy apps",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Next.js vs. React: Choosing the Right Framework for Enterprise Re-Platforming",
+      "cluster": "Enterprise Application Modernization Strategies",
+      "source_keyword": "how to modernize legacy apps",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Calculating the True ROI of Enterprise Software Modernization: A CTO's Guide",
+      "cluster": "Enterprise Application Modernization & Microservices",
+      "source_keyword": "monolith to microservices migration",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Deep Dive: Implementing the Strangler Fig Pattern with Next.js Micro-Frontends",
+      "cluster": "Enterprise Application Modernization & Microservices",
+      "source_keyword": "monolith to microservices migration",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Beyond Code: Managing the Cultural Shift in Enterprise Monolith to Microservices Migrations",
+      "cluster": "Enterprise Application Modernization & Microservices",
+      "source_keyword": "monolith to microservices migration",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Architecting for Scale: Best Practices for Decoupling Frontends from Monolithic Backends",
+      "cluster": "Enterprise Application Modernization & Microservices",
+      "source_keyword": "monolith to microservices migration",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "From Legacy to Lean: A Step-by-Step Roadmap for Enterprise React Migration",
+      "cluster": "Enterprise Application Modernization & Microservices",
+      "source_keyword": "monolith to microservices migration",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Securing Your Microservices: Best Practices for Enterprise Cloud Environments",
+      "cluster": "Enterprise Application Modernization & Microservices",
+      "source_keyword": "monolith to microservices migration",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "How to Identify and Prioritize Technical Debt in Large-Scale Enterprise Applications",
+      "cluster": "Enterprise Application Modernization & Microservices",
+      "source_keyword": "monolith to microservices migration",
+      "added_date": "2026-03-19",
+      "status": "queued"
     }
   ],
-  "last_updated": "2026-03-18T15:24:53.445Z"
+  "last_updated": "2026-03-19T16:38:16.328Z"
 }

@@ -21,6 +21,11 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://www.fouriqtech.com/blog/enterprise-legacy-system-modernization-strategy-nextjs-strangler-fig</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
