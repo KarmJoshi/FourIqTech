@@ -21,9 +21,9 @@ export default function SEO({
   const baseSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "FouriqTech",
+    "name": "Four IQ Tech",
     "url": "https://fouriqtech.com",
-    "logo": "https://fouriqtech.com/logo.png",
+    "logo": "https://fouriqtech.com/4Q.png",
     "image": "https://fouriqtech.com/og-image.jpg",
     "description": "Leading global web design agency. Custom websites and SEO.",
     "telephone": "+910000000000"

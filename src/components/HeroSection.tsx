@@ -50,7 +50,7 @@ export default function HeroSection({ onComplete }: HeroSectionProps) {
           transition={{ ...transition, delay: 0.1 }}
         >
           <span className="inline-block border border-primary/20 bg-zinc-950/70 rounded-full px-6 py-2 md:px-8 md:py-3 text-[10px] md:text-xs font-heading font-medium tracking-[0.2em] uppercase text-primary/90">
-            Next-Gen IT Solutions
+            Four IQ Tech — Next-Gen IT Solutions
           </span>
         </motion.div>
 

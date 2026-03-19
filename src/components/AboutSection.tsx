@@ -31,7 +31,7 @@ export default function AboutSection() {
           >
             <span className="text-primary text-sm font-heading font-medium uppercase tracking-[0.2em]">✦ Who We Are</span>
             <h2 className="font-display text-4xl md:text-5xl font-bold mt-4 mb-6">
-              Your Partner in <br /><span className="text-gradient">Digital Evolution</span>
+              Four IQ Tech: Your Partner in <br /><span className="text-gradient">Digital Evolution</span>
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-6">
               We are more than just developers; we are architects of the future.
