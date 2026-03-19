@@ -167,7 +167,70 @@
       "source_keyword": "enterprise react dashboard performance optimization strategies",
       "added_date": "2026-03-18",
       "status": "queued"
+    },
+    {
+      "title": "Beyond Lighthouse Scores: Deeper Metrics for Enterprise React Performance Monitoring",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "The ROI of React Performance: Quantifying Technical Debt & Optimization Gains in SaaS",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Architecting for Speed: Micro-Frontend vs. Monolithic in High-Traffic React Dashboards",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Eliminating Memory Leaks in Large-Scale React Applications: A Deep-Dive for Enterprise Developers",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Advanced Caching Strategies for Dynamic Data in Enterprise React Dashboards",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Mastering React Query for Enterprise Performance: Beyond Basic Data Fetching",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Server-Side Rendering (SSR) vs. Client-Side Rendering (CSR) for Enterprise React Dashboards: A Performance-Driven Decision",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Building Resilient UI: Strategies to Prevent Laggy Interfaces in Real-Time React Dashboards",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
+    },
+    {
+      "title": "Optimizing Third-Party Libraries: Managing Bundle Size and Performance Impact in Enterprise React",
+      "cluster": "Enterprise React Performance Optimization & Auditing",
+      "source_keyword": "react dashboard slow",
+      "added_date": "2026-03-19",
+      "status": "queued"
     }
   ],
-  "last_updated": "2026-03-18T04:46:31.668Z"
+  "last_updated": "2026-03-19T05:41:32.698Z"
 }
