@@ -937,7 +937,7 @@ function regenerateFullSitemap() {
   try {
     console.log('   🗺️ Regenerating full sitemap...');
     const blogDataFile = fs.readFileSync(BLOG_DATA_PATH, 'utf8');
-    const slugs = [...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]);
+    const slugs = [...new Set([...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]))];
     
     let entries = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
     
