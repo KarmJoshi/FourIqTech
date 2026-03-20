@@ -403,6 +403,29 @@ keywords:
     - breaking down monolithic app
     - modernize legacy codebase
     - modernizing legacy monolithic architecture
+    - react component unmounting performance
+    - optimizing React component unmounting for high-traffic SaaS
+    - react memory leak fix
+    - react slow unmount
+    - react component cleanup function
+    - preventing memory leaks in React SaaS
+    - React unmount performance
+    - React lifecycle management best practices
+    - React 19 lifecycle changes for enterprise
+    - managing React component memory footprint
+    - debugging React memory leaks in production
+    - React useEffect cleanup best practices
+    - optimizing component re-renders during unmount
+    - unexplained browser crashes in SaaS
+    - React dashboard memory bloat fix
+    - preventing React memory leaks in long sessions
+    - browser memory leaks in single page applications
+    - React 19 compiler optimization for unmounting
+    - using React Profiler to detect memory leaks
+    - AbortController for API cleanup
+    - managing state lifecycles in micro-frontends
+    - decoupled event listener management
+    - enterprise state disposal patterns
 content:
   blog_frequency: 3 posts per week
   content_types:
