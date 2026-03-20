@@ -27,10 +27,10 @@ const QUEUE_PATH        = path.join(process.cwd(), '.github/dev-tasks/queue.json
 // ── AI Models — Gemini 2.5 Flash primary ──
 function getModels(taskType) {
   const tasks = {
-    'scanning':    ['gemini-2.5-flash', 'gemini-1.5-flash'],
-    'architecting': ['gemini-2.5-flash', 'gemini-1.5-flash'],
+    'scanning':     ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
+    'architecting': ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
   };
-  return tasks[taskType] || ['gemini-2.5-flash'];
+  return tasks[taskType] || ['gemini-3-flash-preview'];
 }
 
 // ── Multi-API Key Rotation ──
@@ -150,7 +150,7 @@ async function marketScannerAgent(config, existingRoutes, existingSlugs, knowled
   return await healedCall('Market Scanner', async (prevErr) => {
     const fix = prevErr ? `\nFIX PREVIOUS ERROR: "${prevErr.message}". Return valid JSON.` : '';
 
-    const raw = await smartCall(models, `You are a commercial SEO strategist for FouriqTech, a premium global web design & development agency targeting enterprises and startups with $25k+ budgets.
+    const raw = await smartCall(models, `You are an Elite Growth Hacker and Revenue Strategist with 15 years of experience generating millions in inbound B2B pipeline. FouriqTech is your client — a premium global web design & development agency targeting enterprises and startups with $25k+ budgets.
 
 COMPANY CONTEXT:
 ${knowledgeCtx}
@@ -229,7 +229,7 @@ async function pageArchitectAgent(scanResult, knowledgeCtx, designSystemCtx) {
   return await healedCall('Page Architect', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
 
-    const raw = await smartCall(models, `You are a senior frontend architect and conversion rate optimization expert for FouriqTech.
+    const raw = await smartCall(models, `You are an elite, World-Class Conversion Rate Optimization (CRO) Architect and UX Director who has designed 8-figure SaaS landing pages. You work for FouriqTech.
 
 You are designing a high-converting LANDING PAGE for a premium web design agency.
 
@@ -487,13 +487,6 @@ async function managerAgent() {
 
   queue.tasks.push(task);
   saveQueue(queue);
-
-  // ── Save keyword to config ──
-  if (!config.keywords.auto_discovered) config.keywords.auto_discovered = [];
-  const newKws = [scanResult.primary_keyword, ...scanResult.secondary_keywords];
-  config.keywords.auto_discovered = [...new Set([...config.keywords.auto_discovered, ...newKws])];
-  const { _flatKeywords, ...saveConfig } = config;
-  fs.writeFileSync(CONFIG_PATH, yaml.dump(saveConfig));
 
   console.log('\n╔═══════════════════════════════════════════════════════════╗');
   console.log('║  📋 TASK CREATED — Ready for Antigravity                 ║');
