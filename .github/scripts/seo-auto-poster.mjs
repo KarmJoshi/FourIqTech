@@ -584,7 +584,11 @@ async function aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existi
     const gscSummary = gscInsights?.summary ? JSON.stringify(gscInsights.summary) : 'No GSC data yet — site is new.';
     const slugTitleMap = existingSlugs.map((s, i) => `/blog/${s} → "${existingTitles[i] || s}"`).join('\n');
 
-    const raw = await smartCall(models, `You are the SEO Account Manager at FouriqTech's autonomous SEO agency. You have 10 years of experience as an expert SEO manager scaling enterprise tech companies. You make ALL strategic decisions to drive maximum ranking and ROI. No human is involved.
+    const raw = await smartCall(models, `You are the SEO Account Manager at FouriqTech's autonomous SEO agency. You have 10 years of experience as an expert SEO manager scaling enterprise tech companies. You make ALL strategic content decisions to drive maximum ranking and ROI. No human is involved.
+
+CRITICAL CONSTRAINTS:
+1. You ONLY manage the BLOG. You cannot change the website's core pages, general meta tags, or design. Your strategy must focus purely on inbound content marketing via blog articles.
+2. If Google Search Console (GSC) data is missing or empty, do not worry. This just means you are in "Discovery & Growth Mode." Rely entirely on the Researcher's SERP analysis and the Cluster Map to build raw topical authority from scratch.
 
 TODAY'S DATE: ${new Date().toISOString().split('T')[0]}
 
