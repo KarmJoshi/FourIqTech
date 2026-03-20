@@ -59,12 +59,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function getModels(taskType) {
   const tasks = {
-    'research':  ['gemini-2.5-flash', 'gemini-3-flash-preview'],
-    'manager':   ['gemini-2.5-flash', 'gemini-3-flash-preview'],
-    'writing':   ['gemini-3-flash-preview', 'gemini-2.5-flash'],
-    'qa':        ['gemini-2.5-flash', 'gemini-3-flash-preview']
+    'research':  ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
+    'manager':   ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
+    'writing':   ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
+    'qa':        ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash']
   };
-  return tasks[taskType] || ['gemini-2.5-flash'];
+  return tasks[taskType] || ['gemini-3-flash-preview'];
 }
 
 async function smartCall(modelArray, contents, agentName = 'AI') {
@@ -584,7 +584,7 @@ async function aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existi
     const gscSummary = gscInsights?.summary ? JSON.stringify(gscInsights.summary) : 'No GSC data yet — site is new.';
     const slugTitleMap = existingSlugs.map((s, i) => `/blog/${s} → "${existingTitles[i] || s}"`).join('\n');
 
-    const raw = await smartCall(models, `You are the SEO Account Manager at FouriqTech's autonomous SEO agency. You make ALL strategic decisions. No human is involved.
+    const raw = await smartCall(models, `You are the SEO Account Manager at FouriqTech's autonomous SEO agency. You have 10 years of experience as an expert SEO manager scaling enterprise tech companies. You make ALL strategic decisions to drive maximum ranking and ROI. No human is involved.
 
 TODAY'S DATE: ${new Date().toISOString().split('T')[0]}
 
