@@ -130,5 +130,38 @@
       "day28_due": "2026-04-16",
       "last_checked": null
     }
+  },
+  {
+    "article_id": "enterprise-react-design-system-implementation",
+    "metadata": {
+      "published_date": "2026-03-20",
+      "word_count": 1267,
+      "keyword_primary": "enterprise react design system implementation",
+      "keyword_density": 0.32,
+      "internal_links_injected": 0,
+      "qa_score": 80,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "commercial",
+      "cluster": "Enterprise React Design Systems & UI/UX"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-21",
+      "day3_due": "2026-03-23",
+      "day7_due": "2026-03-27",
+      "day14_due": "2026-04-03",
+      "day28_due": "2026-04-17",
+      "last_checked": null
+    }
   }
 ]

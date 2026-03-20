@@ -19,6 +19,16 @@
       ],
       "target_supporting_count": 5,
       "cluster_complete": false
+    },
+    {
+      "cluster_name": "Enterprise React Design Systems & UI/UX",
+      "pillar_slug": null,
+      "pillar_published": false,
+      "supporting_articles": [
+        "enterprise-react-design-system-implementation"
+      ],
+      "target_supporting_count": 5,
+      "cluster_complete": false
     }
   ]
 }

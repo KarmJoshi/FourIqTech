@@ -35,13 +35,13 @@ jobs:
           git config --global user.name "FouriqTech AI Bot"
           git config --global user.email "ai@fouriqtech.com"
           
-          git add src/data/blogPosts.ts fouriqtech-seo-config.yaml .github/publish_log.json .github/content_pipeline.json .github/dev-tasks/queue.json public/sitemap.xml seo_research_temp.md || true
+          git add src/data/blogPosts.ts fouriqtech-seo-config.yaml .github/publish_log.json .github/content_pipeline.json .github/knowledge_base/ public/sitemap.xml seo_research_temp.md || true
           
           # Check if there are actual changes before committing
           if git diff --staged --quiet; then
-            echo "No new content was generated. Exiting loop."
+            echo "No new content was generated. Exiting."
             exit 0
           fi
           
-          git commit -m "Auto-post: SEO V4 Content Pipeline Run"
+          git commit -m "SEO V8: Autonomous content publish"
           git push origin main
