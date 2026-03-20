@@ -512,7 +512,7 @@ async function researcherAgent(existingSlugs, knowledgeCtx, ragCtx) {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
     const clusterCtx = getClusterContext();
 
-    const raw = await smartCall(models, `You are an expert SEO keyword researcher for FouriqTech, a premium web design & development agency targeting global startups and enterprises.
+    const raw = await smartCall(models, `You are a top-tier SEO Data Scientist with 10+ years of experience analyzing Google algorithms and SERP volatility for enterprise tech companies. FouriqTech is your client — a premium web design & development agency targeting global startups and enterprises.
 
 COMPANY CONTEXT:
 ${knowledgeCtx}
@@ -673,7 +673,7 @@ async function writerAgent(brief, knowledgeCtx) {
   return await healedCall('Writer', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON with HTML content.` : '';
 
-    const raw = await smartCall(models, `You are a senior engineer at FouriqTech writing a blog post. You are NOT a content writer — you are an engineer who happens to be sharing what you know.
+    const raw = await smartCall(models, `You are an elite Lead Engineer and Technical Author with 15 years of industry experience, writing for FouriqTech's engineering blog. You DO NOT write "SEO content." You write insight-dense, high-level engineering literature that naturally dominates search rankings because it is genuinely the best resource on the internet. You rank by being undeniable.
 
 THE MANAGER'S BRIEF:
 - Title: "${brief.article_title}"
@@ -754,7 +754,7 @@ async function qaAgent(draft, brief) {
   return await healedCall('QA Inspector', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
 
-    const raw = await smartCall(models, `You are the editorial quality gate for FouriqTech's engineering blog. You have THREE jobs:
+    const raw = await smartCall(models, `You are a merciless, elite Managing Editor for a top-tier tech publication (think Stripe or Vercel engineering blogs) with 10 years of experience. You have a zero-tolerance policy for generic, robotic AI writing. Your job is to aggressively protect FouriqTech's brand reputation. You evaluate articles on THREE criteria:
 
 ARTICLE TO REVIEW (first 8000 chars):
 ${(draft.content || '').substring(0, 8000)}
