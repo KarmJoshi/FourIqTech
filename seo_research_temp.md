@@ -1,83 +1,31 @@
-# SEO Automation Research Log — V4.0
+# SEO Engine V8 — Research Log
 
-> **Generated at:** 2026-03-20T05:33:01.316Z
-> Each blog generation cycle **overwrites** this file so you can monitor the AI's thought process.
-
----
-
-## 🎯 Lead Intent Analysis
-
-| Metric | Score |
-|---|---|
-| **Intent Category** | problem_solving |
-| **Lead Intent Score** | 4/10 |
-| **Business Relevance** | 9/10 |
-| **Traffic Potential** | 5/10 |
-| **Competition Difficulty** | 6/10 |
-| **Final Priority Score** | 5.7/10 |
-| **Gate Result** | 🚫 REJECTED |
-
-**Reasoning:** The keyword focuses on a specific technical challenge (unmounting) indicative of a mid-to-senior developer or tech lead working on a complex SaaS application. While it is informational, the depth of the issue suggests they are struggling with performance constraints—a key pain point for FouriqTech's target audience. It aligns perfectly with our enterprise optimization service.
+> **Generated:** 2026-03-21T05:26:48.825Z
 
 ---
 
-## 🔬 Research Data
-
-**Primary Keyword:** react component unmounting performance
-**Difficulty:** low
-**Intent:** informational
-**Angle:** FouriqTech provides a technical 'cleanup' framework that goes beyond standard documentation, focusing on the specific pain point of long-running B2B SaaS dashboards where garbage collection overhead causes UI stutters.
-**Competitor Gap:** Most competitors explain what useEffect cleanup is. None cover the architecture of global state disposal (Redux/Zustand) and event-listener de-registration in complex enterprise micro-frontend environments.
-**Secondary Keywords:** optimizing React component unmounting for high-traffic SaaS, react component unmounting performance, react memory leak fix, react slow unmount, react component cleanup function, preventing memory leaks in React SaaS, React unmount performance, React lifecycle management best practices
+## 🔬 Research
+**Keyword:** react multi-tenant architecture patterns
+**Intent:** commercial
+**Angle:** A technical deep-dive into resolving the conflict between shared infrastructure and data security for enterprise B2B SaaS using Next.js Middleware and Row-Level Security.
+**SERP Avg:** 2200 words
+**Gaps:** Middleware-based routing for subdomains, Database-per-tenant vs Shared-database trade-offs for $25k+ projects, Dynamic theme injection using CSS variables for white-labeled SaaS
 
 ---
 
-## 🔍 SERP Structure Analysis
-
-| Metric | Value |
-|---|---|
-| **Avg Word Count** | 1800 |
-| **Code Examples** | Yes |
-| **FAQ Sections** | Yes |
-| **Tables/Checklists** | Yes |
-
-**Common H2 Headings:** Understanding the React Unmount Lifecycle, Common Causes of Memory Leaks in Large-Scale Apps, Implementing Effective Cleanup Patterns, Monitoring Component Lifecycle Performance
-**Content Gaps:** Integration with micro-frontend lifecycle hooks, Real-world production benchmarks, Impact on browser heap snapshot size
-**SERP Summary:** Competitors offer basic documentation-level advice; this article wins by providing an enterprise-grade checklist for preventing memory degradation in long-lived SaaS sessions.
+## 🧠 Manager's Strategy
+**Decision:** publish
+**Title:** Scalable Multi-Tenant Architecture in React & Next.js: The Enterprise Guide to Data Isolation & White-Labeling
+**Target:** 1650 words
+**Tone:** Deeply technical, authoritative, and engineering-led, yet focused on the business ROI of infrastructure security and scalability.
+**Angle:** Move beyond basic auth to demonstrate advanced Next.js Middleware-based subdomain routing and dynamic CSS variable injection for white-labeling. Contrast the operational costs of database-per-tenant vs. shared-schema models for projects exceeding $25k in value.
+**Reasoning:** This keyword targets high-ticket B2B SaaS leads who are moving beyond MVP stage into enterprise-grade scale. By focusing on middleware and dynamic branding, we fill a clear content gap in the SERP while simultaneously addressing orphan pages through strategic internal linking.
 
 ---
 
-## 🧬 Semantic Keyword Cluster (15 keywords)
-
-**Supporting Long-tail:** React 19 lifecycle changes for enterprise, managing React component memory footprint, debugging React memory leaks in production, React useEffect cleanup best practices, optimizing component re-renders during unmount
-**Problem-based:** unexplained browser crashes in SaaS, React dashboard memory bloat fix, preventing React memory leaks in long sessions, browser memory leaks in single page applications
-**Technology-specific:** React 19 compiler optimization for unmounting, using React Profiler to detect memory leaks, AbortController for API cleanup
-**Architecture-specific:** managing state lifecycles in micro-frontends, decoupled event listener management, enterprise state disposal patterns
-
-
-
----
-
-## 📊 Strategy & Outline
-
-**Title:** *(Not yet generated)*
-**Cluster:** *(Not yet generated)*
-**Target Persona:** N/A
-
-### Article Outline
-*(Strategy not yet generated)*
-
-### Link Strategy
-*(Strategy not yet generated)*
-
----
-
-## 🌱 Topic Authority Expansion
-
-*(Not yet generated)*
-
----
-
-## ✅ QA Results
-
-*(Not yet evaluated)*
+## ✅ QA Result
+**Score:** 67/100 ❌ FAILED
+**Human Tone:** 9/10
+**Brief Compliance:** 8/10
+**Completeness:** 3/10
+**Summary:** The technical authority and 'human' engineering voice are top-tier, but the submission is an unfinished draft lacking the required FAQ and concluding sections.
