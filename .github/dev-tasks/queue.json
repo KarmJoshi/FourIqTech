@@ -225,6 +225,184 @@
       "design_brief": {
         "note": "Use the /dev-tasks workflow to complete the brief and build the page."
       }
+    },
+    {
+      "id": "ec95aceb-b5be-40bb-9c68-fc5d8b387cf2",
+      "type": "landing_page",
+      "status": "pending",
+      "created_at": "2026-03-22T05:55:20.142Z",
+      "completed_at": null,
+      "keyword": "Enterprise Next.js Development Agency",
+      "secondary_keywords": [
+        "custom next.js web application services",
+        "enterprise-grade react development",
+        "next.js migration for large scale businesses",
+        "scalable headless architecture solutions",
+        "high-performance next.js consulting"
+      ],
+      "route": "/services/enterprise-nextjs-development",
+      "page_title": "Enterprise Next.js Development Agency | High-Performance Web Solutions",
+      "target_file": "src/pages/services/EnterpriseNextjsDevelopment.tsx",
+      "target_persona": "CTO, VP of Engineering, or Head of Product at a mid-to-large enterprise or a Series B+ startup looking to modernize their tech stack for performance and scalability.",
+      "service_alignment": "Custom Web Application Development",
+      "seo": {
+        "meta_title": "Enterprise Next.js Development Agency | FouriqTech",
+        "meta_description": "Elite enterprise-grade react development and custom next.js web application services for global brands. High-performance, scalable, and secure web solutions."
+      },
+      "sections": [
+        {
+          "type": "hero",
+          "headline": "The Elite Standard in Enterprise Next.js Development",
+          "highlight_text": "Enterprise Next.js Development",
+          "subtext": "Transform your digital infrastructure with high-performance web applications built for 8-figure growth. We bridge the gap between luxury design and enterprise-grade react development.",
+          "cta_text": "Get a Free Consultation",
+          "cta_link": "/#contact",
+          "trust_signal": "Trusted by 50+ Global Enterprises & Series B+ Startups"
+        },
+        {
+          "type": "problems",
+          "section_title": "Why Legacy Architectures Fail the Modern Enterprise",
+          "items": [
+            {
+              "icon": "ZapOff",
+              "title": "Performance Bottlenecks",
+              "description": "Slow page loads and poor Core Web Vitals are costing you conversions and search engine rankings."
+            },
+            {
+              "icon": "BarChart3",
+              "title": "Scalability Walls",
+              "description": "Monolithic systems that crumble under peak traffic or require massive overhead to maintain during expansion."
+            },
+            {
+              "icon": "ShieldAlert",
+              "title": "Security Vulnerabilities",
+              "description": "Outdated stacks create liability. Large scale businesses require the hardened security of modern frameworks."
+            }
+          ]
+        },
+        {
+          "type": "solutions",
+          "section_title": "Bespoke Engineering for Radical Growth",
+          "items": [
+            {
+              "icon": "Code2",
+              "title": "Custom Next.js Web Application Services",
+              "description": "We build tailored digital products using TypeScript and Next.js, ensuring type-safety and lightning-fast execution."
+            },
+            {
+              "icon": "RefreshCcw",
+              "title": "Next.js Migration for Large Scale Businesses",
+              "description": "Seamlessly transition from legacy React apps or PHP monoliths to a high-performance modern stack with zero downtime."
+            },
+            {
+              "icon": "Layers",
+              "title": "Scalable Headless Architecture Solutions",
+              "description": "Decouple your content from your presentation layer for ultimate flexibility and lightning-fast edge delivery."
+            },
+            {
+              "icon": "Cpu",
+              "title": "High-Performance Next.js Consulting",
+              "description": "Direct access to our senior architects for performance auditing, bundle optimization, and infrastructure scaling."
+            }
+          ]
+        },
+        {
+          "type": "process",
+          "section_title": "Our Enterprise Framework",
+          "steps": [
+            {
+              "step": 1,
+              "title": "Architectural Discovery",
+              "description": "We map your business logic to a technical roadmap, identifying high-ROI opportunities for Next.js features like ISR and middleware."
+            },
+            {
+              "step": 2,
+              "title": "Luxury UX Strategy",
+              "description": "Our designers create high-fidelity, interactive prototypes using GSAP and Framer Motion to ensure a premium user experience."
+            },
+            {
+              "step": 3,
+              "title": "Agile Engineering",
+              "description": "Rapid development cycles with continuous integration, automated testing, and rigorous performance benchmarking."
+            },
+            {
+              "step": 4,
+              "title": "Global Edge Deployment",
+              "description": "Optimization for Vercel or AWS, ensuring your application is delivered from the server closest to your user."
+            }
+          ]
+        },
+        {
+          "type": "tech_stack",
+          "section_title": "The Tech Behind the Performance",
+          "technologies": [
+            "Next.js 14+",
+            "React",
+            "TypeScript",
+            "Tailwind CSS",
+            "GSAP",
+            "Vercel",
+            "Node.js",
+            "PostgreSQL",
+            "Sanity CMS",
+            "Storybook"
+          ]
+        },
+        {
+          "type": "social_proof",
+          "section_title": "Proven Excellence",
+          "metrics": [
+            {
+              "value": "200+",
+              "label": "High-Performance Projects"
+            },
+            {
+              "value": "99.9%",
+              "label": "Uptime Reliability"
+            },
+            {
+              "value": "45%",
+              "label": "Avg. Speed Increase"
+            },
+            {
+              "value": "$25k+",
+              "label": "Min. Project Investment"
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "section_title": "Expert Insights",
+          "items": [
+            {
+              "question": "How does Next.js improve our SEO and Core Web Vitals?",
+              "answer": "By utilizing Server-Side Rendering (SSR) and Static Site Generation (SSG), Next.js ensures that your content is crawlable immediately, while reducing Largest Contentful Paint (LCP) and Cumulative Layout Shift (CLS)."
+            },
+            {
+              "question": "Can you migrate our existing React application to Next.js?",
+              "answer": "Yes, we specialize in Next.js migration for large scale businesses, systematically moving components to the App Router while maintaining SEO equity."
+            },
+            {
+              "question": "Is Next.js secure enough for enterprise financial data?",
+              "answer": "Absolutely. Next.js offers built-in security features like Environment Variable protection, CSRF mitigation, and when combined with a secure backend, it meets the highest enterprise standards."
+            },
+            {
+              "question": "What is the typical timeline for an enterprise-grade project?",
+              "answer": "Our high-performance consulting and development cycles usually range from 8 to 16 weeks depending on the complexity of the business logic."
+            }
+          ]
+        },
+        {
+          "type": "final_cta",
+          "headline": "Ready to Build the Future of Your Enterprise?",
+          "subtext": "Secure your spot in our development queue. Our architects only take on 3 new enterprise projects per quarter to ensure 10x quality.",
+          "cta_text": "Book Your Strategy Session",
+          "cta_link": "/#contact"
+        }
+      ],
+      "lead_score": 10,
+      "business_relevance": 10,
+      "reasoning": "Next.js is the gold standard for FouriqTech's tech stack (React, Vite, GSAP). While generic 'web development' is saturated, targeting 'Enterprise Next.js' specifically attracts high-intent decision-makers with $25k+ budgets who value performance, SEO-readiness (SSR/ISR), and modern architecture. This bridges the gap between their technical prowess and their premium market positioning."
     }
   ],
   "completed": [
@@ -605,5 +783,5 @@
       "reasoning": "This keyword directly targets companies (both startups and enterprises) looking to build a proprietary SaaS product, which inherently involves high-performance, scalable web application development—a core strength of FouriqTech. Such projects typically exceed the $25,000 minimum budget and require premium UI/UX. The intent is explicitly commercial, signaling a desire to hire an agency. While FouriqTech targets 'custom enterprise web application development for global startups' generally, 'custom SaaS platform development' is a distinct and highly specific sub-service with unique requirements (e.g., multi-tenancy, subscription billing, specific security protocols) that warrants a dedicated landing page. It's not covered by existing blog posts or general web design/marketing keywords."
     }
   ],
-  "last_updated": "2026-03-19T16:36:44.475Z"
+  "last_updated": "2026-03-22T05:55:20.142Z"
 }
