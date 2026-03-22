@@ -696,7 +696,55 @@
       "cluster": "Enterprise SaaS Architecture & Scalability",
       "added_date": "2026-03-21",
       "status": "queued"
+    },
+    {
+      "title": "Controlled components",
+      "cluster": "Enterprise React Performance & Scalability",
+      "added_date": "2026-03-22",
+      "status": "queued"
+    },
+    {
+      "title": "Uncontrolled components",
+      "cluster": "Enterprise React Performance & Scalability",
+      "added_date": "2026-03-22",
+      "status": "queued"
+    },
+    {
+      "title": "React.memo",
+      "cluster": "Enterprise React Performance & Scalability",
+      "added_date": "2026-03-22",
+      "status": "queued"
+    },
+    {
+      "title": "useCallback",
+      "cluster": "Enterprise React Performance & Scalability",
+      "added_date": "2026-03-22",
+      "status": "queued"
+    },
+    {
+      "title": "Field arrays",
+      "cluster": "Enterprise React Performance & Scalability",
+      "added_date": "2026-03-22",
+      "status": "queued"
+    },
+    {
+      "title": "Debouncing inputs",
+      "cluster": "Enterprise React Performance & Scalability",
+      "added_date": "2026-03-22",
+      "status": "queued"
+    },
+    {
+      "title": "Zod validation",
+      "cluster": "Enterprise React Performance & Scalability",
+      "added_date": "2026-03-22",
+      "status": "queued"
+    },
+    {
+      "title": "Main thread blocking",
+      "cluster": "Enterprise React Performance & Scalability",
+      "added_date": "2026-03-22",
+      "status": "queued"
     }
   ],
-  "last_updated": "2026-03-21T05:25:53.687Z"
+  "last_updated": "2026-03-22T05:36:05.228Z"
 }

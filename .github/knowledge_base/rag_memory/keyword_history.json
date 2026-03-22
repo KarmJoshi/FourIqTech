@@ -163,5 +163,38 @@
       "day28_due": "2026-04-17",
       "last_checked": null
     }
+  },
+  {
+    "article_id": "react-form-performance-optimization-enterprise-guide",
+    "metadata": {
+      "published_date": "2026-03-22",
+      "word_count": 966,
+      "keyword_primary": "React form performance optimization",
+      "keyword_density": 0.31,
+      "internal_links_injected": 0,
+      "qa_score": 73,
+      "human_tone_score": 7,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Performance & Scalability"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-23",
+      "day3_due": "2026-03-25",
+      "day7_due": "2026-03-29",
+      "day14_due": "2026-04-05",
+      "day28_due": "2026-04-19",
+      "last_checked": null
+    }
   }
 ]
