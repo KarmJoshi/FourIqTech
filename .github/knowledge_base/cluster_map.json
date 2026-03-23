@@ -25,7 +25,8 @@
       "pillar_slug": null,
       "pillar_published": false,
       "supporting_articles": [
-        "enterprise-react-design-system-implementation"
+        "enterprise-react-design-system-implementation",
+        "enterprise-design-system-versioning-strategy"
       ],
       "target_supporting_count": 5,
       "cluster_complete": false

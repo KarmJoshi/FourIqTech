@@ -196,5 +196,38 @@
       "day28_due": "2026-04-19",
       "last_checked": null
     }
+  },
+  {
+    "article_id": "enterprise-design-system-versioning-strategy",
+    "metadata": {
+      "published_date": "2026-03-23",
+      "word_count": 1000,
+      "keyword_primary": "Design system versioning strategy",
+      "keyword_density": 0.2,
+      "internal_links_injected": 0,
+      "qa_score": 73,
+      "human_tone_score": 8,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "commercial",
+      "cluster": "Enterprise React Design Systems & UI/UX"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-24",
+      "day3_due": "2026-03-26",
+      "day7_due": "2026-03-30",
+      "day14_due": "2026-04-06",
+      "day28_due": "2026-04-20",
+      "last_checked": null
+    }
   }
 ]
