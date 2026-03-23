@@ -26,7 +26,52 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.fouriqtech.com/services/enterprise-headless-commerce-development</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.fouriqtech.com/blog/managing-complex-state-react-enterprise-case-study</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.fouriqtech.com/blog/react-form-performance-optimization-enterprise-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.fouriqtech.com/blog/nextjs-multi-tenant-custom-domains-enterprise-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.fouriqtech.com/blog/b2b-saas-multi-tenancy-patterns-nextjs-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.fouriqtech.com/blog/saas-multi-tenant-data-isolation-nextjs-react-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.fouriqtech.com/blog/enterprise-nextjs-performance-optimization-guide</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.fouriqtech.com/blog/nextjs-multi-tenant-architecture-enterprise-blueprint</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -1,7 +1,11 @@
-company:
   name: FouriqTech
   website: https://www.fouriqtech.com
   tagline: Next-Gen Digital Services
+  address: Worldwide (Remote-First)
+  phones:
+    - "+91 81403 71710" (Primary)
+    - "+91 97253 10310"
+    - "+91 88669 20015"
   services:
     primary:
       - Web Design & Development

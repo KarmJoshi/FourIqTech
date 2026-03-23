@@ -40,6 +40,14 @@
       ],
       "target_supporting_count": 5,
       "cluster_complete": false
+    },
+    {
+      "cluster_name": "Enterprise SaaS Architecture",
+      "pillar_slug": "managing-complex-state-react-enterprise-case-study",
+      "pillar_published": true,
+      "supporting_articles": [],
+      "target_supporting_count": 5,
+      "cluster_complete": false
     }
   ]
 }

@@ -1,7 +1,7 @@
 # 📊 FouriqTech GSC Weekly Report
 
-> **Generated:** 2026-03-18T05:17:56.110Z
-> **Period:** 2026-02-15 → 2026-03-15
+> **Generated:** 2026-03-23T04:31:40.747Z
+> **Period:** 2026-02-20 → 2026-03-20
 
 ---
 
@@ -10,12 +10,12 @@
 | Metric | Value |
 |---|---|
 | **Total Pages Tracked** | 3 |
-| **Total Clicks** | 10 |
-| **Total Impressions** | 44 |
-| **Avg Position** | 2.6 |
-| **Avg CTR** | 22.73% |
+| **Total Clicks** | 22 |
+| **Total Impressions** | 110 |
+| **Avg Position** | 3.4 |
+| **Avg CTR** | 20% |
 | **Pages on Page 1** | 3 |
-| **Total Queries** | 0 |
+| **Total Queries** | 1 |
 
 ---
 
@@ -39,9 +39,13 @@
 
 ## 🎯 Opportunity Keywords (Position 8-20)
 
-*No keyword opportunities yet.*
+| Keyword | Position | Impressions | Opportunity | Action |
+|---|---|---|---|---|
+| fouriq | 8 | 23 | HIGH | Build 2-3 backlinks + 1 supporting article to push to page 1... |
 
 ---
 
 ## 📋 Action Items
 
+- **[P1]** Create dedicated pillar article for unexpected ranking "/blog" (64 impressions).
+- **[P0]** Keyword "fouriq" at position 8 — Build 2-3 backlinks + 1 supporting article to push to page 1

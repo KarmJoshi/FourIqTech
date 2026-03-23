@@ -23,6 +23,14 @@ import crypto from 'crypto';
 // ── Paths ──
 const CONFIG_PATH = path.join(process.cwd(), 'fouriqtech-seo-config.yaml');
 const BLOG_DATA_PATH = path.join(process.cwd(), 'src/data/blogPosts.ts');
+
+// 💡 SEO SERVICE MAPPING — For Internal Link Hardening
+const SERVICE_PAGES = [
+  { keywords: ['saas', 'custom platform', 'product development', 'software architecture'], url: '/services/custom-saas-platform-development', title: 'Custom SaaS Platform Development' },
+  { keywords: ['modernization', 'legacy', 'strangler fig', 'refactoring', 'technical debt'], url: '/services/legacy-web-application-modernization', title: 'Legacy Web Application Modernization' },
+  { keywords: ['performance', 'optimization', 'latency', 'core web vitals', 'speed'], url: '/blog/nextjs-enterprise-performance-optimization-scalability-speed', title: 'Next.js Enterprise Performance Optimization' },
+  { keywords: ['design system', 'ui/ux', 'atomic design', 'component library'], url: '/blog/enterprise-react-design-system-implementation', title: 'Enterprise React Design System Implementation' }
+];
 const KNOWLEDGE_BASE_DIR = path.join(process.cwd(), '.github/knowledge_base');
 const PUBLISH_LOG_PATH = path.join(process.cwd(), '.github/publish_log.json');
 const CONTENT_PIPELINE_PATH = path.join(process.cwd(), '.github/content_pipeline.json');
@@ -76,7 +84,7 @@ async function smartCall(modelArray, contents, agentName = 'AI') {
     while (tries < API_KEYS.length * 2) {
       try {
         const resp = await aiClient.models.generateContent({
-          model, contents, config: { responseMimeType: "application/json" }
+          model, contents, config: { responseMimeType: "application/json", maxOutputTokens: 8192 }
         });
         await sleep(3000);
         return resp.candidates[0].content.parts[0].text;
@@ -124,6 +132,17 @@ function getTodayPublishCount() {
   try {
     const log = JSON.parse(fs.readFileSync(PUBLISH_LOG_PATH, 'utf8'));
     return log[new Date().toISOString().split('T')[0]] || 0;
+  } catch { return 0; }
+}
+
+function getWeeklyPublishCount() {
+  try {
+    const log = JSON.parse(fs.readFileSync(PUBLISH_LOG_PATH, 'utf8'));
+    const now = new Date();
+    return Object.keys(log).filter(date => {
+      const diff = now - new Date(date);
+      return diff < 7 * 24 * 60 * 60 * 1000;
+    }).reduce((sum, date) => sum + log[date], 0);
   } catch { return 0; }
 }
 
@@ -346,8 +365,68 @@ function runFeedbackChecks(gscInsights) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🕸️ SPIDER AGENT — Reverse Internal Link Injection + Orphan Detection
+// 🕸️ SPIDER AGENT — Internal Link Hardening (Forward & Reverse)
 // ═══════════════════════════════════════════════════════════════════════
+
+/**
+ * SPIDER FORWARD: Injects links TO existing articles/services INTO the new draft.
+ */
+// Helper: derive short, natural anchor text (2-5 words) from a blog title
+function shortAnchorText(title) {
+  // Strip common filler words and take first 3-4 meaningful words
+  const stopWords = new Set(['the','a','an','and','or','for','to','of','in','on','at','with','how','why','what','is','are','as']);
+  const words = title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+  return words.slice(0, 3).join(' ') || title.split(' ').slice(0, 3).join(' ');
+}
+
+function spiderForwardLink(content, brief, blogDataFile) {
+  console.log(`\n🕸️ SPIDER: Forward-linking from new article...`);
+  let updatedContent = content;
+  let linksAdded = 0;
+
+  // 1. Check for Service Page matches first (High Value) — use short anchor text
+  for (const service of SERVICE_PAGES) {
+    if (linksAdded >= 1) break; // Max 1 service link per post
+    const match = service.keywords.find(kw => updatedContent.toLowerCase().includes(kw));
+    if (match && !updatedContent.includes(service.url)) {
+      // Use the matched keyword itself (2-4 words) as the anchor, not the full title
+      const anchorText = match;
+      const regex = new RegExp(`(?<!<a[^>]*>)(${match})`, 'gi');
+      updatedContent = updatedContent.replace(regex, `<a href="${service.url}">${anchorText}</a>`);
+      linksAdded++;
+      console.log(`   🔗 SPIDER: Linked to Service with anchor: "${anchorText}"`);
+    }
+  }
+
+  // 2. Check for Pillar/Related Blog matches — Max 3 total, short natural anchor text
+  const slugMatches = [...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)];
+  const titleMatches = [...blogDataFile.matchAll(/title:\s*'([^']+)'/g)];
+  
+  for (let i = 0; i < slugMatches.length; i++) {
+    if (linksAdded >= 3) break; // Max 3 total internal links (Rule 2)
+    const slug = slugMatches[i][1];
+    const title = titleMatches[i] ? titleMatches[i][1] : 'related article';
+    
+    // Relevance check: does the title share meaningful words with this content?
+    const titleWords = title.toLowerCase().split(/\s+/).filter(w => w.length > 4);
+    const matchedWord = titleWords.find(w => updatedContent.toLowerCase().includes(w));
+
+    if (matchedWord && !updatedContent.includes(`/blog/${slug}`) && slug !== brief.slug) {
+      // Build a 2-5 word natural anchor from the context of the matched word
+      const anchor = shortAnchorText(title);
+      // Find a natural inline location: find the matched word in a <p> and wrap it
+      const inlineRegex = new RegExp(`(?<!<a[^>]*)\\b(${matchedWord}(s|ing|ed)?)\\b(?![^<]*<\/a>)`, 'i');
+      if (inlineRegex.test(updatedContent)) {
+        updatedContent = updatedContent.replace(inlineRegex, `<a href="/blog/${slug}">${anchor}</a>`);
+        linksAdded++;
+        console.log(`   🔗 SPIDER: Linked to Pillar with anchor: "${anchor}"`);
+      }
+    }
+  }
+
+  return updatedContent;
+}
+
 function spiderReverseLink(newSlug, newTitle, newKeyword, blogDataFile) {
   console.log(`\n🕸️ SPIDER: Reverse-linking to "${newSlug}"...`);
   let updatedBlogData = blogDataFile;
@@ -536,9 +615,16 @@ FouriqTech specializes in:
 REQUIREMENTS:
 - Pick a keyword real humans actually search for (2-5 words, natural language)
 - Prioritize problem-based keywords ("react dashboard slow", "nextjs build error")
+- **INFORMATION GAIN**: Focus on topics where we can provide unique, technical value.
 - Avoid keywords you see in the existing slugs or RAG history
 - Consider filling gaps in incomplete clusters
 - Analyze what top-ranking competitors cover and miss
+
+═══ SIGNATURE PILLAR TRAITS (ENFORCE) ═══
+1. Technical Depth (Code snippets, architecture diagrams description)
+2. Negative Knowledge (What NOT to do, common pitfalls)
+3. Performance Metrics (Benchmarks, TBT/LCP impact)
+4. Case Study Bias (Real-world scenarios over generic advice)
 
 ${fix}
 
@@ -627,7 +713,7 @@ Think like a real SEO account manager. Based on ALL the data above, create a str
 
 - Is this keyword worth pursuing? If not, suggest a better one.
 - What tone should the article use? (casual, technical, authoritative, storytelling)
-- How long should it be? IMPORTANT: The Writer produces articles in a single generation. Set realistic targets between 1200-1800 words. Anything above 2000 will get cut short. Use the SERP data as a reference but stay within this practical range.
+- How long should it be? IMPORTANT: The Writer produces articles in a single JSON payload. Set realistic targets between 800-1100 words. Because this is a dense engineering case study format, 1000 words is the absolute sweet spot. Anything above 1200 will get truncated and break the JSON.
 - Which existing pages should it link to? (pick 3-5 from the list above)
 - What specific angle beats the competition?
 - Should we prioritize filling a cluster gap or starting a new topic?
@@ -644,7 +730,7 @@ RETURN VALID JSON:
   "article_title": "compelling SEO-optimized title",
   "cluster": "topic cluster name",
   "article_type": "pillar/supporting",
-  "target_words": 1500,
+  "target_words": 1000,
   "tone": "Describe the exact tone and voice in one sentence",
   "angle": "Specific angle that beats competitors — 2-3 sentences",
   "structure_notes": "Brief structure guidance, NOT a rigid 25-section outline",
@@ -670,18 +756,27 @@ RETURN VALID JSON:
 // ═══════════════════════════════════════════════════════════════════════
 // ✍️ WRITER — Creative Content Engine (No Rigid Rules)
 // ═══════════════════════════════════════════════════════════════════════
-async function writerAgent(brief, knowledgeCtx) {
+async function writerAgent(brief, knowledgeCtx, rewriteFeedback = null) {
   const models = getModels('writing');
-  console.log(`\n✍️ WRITER: Producing content...`);
+  console.log(`\n✍️ WRITER: Producing content...${rewriteFeedback ? ' (REWRITE ATTEMPT)' : ''}`);
 
   return await healedCall('Writer', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON with HTML content.` : '';
 
-    const raw = await smartCall(models, `You are an elite Lead Engineer and Technical Author with 15 years of industry experience, writing for FouriqTech's engineering blog. You DO NOT write "SEO content." You write insight-dense, high-level engineering literature that naturally dominates search rankings because it is genuinely the best resource on the internet. You rank by being undeniable.
+    const feedbackSection = rewriteFeedback ? `\n\n🚨 URGENT FEEDBACK FROM QA EDITOR 🚨\n${rewriteFeedback}\n\n` : '';
+
+    const raw = await smartCall(models, `You are a senior software architect and performance engineer writing a real-world engineering case study based on production incidents.
+
+Your job is NOT to explain concepts.
+Your job is to document a real failure, investigation, and fix with measurable outcomes.
+${feedbackSection}
+---
+## 🎯 INPUT
+Target audience: Senior engineers, architects, CTOs
+Topic: "${brief.article_title}"
+Primary Keyword: "${brief.keyword}"
 
 THE MANAGER'S BRIEF:
-- Title: "${brief.article_title}"
-- Keyword: "${brief.keyword}"
 - Target Length: ~${brief.target_words} words
 - Tone: ${brief.tone}
 - Angle: ${brief.angle}
@@ -694,36 +789,100 @@ THE MANAGER'S BRIEF:
 COMPANY FACTS (reference when relevant):
 ${knowledgeCtx}
 
-═══ HOW TO WRITE ═══
+---
+## 🚫 HARD RULES (ABSOLUTE)
+* Do NOT write generic explanations
+* Do NOT define basic concepts
+* Do NOT use filler phrases
+* Do NOT write like a tutorial or guide
+* Do NOT make claims without numbers
 
-Write like you're explaining something to a fellow senior engineer over coffee. Here's what that sounds like:
+If any section lacks metrics, scale, or technical depth → You MUST rewrite it before continuing.
 
-"We had a dashboard rendering 8000 candlesticks every 500ms via WebSocket. React re-rendered the entire chart on every tick. By tick 200 the browser tab was consuming 1.4GB of RAM. We tried React.memo first. Obviously. Didn't help — the data reference was new on every message. What actually worked: move the chart off the React render cycle entirely. OffscreenCanvas in a Web Worker."
+---
+## 🧠 MANDATORY OUTPUT STRUCTURE
 
-Notice:
-- Starts with a real situation, not a definition
-- Uses specific numbers (8000, 500ms, 1.4GB)
-- Shows what failed before what worked
-- Short sentences mixed with longer ones
-- No corporate fluff
+### 1. INCIDENT REPORT (START HERE)
+Describe a real production issue:
+* Include scale (RPS, tenants, regions)
+* Include measurable problem (TTFB, latency, etc.)
+Example: "At ~2.1M monthly requests across 14 regions, TTFB increased from 120ms to 450ms..."
 
-DO:
-- Start mid-thought. Jump right into the problem or scenario.
-- Use real numbers, metrics, and tool names
-- Share what FAILED before sharing the solution
-- Name specific tradeoffs and downsides
-- Use contractions (don't, won't, it's)
-- Vary sentence length wildly
-- Include 1-2 code examples if relevant
-- Include a FAQ section with casual, direct answers
-- Link naturally to the internal pages from the brief
+### 2. WRONG ASSUMPTIONS
+Explain what was initially believed:
+* What you thought was the issue
+* Why that assumption was wrong
 
-DON'T:
-- Start with "In today's world" or any generic intro
-- Define basic concepts (reader is a senior engineer)
-- Use filler words: comprehensive, leverage, seamless, holistic, cutting-edge, robust, delve, crucial, transformative, navigate, paradigm
-- Write walls of text — keep paragraphs short (3-4 sentences max)
-- Force the keyword unnaturally — use it where it flows
+### 3. DEBUGGING PROCESS (CRITICAL)
+Step-by-step investigation:
+* Tools used (logs, tracing, metrics)
+* What was measured
+* How the bottleneck was isolated
+
+### 4. ROOT CAUSE
+Explain the exact technical failure:
+* Be specific (middleware, DB call, cache miss, etc.)
+* Include timing breakdown if possible
+
+### 5. IMPLEMENTATION FIX
+Show:
+* Code snippet OR architecture change
+* Why this fix works at system level
+
+### 6. MEASURED RESULTS
+Include BEFORE vs AFTER:
+* TTFB, latency, execution time, p95 if possible
+Example: "TTFB reduced from 450ms → 180ms (p95 over 24h)"
+
+### 7. UNEXPECTED PROBLEM (MANDATORY)
+Describe something that broke AFTER the fix:
+* Consistency issues, propagation delays, cache bugs, or scaling issues.
+Explain why it happened and how it was mitigated.
+
+### 8. REQUEST LIFECYCLE BREAKDOWN
+Explain the optimized flow step-by-step:
+1. Request enters edge
+2. Middleware execution (with timing)
+3. Data resolution
+4. Rendering
+5. Response
+Include latency per step if possible.
+
+### 9. TRADE-OFF ANALYSIS
+Explain:
+* When this solution is NOT ideal
+* Scaling limits (10k, 100k tenants)
+* Alternative approaches
+
+### 10. STRONG OPINION (NO NEUTRAL ENDING)
+End with a clear stance:
+Example: "If your middleware depends on a database call, your architecture is already broken."
+
+---
+## 📊 STYLE
+* Write like an internal engineering report
+* Use precise technical language (TTFB, p95, cold start, edge runtime)
+* Keep sentences tight and information-dense
+* No storytelling fluff
+
+---
+## 🔍 SEO REQUIREMENTS
+* Naturally include "${brief.keyword}"
+* Primary keyword "${brief.keyword}": use a MAXIMUM of 5 times in the entire article.
+* NEVER capitalize the keyword mid-sentence unless it is a proper noun.
+* Maximum 3-4 internal links per article using ONLY 2-5 word natural anchors.
+* Mention "FouriqTech" a MAXIMUM of 2 times.
+
+---
+## ✅ SELF-VALIDATION CHECK (MANDATORY)
+Before outputting, verify:
+* At least 3 numeric metrics included
+* At least 1 debugging process described
+* At least 1 unexpected issue included
+* At least 1 trade-off explained
+* No generic phrases
+
+If ANY condition fails → REWRITE.
 
 Format in semantic HTML. No markdown. Use <h1>, <h2>, <h3>, <p>, <ul>, <li>, <pre><code>, <blockquote>, <a href>.
 
@@ -758,7 +917,7 @@ async function qaAgent(draft, brief) {
   return await healedCall('QA Inspector', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
 
-    const raw = await smartCall(models, `You are a merciless, elite Managing Editor for a top-tier tech publication (think Stripe or Vercel engineering blogs) with 10 years of experience. You have a zero-tolerance policy for generic, robotic AI writing. Your job is to aggressively protect FouriqTech's brand reputation. You evaluate articles on THREE criteria:
+    const raw = await smartCall(models, `You are a merciless, elite Managing Editor for a top-tier tech publication (think Stripe or Vercel engineering blogs) with 10 years of experience. You have a zero-tolerance policy for generic, robotic AI writing. Your job is to aggressively protect FouriqTech's brand reputation. You evaluate articles on FOUR criteria:
 
 ARTICLE TO REVIEW (first 8000 chars):
 ${(draft.content || '').substring(0, 8000)}
@@ -784,20 +943,32 @@ Did the Writer follow the Manager's brief?
 - Is the tone roughly what was requested?
 - Is the angle covered?
 - Are internal links present?
-- Is the word count in a reasonable range (±30% of target)?
+- (Ignore word count exactness if the technical depth is elite and nothing feels missing.)
 Score 1-10. Below 4 = automatic fail.
 
 ═══ CHECK 3: COMPLETENESS ═══
-Is the article structurally complete?
-- Has a clear beginning (not a definition, but a hook)
-- Has substantive technical content in the middle
-- Has a conclusion or call-to-action
-- Has at least a basic FAQ section
+Is the article structurally complete as an Engineering Incident Report?
+- Starts with an Incident Hook (metrics, scale).
+- Explains Debugging, Root Cause, and Fix.
+- Has a Trade-off analysis and an Unexpected Problem section.
+- Does NOT need an FAQ section or a Call to Action (these are for generic blogs).
+- Does not abruptly end mid-sentence.
 Score 1-10. Below 4 = automatic fail.
 
-OVERALL: Average the 3 scores. Article passes if overall >= 6/10 AND no individual score is below its fail threshold.
+═══ CHECK 4: NATURAL READABILITY (anti-spam check) ═══
+This is an explicit Google spam and over-optimization check. Be very strict here.
+- KEYWORD DENSITY: Count how many times "${brief.keyword}" appears. If it appears more than 5 times, deduct 2 points automatically. If more than 8 times, score is automatic 3/10.
+- CAPITALIZATION: Is the keyword ever capitalized unnaturally mid-sentence (e.g. "Custom SaaS Platform Development is" instead of "custom SaaS platform development")? If yes, deduct 2 points.
+- ANCHOR TEXT: Are any internal link anchors longer than 6 words or full article titles? If yes, deduct 2 points per violation.
+- BRAND SPAM: Is "FouriqTech" mentioned more than 2 times? If yes, deduct 1 point per extra mention.
+- REPETITIVE PHRASING: Does the article reuse the same sentence patterns or lead-ins repeatedly? If yes, deduct 1-2 points.
+- FORCED PROMOTION: Does the article push "$25k+ projects" or heavy brand promotion where it doesn't fit? Deduct 2 points.
+Score 1-10. Below 5 = automatic fail (Google spam risk).
 
-Be FAIR. If the article is genuinely good and sounds human, pass it. Don't nitpick.
+OVERALL: Average the 4 scores (human_tone + brief_compliance + completeness + natural_readability). Article passes if overall >= 6.5/10 AND no individual score is below its fail threshold.
+
+PRIORITY: Helpfulness > Technical Accuracy > Natural Readability > SEO optimization.
+Be FAIR. If the article is genuinely good, sounds human, and is not spammy, pass it.
 
 ${fix}
 
@@ -806,6 +977,7 @@ RETURN VALID JSON:
   "human_tone": 0,
   "brief_compliance": 0,
   "completeness": 0,
+  "natural_readability": 0,
   "score": 0,
   "passed": false,
   "issues": ["issue1 if any"],
@@ -813,12 +985,16 @@ RETURN VALID JSON:
 }`, 'QA Inspector');
 
     const result = JSON.parse(raw);
-    // Recalculate overall score
-    const avg = Math.round(((result.human_tone || 0) + (result.brief_compliance || 0) + (result.completeness || 0)) / 3 * 10);
+    // Recalculate overall score using all 4 dimensions
+    const avg = Math.round(((result.human_tone || 0) + (result.brief_compliance || 0) + (result.completeness || 0) + (result.natural_readability || 0)) / 4 * 10);
     result.score = avg;
-    result.passed = avg >= 60 && (result.human_tone || 0) >= 5 && (result.brief_compliance || 0) >= 4 && (result.completeness || 0) >= 4;
+    result.passed = avg >= 65
+      && (result.human_tone || 0) >= 5
+      && (result.brief_compliance || 0) >= 4
+      && (result.completeness || 0) >= 4
+      && (result.natural_readability || 0) >= 5; // New gate: spam check must pass
 
-    console.log(`   📊 Human Tone: ${result.human_tone}/10 | Brief: ${result.brief_compliance}/10 | Complete: ${result.completeness}/10`);
+    console.log(`   📊 Human Tone: ${result.human_tone}/10 | Brief: ${result.brief_compliance}/10 | Complete: ${result.completeness}/10 | Natural: ${result.natural_readability}/10`);
     console.log(`   📊 Overall: ${result.score}/100 ${result.passed ? '✅ PASSED' : '❌ FAILED'}`);
     if (result.issues?.length > 0) console.log(`   🔍 Issues: ${result.issues.join('; ')}`);
     console.log(`   💬 ${result.summary}`);
@@ -887,10 +1063,19 @@ async function engine() {
   // Sync sitemap at start
   try { regenerateFullSitemap(); } catch {}
 
+  // Check weekly velocity (2x/week limit)
+  const weeklyCount = getWeeklyPublishCount();
+  console.log(`📅 Published this week: ${weeklyCount}/2 (Target: 2x/week)`);
+
+  if (weeklyCount >= 2 && !process.env.FORCE_PUBLISH) {
+    console.log(`🛑 VELOCITY GOVERNOR: Weekly limit reached. Skipping to prevent SpamBrain detection.`);
+    process.exit(0);
+  }
+
   // Check daily limit
   const todayCount = getTodayPublishCount();
   console.log(`📰 Published today: ${todayCount}/1`);
-  if (todayCount >= 1) {
+  if (todayCount >= 1 && !process.env.FORCE_PUBLISH) {
     console.log('🧠 Daily limit reached. Signing off. ✅');
     process.exit(0);
   }
@@ -952,25 +1137,45 @@ async function engine() {
   }
 
   // ══════════════════════════════════════
-  // Stage 3: WRITER
+  // Stage 3 & 4: WRITER + QA FEEDBACK LOOP
   // ══════════════════════════════════════
   let draft;
-  try { draft = await writerAgent(brief, knowledgeCtx); }
-  catch (e) {
-    console.error('❌ Writer failed:', e.message);
-    writeResearchLog(research, brief, null);
-    process.exit(1);
-  }
-
-  // ══════════════════════════════════════
-  // Stage 4: QA INSPECTOR (Pass or Skip — No Loop)
-  // ══════════════════════════════════════
   let qa;
-  try { qa = await qaAgent(draft, brief); }
-  catch (e) {
-    console.error('⚠️ QA failed. Skipping this article to be safe.');
-    writeResearchLog(research, brief, null);
-    process.exit(0);
+  let maxRetries = 2; // Up to 2 rewrites if QA fails
+  let rewriteFeedback = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try { 
+      draft = await writerAgent(brief, knowledgeCtx, rewriteFeedback); 
+    } catch (e) {
+      console.error(`❌ Writer failed on attempt ${attempt}:`, e.message);
+      if (attempt === maxRetries) {
+        writeResearchLog(research, brief, null);
+        process.exit(1);
+      }
+      continue;
+    }
+
+    try { 
+      qa = await qaAgent(draft, brief); 
+    } catch (e) {
+      console.error(`⚠️ QA Agent failed unexpectedly on attempt ${attempt}.`);
+      if (attempt === maxRetries) {
+        writeResearchLog(research, brief, null);
+        process.exit(0);
+      }
+      continue;
+    }
+
+    if (qa.passed) {
+      break; // It passed QA! Exit the rewrite loop.
+    } else {
+      console.log(`\n⚠️ QA REJECTED ARTICLE (Attempt ${attempt}/${maxRetries}). Sending back to Writer...`);
+      const issues = (qa.issues || []).join('\\n- ');
+      rewriteFeedback = `PREVIOUS DRAFT REJECTED.\\nYour previous draft scored ${qa.score}/100 and failed QA for the following reasons:\\n- ${issues}\\n\\nYou MUST fix these exact issues in this rewrite. DO NOT repeat the same mistakes. Keep the parts that were good, but strictly fix the problems noted above. Ensure it sounds like a human engineer, not AI.`;
+      
+      // If we've reached max retries and it still fails, the loop ends and it's marked as failed.
+    }
   }
 
   writeResearchLog(research, brief, qa);
@@ -984,6 +1189,9 @@ async function engine() {
     // Inject schema
     draft.content = injectSchemaMarkup(draft);
     draft.keyword = brief.keyword;
+
+    // Hardened Internal Linking (Forward)
+    draft.content = spiderForwardLink(draft.content, brief, blogDataFile);
 
     const safe = s => (s || '').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\${/g, '\\${');
     const newPost = `
@@ -1004,15 +1212,16 @@ async function engine() {
       `export const blogPosts: BlogPost[] = [${newPost}`
     );
 
-    // Spider: reverse link injection
-    const spiderRes = spiderReverseLink(draft.slug, draft.title, brief.keyword, updated);
-    updated = spiderRes.updated;
-
-    fs.writeFileSync(BLOG_DATA_PATH, updated);
-    incrementPublishCount();
-    regenerateFullSitemap();
-    saveArticleToRag(draft, brief, research, qa);
-    updateClusterMap(brief, draft);
+    if (process.env.DRY_RUN === 'true') {
+      console.log(`\n🧪 DRY_RUN: Post generated but NOT saved to disk.`);
+      console.log(`📄 PREVIEW NEW POST:\n${newPost}`);
+    } else {
+      fs.writeFileSync(BLOG_DATA_PATH, updated);
+      incrementPublishCount();
+      regenerateFullSitemap();
+      saveArticleToRag(draft, brief, research, qa);
+      updateClusterMap(brief, draft);
+    }
 
     console.log('\n╔═══════════════════════════════════════════════════════════╗');
     console.log('║  📋 V8 RUN REPORT — ✅ PUBLISHED                        ║');

@@ -1,0 +1,46 @@
+name: Autonomous Technical SEO & Performance Loop
+
+on:
+  schedule:
+    # Runs every Monday at 05:30 UTC (11:00 AM IST) - Weekly technical check
+    - cron: '30 5 * * 1'
+  workflow_dispatch: # Allows manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  run-technical-seo:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Technical SEO Agent
+        env:
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS || secrets.GEMINI_API_KEY }}
+        run: node .github/scripts/technical-seo-agent.mjs
+
+      - name: Commit and Push Technical Fixes
+        run: |
+          git config --global user.name "FouriqTech Tech Bot"
+          git config --global user.email "tech-ai@fouriqtech.com"
+          
+          git add index.html src/components/SEO.tsx .github/technical_seo_log.json || true
+          
+          if git diff --staged --quiet; then
+            echo "No technical changes today."
+            exit 0
+          fi
+          
+          git commit -m "Auto-fix: Technical SEO & Performance audit"
+          git push origin main

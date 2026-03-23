@@ -1,0 +1,20 @@
+{
+  "last_run": "2026-03-20T10:19:25.654Z",
+  "applied_fixes": [
+    {
+      "issue": "Missing canonical tags on dynamic route entries causing potential duplicate content indexing.",
+      "action": "Implement dynamic canonical link generation based on current window location path.",
+      "target_file": "src/components/SEO.tsx"
+    },
+    {
+      "issue": "Critical LCP delay due to unoptimized main hero image loading.",
+      "action": "Add 'fetchpriority=\"high\"' and remove 'lazy' attribute from the primary hero image component.",
+      "target_file": "index.html"
+    },
+    {
+      "issue": "Missing structured data (JSON-LD) for organization schema.",
+      "action": "Inject Organization Schema markup into the head section to improve search result rich snippet eligibility.",
+      "target_file": "src/components/SEO.tsx"
+    }
+  ]
+}

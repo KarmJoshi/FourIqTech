@@ -12,6 +12,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CustomSaasPlatformDevelopment from "./pages/services/CustomSaasPlatformDevelopment";
 import LegacyWebApplicationModernization from "./pages/services/LegacyWebApplicationModernization";
+import EnterpriseHeadlessCommerceDevelopment from "./pages/services/EnterpriseHeadlessCommerceDevelopment";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -28,19 +29,20 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="/services/custom-saas-platform-development" element={<CustomSaasPlatformDevelopment />} />
-            <Route path="/services/legacy-web-application-modernization" element={<LegacyWebApplicationModernization />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </SmoothScroll>
-    </TooltipProvider>
-  </QueryClientProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/services/custom-saas-platform-development" element={<CustomSaasPlatformDevelopment />} />
+              <Route path="/services/legacy-web-application-modernization" element={<LegacyWebApplicationModernization />} />
+              <Route path="/services/enterprise-headless-commerce-development" element={<EnterpriseHeadlessCommerceDevelopment />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </SmoothScroll>
+      </TooltipProvider>
+    </QueryClientProvider>
   </HelmetProvider>
 );
 

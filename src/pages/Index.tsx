@@ -11,6 +11,7 @@ import ProcessSection from '@/components/ProcessSection';
 import TechStack from '@/components/TechStack';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
+import FeaturedInsights from '@/components/FeaturedInsights';
 
 const Index = () => {
   const [navVisible, setNavVisible] = useState(false);
@@ -37,6 +38,7 @@ const Index = () => {
       />
       <Navbar isVisible={navVisible} />
       <HeroSection onComplete={() => setNavVisible(true)} />
+      <FeaturedInsights />
       <TechStack />
       <ServicesSection />
       <ProcessSection />

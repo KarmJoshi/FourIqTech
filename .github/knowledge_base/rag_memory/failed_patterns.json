@@ -21,5 +21,52 @@
       "Missing a formal conclusion or call-to-action."
     ],
     "date": "2026-03-21"
+  },
+  {
+    "keyword": "nextjs rbac enterprise architecture",
+    "qa_score": 68,
+    "human_tone": 8,
+    "issues": [
+      "The article is physically incomplete and cuts off mid-sentence at the end ('Next.js R')",
+      "Missing the required FAQ section specified in the completeness criteria",
+      "Word count (1296) is at the extreme low end of the acceptable 30% margin for a 1750-word target"
+    ],
+    "date": "2026-03-23"
+  },
+  {
+    "keyword": "SaaS multi-tenant database strategy",
+    "qa_score": 70,
+    "human_tone": 9,
+    "issues": [
+      "Article is physically incomplete; it terminates abruptly in the middle of a list.",
+      "Missing the mandatory FAQ section required for completeness.",
+      "Keyword 'SaaS multi-tenant database strategy' appears 6 times, triggering the over-optimization penalty (limit 5).",
+      "Word count is significantly under the 1650 target."
+    ],
+    "date": "2026-03-23"
+  },
+  {
+    "keyword": "Next.js App Router performance optimization",
+    "qa_score": 68,
+    "human_tone": 9,
+    "issues": [
+      "Article is truncated mid-sentence in the Trade-off Analysis section.",
+      "Missing mandatory FAQ section required for completeness.",
+      "Significant word count deficit: approximately 870 words provided against a 1650-word target."
+    ],
+    "date": "2026-03-23"
+  },
+  {
+    "keyword": "Next.js multi-zone architecture",
+    "qa_score": 65,
+    "human_tone": 9,
+    "issues": [
+      "The article is structurally incomplete, cutting off mid-sentence in Section 8.",
+      "Missing the mandatory FAQ section required by the criteria.",
+      "Missing a final conclusion or call-to-action (CTA).",
+      "Keyword 'Next.js multi-zone architecture' appears 6 times (per metadata), exceeding the 5-mention threshold.",
+      "Brand name 'FouriqTech' appears 5 times (headers, text, code), exceeding the strict limit of 2."
+    ],
+    "date": "2026-03-23"
   }
 ]

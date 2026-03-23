@@ -1,30 +1,69 @@
 {
-  "generated_at": "2026-03-18T05:17:56.110Z",
+  "generated_at": "2026-03-23T04:31:40.747Z",
   "date_range": {
-    "start": "2026-02-15",
-    "end": "2026-03-15"
+    "start": "2026-02-20",
+    "end": "2026-03-20"
   },
   "summary": {
     "total_pages_tracked": 3,
-    "total_clicks": 10,
-    "total_impressions": 44,
-    "avg_position": 2.6,
-    "avg_ctr": 22.73,
+    "total_clicks": 22,
+    "total_impressions": 110,
+    "avg_position": 3.4,
+    "avg_ctr": 20,
     "pages_on_page_1": 3,
-    "total_queries": 0
+    "total_queries": 1
   },
   "categories": {
     "winners": [],
     "rising_stars": [],
     "hidden_gems": [],
     "underperformers": [],
-    "unexpected_winners": []
+    "unexpected_winners": [
+      {
+        "page": "https://www.fouriqtech.com/blog",
+        "clicks": 15,
+        "impressions": 64,
+        "ctr": 23.44,
+        "position": 4.2,
+        "slug": "/blog",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "unexpected_winner",
+        "action": "Create dedicated pillar article for this keyword. Backlink priority: HIGH."
+      }
+    ]
   },
-  "opportunity_keywords": [],
-  "action_items": [],
+  "opportunity_keywords": [
+    {
+      "query": "fouriq",
+      "clicks": 3,
+      "impressions": 23,
+      "ctr": 13.04,
+      "position": 8,
+      "opportunity": "HIGH",
+      "action": "Build 2-3 backlinks + 1 supporting article to push to page 1"
+    }
+  ],
+  "action_items": [
+    {
+      "priority": "P1",
+      "type": "create_pillar",
+      "description": "Create dedicated pillar article for unexpected ranking \"/blog\" (64 impressions).",
+      "target": "https://www.fouriqtech.com/blog"
+    },
+    {
+      "priority": "P0",
+      "type": "boost_keyword",
+      "description": "Keyword \"fouriq\" at position 8 — Build 2-3 backlinks + 1 supporting article to push to page 1",
+      "target": "fouriq"
+    }
+  ],
   "for_auto_poster": {
     "rising_star_slugs": [],
-    "boost_keywords": [],
+    "boost_keywords": [
+      "fouriq"
+    ],
     "avoid_topics": [],
     "top_performing_topics": []
   }

@@ -792,7 +792,505 @@
       "cluster": "Enterprise React Design Systems & UI/UX",
       "added_date": "2026-03-23",
       "status": "queued"
+    },
+    {
+      "title": "tenant isolation",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Vercel Edge Middleware",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Prisma schema-per-tenant",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "RBAC for SaaS",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Next.js 14 App Router",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Custom domain routing",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Multi-region deployment",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "PostgreSQL row-level security",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "API Gateway",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Microservices",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Data Orchestration",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Route Handlers",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Token Exchange",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Server-side Data Fetching",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Edge Runtime",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Enterprise SaaS",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Authentication Middleware",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-20",
+      "status": "queued"
+    },
+    {
+      "title": "Row-Level Security (RLS)",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Siloed Architecture",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Logical Data Isolation",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Next.js Middleware Context",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Tenant Provisioning",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Scalable SaaS Infrastructure",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Data Residency Compliance",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Cross-tenant Data Leakage",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "database sharding",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "RLS",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "connection pooling",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Prisma Accelerate",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "horizontal scaling",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "JSON Web Tokens (JWT)",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Auth.js",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "CASL React integration",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Row Level Security (RLS)",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Identity Providers (IdP)",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Permission Inheritance",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Server Actions Security",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "edge runtime constraints",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "dynamic routing latency",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "tenant metadata caching",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "custom domain mapping",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "nextjs rewrite vs redirect performance",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "cold start mitigation",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Vercel edge config integration",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "distributed data fetch",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Foreign Key constraints across shards",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Database-per-tenant migration scripts",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Connection pooling exhaustion",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Next.js dynamic database routing",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Horizontal pod autoscaling for SaaS",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Tenant lifecycle management",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Data residency compliance architecture",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "React Server Components (RSC)",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Server Actions",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Streaming with Suspense",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Selective Hydration",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Router Cache persistence",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Edge Runtime optimization",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Full Route Cache",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Next.js fetch cache tag revalidation",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "CNAME record management",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Edge Runtime execution limits",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "SSL termination proxy",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Vercel Platforms Starter Kit",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Wildcard DNS routing",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Let's Encrypt automation",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Middleware matcher optimization",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Reverse Proxy",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Vercel Rewrites",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Shared Authentication",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Incremental Adoption",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Module Federation",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Micro-frontends",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Edge Routing",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "Next.js Config rewrites",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "finite state machines",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "reactive state patterns",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "client-side data caching",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "re-render optimization",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "prop drilling mitigation",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "immutable data structures",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "compound components",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
+    },
+    {
+      "title": "atomic state management",
+      "cluster": "Enterprise SaaS Architecture",
+      "added_date": "2026-03-23",
+      "status": "queued"
     }
   ],
-  "last_updated": "2026-03-23T05:52:44.302Z"
+  "last_updated": "2026-03-23T12:26:16.934Z"
 }

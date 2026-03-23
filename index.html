@@ -37,7 +37,10 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- Ensure the hero image component within /src/main.tsx or downstream components -->
+    <!-- uses fetchpriority="high" and removes loading="lazy" for LCP optimization -->
+  </div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
