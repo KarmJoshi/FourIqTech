@@ -13,6 +13,7 @@ import BlogPost from "./pages/BlogPost";
 import CustomSaasPlatformDevelopment from "./pages/services/CustomSaasPlatformDevelopment";
 import LegacyWebApplicationModernization from "./pages/services/LegacyWebApplicationModernization";
 import EnterpriseHeadlessCommerceDevelopment from "./pages/services/EnterpriseHeadlessCommerceDevelopment";
+import AgentManager from "./pages/AgentManager";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/services/custom-saas-platform-development" element={<CustomSaasPlatformDevelopment />} />
               <Route path="/services/legacy-web-application-modernization" element={<LegacyWebApplicationModernization />} />
               <Route path="/services/enterprise-headless-commerce-development" element={<EnterpriseHeadlessCommerceDevelopment />} />
+              <Route path="/agent-manager" element={<AgentManager />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

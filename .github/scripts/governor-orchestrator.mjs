@@ -35,16 +35,17 @@ async function getNextStrategy() {
         Your goal is to scale revenue by picking the best "normal" markets to target.
         
         RULES:
-        1. Niche must be a high-ticket "Small Business" (e.g., Luxury Hair Salons, Specialist Dental Clinics, Boutique Law Firms, Private Medical Clinics).
-        2. City must be a major global hub (London, NYC, Sydney, Toronto, Dubai).
-        3. Strategy: Focus on niches where businesses often have slow, outdated WordPress sites.
+        1. NICHE: Strictly focus on "Luxury Hair & Beauty Salons" (Tier-1 establishments).
+        2. CITIES: Target Global High-Net-Worth hubs (London, NYC, Dubai, Sydney, Toronto, Paris, Monaco).
+        3. TARGET: Salon Owners and High-End Brand Managers.
+        4. STRATEGY: Focus on booking high-ticket discovery calls to show how a bespoke React/GSAP digital experience will capture elite global clientele from their local competitors.
         
         Output a JSON object:
         {
-            "niche": "e.g., Luxury Hair Salon",
-            "city": "e.g., London",
-            "search_query": "e.g., luxury hair salon London with website",
-            "reasoning": "A 1-sentence explanation focusing on why this niche needs a performance upgrade."
+            "niche": "Luxury Hair & Beauty Salon",
+            "city": "e.g., Dubai",
+            "search_query": "exclusive high end hair beauty salon Dubai Marina",
+            "reasoning": "Explain why this tier-1 salon in this specific luxury hub needs a technical surge to outperform global competitors and capture high-spending clients."
         }
     `;
 
@@ -53,21 +54,22 @@ async function getNextStrategy() {
         const model = aiClient.getGenerativeModel({ model: 'gemini-1.5-flash-lite' });
         const result = await model.generateContent(prompt);
         const text = result.response.text();
-        return JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        return JSON.parse(jsonMatch[0]);
     } catch (err) {
         console.error('❌ Strategy Error:', err.message);
         return {
-            niche: "Hair Salon",
+            niche: "Shop Owner",
             city: "London",
-            search_query: "luxury hair salon high end London",
-            reasoning: "Fallback to London Salons due to API error."
+            search_query: "independent boutique shop London",
+            reasoning: "Fallback to local shop targeting."
         };
     }
 }
 
 async function orchestrate() {
     console.log('╔═══════════════════════════════════════════════════════════╗');
-    console.log('║  🧠 FOURIQTECH GOVERNOR — AUTONOMOUS BRAIN              ║');
+    console.log('║  🧠 FOURIQTECH GOVERNOR — AUTONOMOUS BRAIN (V3)         ║');
     console.log('╚═══════════════════════════════════════════════════════════╝');
 
     const strategy = await getNextStrategy();
@@ -79,22 +81,32 @@ async function orchestrate() {
     journal.push({ date: new Date().toISOString(), ...strategy });
     fs.writeFileSync(JOURNAL_PATH, JSON.stringify(journal, null, 2));
 
-    // Decision Logic: User requested focus on Lead Generation
     const leadsCount = fs.existsSync(LEADS_CSV_PATH) ? fs.readFileSync(LEADS_CSV_PATH, 'utf8').split('\n').filter(l => l.trim()).length - 1 : 0;
-
     console.log(`📊 DATABASE STATUS: ${leadsCount} leads found.`);
 
-    // Prioritize Hunting (User: "i want an leads")
-    if (leadsCount < 50) { 
-        console.log(`\n🏹 ACTION: Database small (${leadsCount}/50). Triggering Lead Hunter for ${strategy.niche}...`);
+    // 🏹 ACTION 1: HUNTING (Always look for new leads if below threshold)
+    if (leadsCount < 100) { 
+        console.log(`\n🏹 ACTION: Triggering Lead Hunter for ${strategy.niche}...`);
         try {
             execSync(`NODE_OPTIONS="--no-warnings" node .github/scripts/lead-hunter.mjs --query "${strategy.search_query}" --city "${strategy.city}"`, { stdio: 'inherit' });
         } catch (e) {
             console.error('❌ Lead Hunter failed.');
         }
-    } else {
-        console.log(`\n💤 ACTION: Database sufficient (${leadsCount} leads). Skipping hunt for domain safety.`);
-        // Note: Outreach Agent is disabled per user request: "i don't want to work on the email outreaching"
+    }
+
+    // 🚀 ACTION 2: OUTREACH (Re-enabled! Autonomous dispatch)
+    if (leadsCount > 0) {
+        const hour = new Date().getHours();
+        if (hour >= 9 && hour <= 18) { // 9 AM - 6 PM
+            console.log(`\n🚀 ACTION: Triggering Rainmaker Outreach Agent...`);
+            try {
+                execSync(`NODE_OPTIONS="--no-warnings" node .github/scripts/seo-outreach-agent.mjs`, { stdio: 'inherit' });
+            } catch (e) {
+                console.error('❌ Outreach Agent failed.');
+            }
+        } else {
+            console.log(`\n💤 ACTION: Professional window closed (${hour}:00). Rainmaker sleeping.`);
+        }
     }
 
     console.log('\n🧠 GOVERNOR: Cycle complete. ✅');

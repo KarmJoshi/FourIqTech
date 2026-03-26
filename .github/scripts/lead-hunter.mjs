@@ -15,13 +15,31 @@ import { search, SafeSearchType } from 'duck-duck-scrape';
 // ═══════════════════════════════════════════════════════════════════════
 
 const LEADS_CSV_PATH = path.join(process.cwd(), '.github/leads_database.csv');
+const OUTREACH_LOG_PATH = path.join(process.cwd(), '.github/outreach_log.json');
 
-// --- Helper: Read Existing Leads to avoid duplicates ---
-function getExistingEmails() {
-  if (!fs.existsSync(LEADS_CSV_PATH)) return new Set();
-  const content = fs.readFileSync(LEADS_CSV_PATH, 'utf-8');
-  const emails = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
-  return new Set(emails.map(e => e.toLowerCase()));
+// --- Helper: Get Existing Data to avoid duplicates ---
+function getExistingMetadata() {
+  const metadata = { emails: new Set(), domains: new Set() };
+  
+  if (fs.existsSync(LEADS_CSV_PATH)) {
+    const content = fs.readFileSync(LEADS_CSV_PATH, 'utf-8').split('\n');
+    content.forEach(line => {
+      const cols = line.split(',');
+      if (cols.length >= 3) {
+        if (cols[2]) metadata.emails.add(cols[2].toLowerCase().trim());
+        if (cols[1]) try { metadata.domains.add(new URL(cols[1]).hostname.replace('www.', '')); } catch(e) {}
+      }
+    });
+  }
+
+  if (fs.existsSync(OUTREACH_LOG_PATH)) {
+    const log = JSON.parse(fs.readFileSync(OUTREACH_LOG_PATH, 'utf-8'));
+    log.forEach(entry => {
+      if (entry.email) metadata.emails.add(entry.email.toLowerCase().trim());
+    });
+  }
+
+  return metadata;
 }
 
 // --- Helper: Detect if a site is running WordPress ---
@@ -43,9 +61,12 @@ function detectWordPress(html) {
 async function findLeadDetails(url) {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); 
+    const timeoutId = setTimeout(() => controller.abort(), 10000); 
 
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, { 
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+    });
     clearTimeout(timeoutId);
     
     if (!response.ok) return { email: null, cms: 'Unknown' };
@@ -60,7 +81,7 @@ async function findLeadDetails(url) {
     if (matches) {
       const validEmails = matches.filter(e => {
         const lower = e.toLowerCase();
-        return !lower.includes('.png') && !lower.includes('.jpg') && !lower.includes('sentry');
+        return !lower.includes('.png') && !lower.includes('.jpg') && !lower.includes('sentry') && !lower.includes('email@address.com');
       });
       if (validEmails.length > 0) email = validEmails[0].toLowerCase();
     }
@@ -73,37 +94,50 @@ async function findLeadDetails(url) {
 
 // --- Main Hunter Logic ---
 async function huntLeads(query, city) {
-  console.log(`\n🕵️  HUNTER: Initiating deep-scan for "${query}"...`);
+  // Rotate search platforms by modifying query
+  const platforms = ['', 'google maps ', 'yelp ', 'google business '];
+  const platformPrefix = platforms[Math.floor(Math.random() * platforms.length)];
+  const fullQuery = `${platformPrefix}${query}`;
+
+  console.log(`\n🕵️  HUNTER: Initiating deep-scan for "${fullQuery}" in ${city}...`);
   
   try {
-    const searchResult = await search(query, { safeSearch: SafeSearchType.OFF });
+    const searchResult = await search(fullQuery, { safeSearch: SafeSearchType.OFF });
     const results = searchResult.results || [];
     
     if (!results || results.length === 0) {
-      console.log(`   ❌ No results found for ${query}`);
+      console.log(`   ❌ No results found for ${fullQuery}`);
       return;
     }
 
-    console.log(`   🔍 Found ${results.length} organic sites. Beginning crawl...`);
+    console.log(`   🔍 Found ${results.length} organic sites. Checking for duplicates...`);
     
-    const existingEmails = getExistingEmails();
+    const metadata = getExistingMetadata();
     const viableLeads = [];
 
-    // Process top 5 results
-    for (let i = 0; i < Math.min(6, results.length); i++) {
+    // Process top 8 results
+    for (let i = 0; i < Math.min(10, results.length); i++) {
         const lead = results[i];
         
-        // Skip directory sites like Yelp, Tripadvisor, Facebook
-        if (lead.link.includes('yelp.') || lead.link.includes('tripadvisor.') || lead.link.includes('facebook.') || lead.link.includes('instagram.')) {
+        // Skip directory sites
+        const skipDomains = ['yelp.', 'tripadvisor.', 'facebook.', 'instagram.', 'clutch.co', 'upcity.com'];
+        if (skipDomains.some(d => lead.link.includes(d))) continue;
+
+        // Domain-based Deduplication
+        let domain = "";
+        try { domain = new URL(lead.link).hostname.replace('www.', ''); } catch(e) { continue; }
+        
+        if (metadata.domains.has(domain)) {
+            console.log(`      ⏩ Skipped: ${domain} (Domain already present)`);
             continue;
         }
 
         console.log(`   🌐 Crawling: ${lead.title.substring(0, 30)}...`);
         
-        // Find a competitor (the guy right below him on Google)
+        // Identify Competitor
         let competitorUrl = "N/A";
         for (let j = i + 1; j < results.length; j++) {
-            if (!results[j].link.includes('yelp.') && !results[j].link.includes('facebook.')) {
+            if (!skipDomains.some(d => results[j].link.includes(d))) {
                 competitorUrl = results[j].link;
                 break;
             }
@@ -112,19 +146,20 @@ async function huntLeads(query, city) {
         const { email, cms } = await findLeadDetails(lead.link);
         
         if (email) {
-            if (existingEmails.has(email)) {
-                console.log(`      ⚠️ Skipped: ${email} (Already in database)`);
+            if (metadata.emails.has(email)) {
+                console.log(`      ⚠️ Skipped: ${email} (Email already in database/log)`);
             } else {
                 console.log(`      ✅ Found Lead: ${email} [CMS: ${cms}]`);
                 viableLeads.push({
-                    company: lead.title.replace(/,/g, ''),
+                    company: lead.title.replace(/,/g, '').substring(0, 50),
                     url: lead.link,
                     email: email,
                     cms: cms,
                     competitor: competitorUrl,
                     city: city
                 });
-                existingEmails.add(email);
+                metadata.emails.add(email);
+                metadata.domains.add(domain);
             }
         } else {
             console.log(`      ❌ No email found on site. CMS: ${cms}`);
@@ -134,8 +169,7 @@ async function huntLeads(query, city) {
     // Save to CSV
     if (viableLeads.length > 0) {
         let csvContent = "";
-        
-        if (!fs.existsSync(LEADS_CSV_PATH)) {
+        if (!fs.existsSync(LEADS_CSV_PATH) || fs.readFileSync(LEADS_CSV_PATH).length === 0) {
             csvContent += "Company Name,Website,Email,CMS,City,Competitor URL\n";
         }
         
@@ -144,7 +178,7 @@ async function huntLeads(query, city) {
         });
         
         fs.appendFileSync(LEADS_CSV_PATH, csvContent);
-        console.log(`\n   💾 Successfully saved ${viableLeads.length} new leads to leads_database.csv!`);
+        console.log(`\n   💾 Successfully saved ${viableLeads.length} new unique leads!`);
     } else {
         console.log(`\n   🤷 No new viable leads found in this batch.`);
     }
@@ -159,10 +193,9 @@ async function huntLeads(query, city) {
 // ═══════════════════════════════════════════════════════════════════════
 async function main() {
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  🏹 FOURIQTECH LEAD HUNTER AGENT                        ║');
+  console.log('║  🏹 FOURIQTECH LEAD HUNTER AGENT — "The Radar V2"         ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   
-  // Parse CLI args (Governor Agent support)
   const args = process.argv.slice(2);
   let targetQuery = "";
   let targetCity = "";
@@ -176,14 +209,15 @@ async function main() {
     console.log(`🤖 GOVERNOR SIGNAL: Hunting specifically for "${targetQuery}"...`);
     await huntLeads(targetQuery, targetCity);
   } else {
-    // The Matrix of default targets
-    // Small Business Target Matrix
+    // Target Matrix for Small & Big Businesses (Shops/Clinics/Firms)
     const queries = [
-      { q: "high end physiotherapy clinic London", city: "London" },
-      { q: "luxury hair salon New York", city: "New York" },
-      { q: "boutique dental practice Sydney", city: "Sydney" },
-      { q: "premium real estate agency Dubai", city: "Dubai" },
-      { q: "successful law firm Toronto", city: "Toronto" }
+      { q: "independent boutique shop London", city: "London" },
+      { q: "local hardware store NYC", city: "New York" },
+      { q: "private dental clinic Sydney", city: "Sydney" },
+      { q: "luxury hair salon Dubai", city: "Dubai" },
+      { q: "family law firm Toronto", city: "Toronto" },
+      { q: "successful local plumbing business Chicago", city: "Chicago" },
+      { q: "high-end auto repair shop Los Angeles", city: "Los Angeles" }
     ];
     const target = queries[Math.floor(Math.random() * queries.length)];
     await huntLeads(target.q, target.city);
