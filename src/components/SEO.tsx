@@ -21,8 +21,9 @@ export default function SEO({
   const location = useLocation();
   const baseUrl = 'https://fouriqtech.com';
   
-  // Determine canonical URL: prefer explicit prop, otherwise fallback to current path
-  const canonicalUrl = url || `${baseUrl}${location.pathname}${location.search}`;
+  // Determine canonical URL: ensure no trailing slash issues for SEO consistency
+  const path = location.pathname === '/' ? '' : location.pathname;
+  const canonicalUrl = url || `${baseUrl}${path}`;
 
   // Base site-wide Organization schema
   const organizationSchema = {
@@ -63,8 +64,12 @@ export default function SEO({
 
   return (
     <Helmet>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>{title}</title>
       <meta name="description" content={description} />
+      
+      {/* Canonical Link - Essential for SEO duplicate content prevention */}
+      <link rel="canonical" href={canonicalUrl} />
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={article ? 'article' : 'website'} />
@@ -79,9 +84,6 @@ export default function SEO({
       <meta property="twitter:title" content={title} />
       <meta property="twitter:description" content={description} />
       <meta property="twitter:image" content={image} />
-
-      {/* Canonical Link */}
-      <link rel="canonical" href={canonicalUrl} />
 
       {/* Dynamic JSON-LD Schema */}
       <script type="application/ld+json">
