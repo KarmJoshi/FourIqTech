@@ -1,0 +1,40 @@
+name: 👔 FouriqTech AI Agency Cycle
+
+on:
+  schedule:
+    - cron: '0 4 * * *' # Daily at 09:30 AM IST (04:00 AM UTC)
+  workflow_dispatch:      # Manual trigger from UI
+
+jobs:
+  agency-cycle:
+    name: "Autonomous Strategic Cycle"
+    runs-on: ubuntu-latest
+    
+    # Ensure the token has write permissions for auto-commit
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🧠 Execute Strategic Cycle
+        run: node .github/scripts/agency-director.mjs
+        env:
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          GEMINI_PRO_API_KEY: ${{ secrets.GEMINI_PRO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTIONS: 'true'
+          # Puppeteer configuration for CI
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
