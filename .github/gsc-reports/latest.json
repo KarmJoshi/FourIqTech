@@ -1,31 +1,189 @@
 {
-  "generated_at": "2026-03-23T04:31:40.747Z",
+  "generated_at": "2026-03-30T11:36:45.601Z",
   "date_range": {
-    "start": "2026-02-20",
-    "end": "2026-03-20"
+    "start": "2026-02-27",
+    "end": "2026-03-27"
   },
   "summary": {
-    "total_pages_tracked": 3,
-    "total_clicks": 22,
-    "total_impressions": 110,
-    "avg_position": 3.4,
-    "avg_ctr": 20,
-    "pages_on_page_1": 3,
-    "total_queries": 1
+    "total_pages_tracked": 26,
+    "total_clicks": 50,
+    "total_impressions": 454,
+    "avg_position": 8.2,
+    "avg_ctr": 11.01,
+    "pages_on_page_1": 21,
+    "total_queries": 6
   },
   "categories": {
     "winners": [],
-    "rising_stars": [],
+    "rising_stars": [
+      {
+        "page": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+        "clicks": 0,
+        "impressions": 21,
+        "ctr": 0,
+        "position": 8,
+        "slug": "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+        "clicks": 1,
+        "impressions": 4,
+        "ctr": 25,
+        "position": 8.3,
+        "slug": "blog/enterprise-react-design-system-implementation",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+        "clicks": 0,
+        "impressions": 3,
+        "ctr": 0,
+        "position": 8.3,
+        "slug": "blog/fix-react-memory-leaks-enterprise-saas",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices",
+        "clicks": 0,
+        "impressions": 21,
+        "ctr": 0,
+        "position": 8.5,
+        "slug": "blog/nextjs-bff-architecture-enterprise-microservices",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/blog/how-to-choose-web-design-company-Global",
+        "clicks": 6,
+        "impressions": 24,
+        "ctr": 25,
+        "position": 8.6,
+        "slug": "blog/how-to-choose-web-design-company-Global",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+        "clicks": 0,
+        "impressions": 5,
+        "ctr": 0,
+        "position": 8.8,
+        "slug": "blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+        "clicks": 0,
+        "impressions": 62,
+        "ctr": 0,
+        "position": 10,
+        "slug": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "unexpected_winner",
+        "action": "Create dedicated pillar article for this keyword. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/services/legacy-web-application-modernization",
+        "clicks": 1,
+        "impressions": 2,
+        "ctr": 50,
+        "position": 12.5,
+        "slug": "services/legacy-web-application-modernization",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": true,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-custom-domains-enterprise-guide",
+        "clicks": 0,
+        "impressions": 32,
+        "ctr": 0,
+        "position": 12.9,
+        "slug": "blog/nextjs-multi-tenant-custom-domains-enterprise-guide",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/services/enterprise-headless-commerce-development",
+        "clicks": 2,
+        "impressions": 6,
+        "ctr": 33.33,
+        "position": 14,
+        "slug": "services/enterprise-headless-commerce-development",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": true,
+        "category": "rising_star",
+        "action": "Create 2-3 supporting articles with internal links. Backlink priority: HIGH."
+      }
+    ],
     "hidden_gems": [],
-    "underperformers": [],
+    "underperformers": [
+      {
+        "page": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+        "clicks": 0,
+        "impressions": 3,
+        "ctr": 0,
+        "position": 34,
+        "slug": "blog/why-Global-businesses-need-mobile-first-websites",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "underperformer",
+        "action": "Rewrite with new angle OR consolidate into better post. No backlinks."
+      }
+    ],
     "unexpected_winners": [
       {
         "page": "https://www.fouriqtech.com/blog",
-        "clicks": 15,
-        "impressions": 64,
-        "ctr": 23.44,
-        "position": 4.2,
-        "slug": "/blog",
+        "clicks": 19,
+        "impressions": 89,
+        "ctr": 21.35,
+        "position": 3.6,
+        "slug": "blog",
+        "positionDelta": 0,
+        "clicksDeltaPct": 0,
+        "isTargeted": false,
+        "category": "unexpected_winner",
+        "action": "Create dedicated pillar article for this keyword. Backlink priority: HIGH."
+      },
+      {
+        "page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+        "clicks": 0,
+        "impressions": 62,
+        "ctr": 0,
+        "position": 10,
+        "slug": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
         "positionDelta": 0,
         "clicksDeltaPct": 0,
         "isTargeted": false,
@@ -47,24 +205,79 @@
   ],
   "action_items": [
     {
+      "priority": "P0",
+      "type": "supporting_content",
+      "description": "Create 2 supporting articles for \"blog/nextjs-multi-tenant-routing-performance-edge-middleware\" (position 8). Link back to boost to page 1.",
+      "target": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware"
+    },
+    {
+      "priority": "P0",
+      "type": "supporting_content",
+      "description": "Create 2 supporting articles for \"blog/enterprise-react-design-system-implementation\" (position 8.3). Link back to boost to page 1.",
+      "target": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation"
+    },
+    {
+      "priority": "P0",
+      "type": "supporting_content",
+      "description": "Create 2 supporting articles for \"blog/fix-react-memory-leaks-enterprise-saas\" (position 8.3). Link back to boost to page 1.",
+      "target": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas"
+    },
+    {
+      "priority": "P0",
+      "type": "supporting_content",
+      "description": "Create 2 supporting articles for \"blog/nextjs-bff-architecture-enterprise-microservices\" (position 8.5). Link back to boost to page 1.",
+      "target": "https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices"
+    },
+    {
+      "priority": "P0",
+      "type": "supporting_content",
+      "description": "Create 2 supporting articles for \"blog/how-to-choose-web-design-company-Global\" (position 8.6). Link back to boost to page 1.",
+      "target": "https://www.fouriqtech.com/blog/how-to-choose-web-design-company-Global"
+    },
+    {
       "priority": "P1",
       "type": "create_pillar",
-      "description": "Create dedicated pillar article for unexpected ranking \"/blog\" (64 impressions).",
+      "description": "Create dedicated pillar article for unexpected ranking \"blog\" (89 impressions).",
       "target": "https://www.fouriqtech.com/blog"
+    },
+    {
+      "priority": "P1",
+      "type": "create_pillar",
+      "description": "Create dedicated pillar article for unexpected ranking \"blog/optimizing-framer-motion-animations-for-enterprise-react-applications\" (62 impressions).",
+      "target": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications"
     },
     {
       "priority": "P0",
       "type": "boost_keyword",
       "description": "Keyword \"fouriq\" at position 8 — Build 2-3 backlinks + 1 supporting article to push to page 1",
       "target": "fouriq"
+    },
+    {
+      "priority": "P2",
+      "type": "rewrite_or_consolidate",
+      "description": "Consider rewriting \"blog/why-Global-businesses-need-mobile-first-websites\" (position 34, 3 impressions). Low priority.",
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites"
     }
   ],
   "for_auto_poster": {
-    "rising_star_slugs": [],
+    "rising_star_slugs": [
+      "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "blog/enterprise-react-design-system-implementation",
+      "blog/fix-react-memory-leaks-enterprise-saas",
+      "blog/nextjs-bff-architecture-enterprise-microservices",
+      "blog/how-to-choose-web-design-company-Global",
+      "blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+      "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "services/legacy-web-application-modernization",
+      "blog/nextjs-multi-tenant-custom-domains-enterprise-guide",
+      "services/enterprise-headless-commerce-development"
+    ],
     "boost_keywords": [
       "fouriq"
     ],
-    "avoid_topics": [],
+    "avoid_topics": [
+      "blog/why-Global-businesses-need-mobile-first-websites"
+    ],
     "top_performing_topics": []
   }
 }

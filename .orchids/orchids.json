@@ -3,7 +3,8 @@
   "createdAt": 1770960423835,
   "version": "1.0",
   "startupCommands": [
-    "npm install; npx vite --host 0.0.0.0 --port 5173"
+    "npm install; npx vite --host 0.0.0.0 --port 5173",
+    "npm install; node --env-file=.env .github/scripts/agency-api.mjs"
   ],
   "templateId": "any",
   "vercelProjectId": "prj_svUYahjCfKSHgyiSfVnFyXr3u7Qd",

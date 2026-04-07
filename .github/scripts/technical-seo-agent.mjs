@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
+import { submitToStaging, logActivity } from './agency-core.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
 // ⚙️ FOURIQTECH TECHNICAL SEO & PERFORMANCE AGENT — V1.0
@@ -23,21 +24,30 @@ const SEO_COMPONENT_PATH = path.join(process.cwd(), 'src/components/SEO.tsx');
 const CONFIG_PATH = path.join(process.cwd(), 'fouriqtech-seo-config.yaml');
 const TECHNICAL_LOG_PATH = path.join(process.cwd(), '.github/technical_seo_log.json');
 
-// ── API Setup (Same as V8) ──
-const API_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+// ── API Setup (Prioritize Pro-tier now that billing is on) ──
+const PRO_KEY = process.env.GEMINI_PRO_API_KEY || '';
+const OTHER_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+  .replace(/["']/g, '')
   .split(',').map(k => k.trim()).filter(k => k.length > 0);
+
+// Prioritize Pro Key (Billed) and deduplicate with others
+const API_KEYS = [...new Set([PRO_KEY, ...OTHER_KEYS])].filter(k => k.length > 0);
 
 let aiClient = API_KEYS.length > 0 ? new GoogleGenAI({ apiKey: API_KEYS[0] }) : null;
 
 async function smartCall(models, contents, agentName = 'AI') {
-  for (const model of models) {
+  // Add Pro models to the fallback chain if not present
+  const proModels = ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+  const fullModels = [...new Set([...proModels, ...models])];
+  
+  for (const model of fullModels) {
     try {
       const resp = await aiClient.models.generateContent({
         model, contents, config: { responseMimeType: "application/json" }
       });
       return resp.candidates[0].content.parts[0].text;
     } catch (err) {
-      console.error(`   ⚠️ [\${agentName}] Model \${model} failed, falling back...`);
+      console.error(`   ⚠️ [${agentName}] Model ${model} failed, falling back...`);
     }
   }
   throw new Error('All models exhausted.');
@@ -45,14 +55,17 @@ async function smartCall(models, contents, agentName = 'AI') {
 
 // ── Special String Call for the Execution Agent (Not JSON) ──
 async function executionCall(models, contents) {
-  for (const model of models) {
+  const proModels = ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+  const fullModels = [...new Set([...proModels, ...models])];
+
+  for (const model of fullModels) {
     try {
       const resp = await aiClient.models.generateContent({
         model, contents
       });
       return resp.candidates[0].content.parts[0].text;
     } catch (err) {
-      console.error(`   ⚠️ [Execution] Model \${model} failed, falling back...`);
+      console.error(`   ⚠️ [Execution] Model ${model} failed, falling back...`);
     }
   }
   throw new Error('All models exhausted.');
@@ -65,7 +78,7 @@ async function getAuditReport() {
   const indexHtml = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
   const seoComponent = fs.readFileSync(SEO_COMPONENT_PATH, 'utf8');
   
-  const raw = await smartCall(['gemini-3-flash-preview', 'gemini-2.5-flash'], `
+  const raw = await smartCall(['gemini-2.5-flash', 'gemini-2.0-flash'], `
     You are a Senior Technical SEO Auditor with 15 years of experience. Audit the following files for:
     1. Performance/Speed: Render-blocking resources, preconnects, asset loading.
     2. On-Page SEO: Missing/duplicate meta tags, canonicals, schema issues.
@@ -153,10 +166,24 @@ async function applyFixes(decisions) {
         cleanCode = cleanCode.replace(/^\`\`\`[a-z]*\\n/, '').replace(/\\n\`\`\`$/, '');
       }
       
-      fs.writeFileSync(fullPath, cleanCode);
-      console.log(`   ✅ Successfully patched \${targetBaseName}`);
+      const payload = JSON.stringify({
+        target_file: fix.target_file,
+        code: cleanCode
+      });
+      
+      console.log(`   📦 SUBMITTING to Manager Staging Queue...`);
+      await submitToStaging({
+        type: 'technical_patch',
+        department: 'Technical Team',
+        title: `Tech Patch: ${fix.issue}`,
+        content: payload,
+        metadata: { action: fix.action, target: fix.target_file }
+      });
+      await logActivity('Technical Team', `🔧 Submitted technical patch for "${fix.target_file}" to Staging Queue.`, "publish");
+
+      console.log(`   ✅ Successfully queued patch for ${targetBaseName}`);
     } catch (e) {
-      console.error(`   ❌ Failed to patch \${fix.target_file}: \${e.message}`);
+      console.error(`   ❌ Failed to generate patch for ${fix.target_file}: ${e.message}`);
     }
   }
   

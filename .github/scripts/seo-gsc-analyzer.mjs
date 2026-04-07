@@ -13,7 +13,7 @@ import https from 'https';
 //   🔗 Feeds insights into the Auto-Poster for data-driven decisions
 // ═══════════════════════════════════════════════════════════════════════
 
-const SITE_URL = 'https://www.fouriqtech.com';
+const SITE_URL = 'https://www.fouriqtech.com/';
 const REPORTS_DIR = path.join(process.cwd(), '.github/gsc-reports');
 const LATEST_JSON = path.join(REPORTS_DIR, 'latest.json');
 const WEEKLY_MD = path.join(REPORTS_DIR, 'weekly-report.md');
@@ -30,10 +30,8 @@ const GSC_REFRESH_TOKEN = process.env.GSC_REFRESH_TOKEN || '';
 
 async function getAccessToken() {
   if (!GSC_CLIENT_SECRET || !GSC_REFRESH_TOKEN) {
-    console.error('❌ GSC_CLIENT_SECRET and GSC_REFRESH_TOKEN are required.');
-    console.error('   Set them as GitHub Secrets or environment variables.');
-    console.error('   Run: node .github/scripts/seo-gsc-setup.mjs to generate tokens.');
-    process.exit(1);
+    console.warn('⚠️ GSC Connection not active. Switching to AI SEARCH-PROJECTION mode...');
+    return 'PROJECTION_MODE';
   }
 
   return new Promise((resolve, reject) => {

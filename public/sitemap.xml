@@ -21,7 +21,7 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.fouriqtech.com/blog/enterprise-design-system-versioning-strategy</loc>
+    <loc>https://www.fouriqtech.com/blog/b2b-saas-frontend-architecture-multi-tenant-scale</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -41,132 +41,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/b2b-saas-multi-tenancy-patterns-nextjs-guide</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/saas-multi-tenant-data-isolation-nextjs-react-guide</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/enterprise-nextjs-performance-optimization-guide</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/nextjs-multi-tenant-architecture-enterprise-blueprint</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/enterprise-legacy-system-modernization-strategy-nextjs-strangler-fig</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/react-real-time-chart-performance-webgl-web-workers</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/react-dashboard-slow-enterprise-performance-audit</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/optimizing-real-time-data-visualization-performance-enterprise-react-dashboards</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/enterprise-react-dashboard-performance-optimization-strategies</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/enterprise-react-application-performance-audit-services</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/implementing-micro-frontend-architecture-in-nextjs-for-enterprise</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/optimizing-nextjs-server-side-rendering-high-traffic-enterprise-applications</loc>
+    <loc>https://www.fouriqtech.com/blog/optimizing-nextjs-server-side-rendering-high-traffic-applications</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.fouriqtech.com/blog/mastering-enterprise-react-performance-audit-high-traffic-applications</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/enterprise-b2b-saas-dashboard-ux-optimization-strategies</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/implementing-gsap-animations-high-performance-enterprise-web-apps</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/nextjs-enterprise-performance-optimization-scalability-speed</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/architecting-scalable-secure-custom-web-applications-global-startup-expansion</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/web-design-company-india-global-growth</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/how-to-choose-web-design-company-Global</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/web-design-cost-breakdown-Global-2026</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

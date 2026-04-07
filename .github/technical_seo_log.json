@@ -1,20 +1,20 @@
 {
-  "last_run": "2026-03-26T04:09:31.717Z",
+  "last_run": "2026-03-31T06:20:44.102Z",
   "applied_fixes": [
     {
-      "issue": "Missing viewport meta tag causing poor mobile rendering and CLS issues.",
-      "action": "Add <meta name='viewport' content='width=device-width, initial-scale=1.0'> to the head section.",
+      "issue": "Missing or improperly configured viewport meta tag causing poor mobile rendering and Core Web Vitals penalties.",
+      "action": "Add '<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">' to the document head.",
+      "target_file": "index.html"
+    },
+    {
+      "issue": "Missing dynamic canonical URLs, creating a high risk of duplicate content indexing across parameterized URLs.",
+      "action": "Implement a dynamic '<link rel=\"canonical\" href={canonicalUrl} />' tag that defaults to the current clean route.",
       "target_file": "src/components/SEO.tsx"
     },
     {
-      "issue": "Missing canonical link tags resulting in duplicate content indexing risks.",
-      "action": "Implement dynamic canonical URL generation based on current route path in the head tag.",
-      "target_file": "src/components/SEO.tsx"
-    },
-    {
-      "issue": "Absence of structured data (JSON-LD) for organization schema hindering rich result potential.",
-      "action": "Inject Organization Schema JSON-LD script tag into the head component.",
-      "target_file": "src/components/SEO.tsx"
+      "issue": "Missing 'lang' attribute on the root HTML element, severely impacting screen reader accessibility and international SEO.",
+      "action": "Add the 'lang=\"en\"' attribute to the root '<html>' tag.",
+      "target_file": "index.html"
     }
   ]
 }

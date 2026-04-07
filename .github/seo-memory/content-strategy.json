@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-04-01T11:15:44.701Z",
+  "inventory_count": 6,
+  "briefs": [
+    {
+      "target_slug": "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "target_page": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "brief_type": "refresh_or_support",
+      "primary_keyword": "blog nextjs multi tenant",
+      "secondary_keywords": [
+        "multi tenant routing performance edge"
+      ],
+      "search_intent": "informational",
+      "objective": "Push high-potential page into stronger page-1 positions",
+      "recommended_format": "refresh_existing_article"
+    },
+    {
+      "target_slug": "blog/enterprise-react-design-system-implementation",
+      "target_page": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+      "brief_type": "refresh_or_support",
+      "primary_keyword": "blog enterprise react design",
+      "secondary_keywords": [
+        "react design system implementation"
+      ],
+      "search_intent": "informational",
+      "objective": "Push high-potential page into stronger page-1 positions",
+      "recommended_format": "refresh_existing_article"
+    },
+    {
+      "target_slug": "blog/fix-react-memory-leaks-enterprise-saas",
+      "target_page": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+      "brief_type": "refresh_or_support",
+      "primary_keyword": "blog fix react memory",
+      "secondary_keywords": [
+        "react memory leaks enterprise saas"
+      ],
+      "search_intent": "informational",
+      "objective": "Push high-potential page into stronger page-1 positions",
+      "recommended_format": "refresh_existing_article"
+    },
+    {
+      "target_slug": "blog/nextjs-bff-architecture-enterprise-microservices",
+      "target_page": "https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices",
+      "brief_type": "refresh_or_support",
+      "primary_keyword": "blog nextjs bff architecture",
+      "secondary_keywords": [
+        "bff architecture enterprise microservices"
+      ],
+      "search_intent": "informational",
+      "objective": "Push high-potential page into stronger page-1 positions",
+      "recommended_format": "refresh_existing_article"
+    },
+    {
+      "target_slug": "blog/how-to-choose-web-design-company-Global",
+      "target_page": "https://www.fouriqtech.com/blog/how-to-choose-web-design-company-Global",
+      "brief_type": "refresh_or_support",
+      "primary_keyword": "blog how choose web",
+      "secondary_keywords": [
+        "choose web design company global"
+      ],
+      "search_intent": "informational",
+      "objective": "Push high-potential page into stronger page-1 positions",
+      "recommended_format": "refresh_existing_article"
+    },
+    {
+      "target_slug": "blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+      "target_page": "https://www.fouriqtech.com/blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+      "brief_type": "refresh_or_support",
+      "primary_keyword": "blog b2b saas multi",
+      "secondary_keywords": [
+        "saas multi tenancy patterns nextjs"
+      ],
+      "search_intent": "informational",
+      "objective": "Push high-potential page into stronger page-1 positions",
+      "recommended_format": "refresh_existing_article"
+    },
+    {
+      "target_slug": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "target_page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "brief_type": "refresh_or_support",
+      "primary_keyword": "blog optimizing framer motion",
+      "secondary_keywords": [
+        "framer motion animations for enterprise"
+      ],
+      "search_intent": "informational",
+      "objective": "Push high-potential page into stronger page-1 positions",
+      "recommended_format": "refresh_existing_article"
+    },
+    {
+      "target_slug": "services/legacy-web-application-modernization",
+      "target_page": "https://www.fouriqtech.com/services/legacy-web-application-modernization",
+      "brief_type": "refresh_or_support",
+      "primary_keyword": "services legacy web application",
+      "secondary_keywords": [
+        "web application modernization"
+      ],
+      "search_intent": "commercial",
+      "objective": "Improve visibility and CTR",
+      "recommended_format": "support_article_or_case_study"
+    }
+  ],
+  "refresh_queue": [
+    {
+      "slug": "blog/why-Global-businesses-need-mobile-first-websites",
+      "page": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "position": 34,
+      "impressions": 3,
+      "action": "refresh_or_consolidate",
+      "reason": "Rewrite with new angle OR consolidate into better post. No backlinks."
+    }
+  ],
+  "prune_candidates": [
+    {
+      "slug": "blog/why-Global-businesses-need-mobile-first-websites",
+      "page": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "reason": "Low impressions and weak rankings indicate weak standalone value.",
+      "action": "consider_prune_or_merge"
+    }
+  ]
+}

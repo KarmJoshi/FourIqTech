@@ -21,9 +21,10 @@ export default function SEO({
   const location = useLocation();
   const baseUrl = 'https://fouriqtech.com';
   
-  // Determine canonical URL: ensure no trailing slash issues for SEO consistency
-  const path = location.pathname === '/' ? '' : location.pathname;
-  const canonicalUrl = url || `${baseUrl}${path}`;
+  // Clean path: Remove trailing slashes to prevent duplicate content loops
+  // location.pathname already omits search parameters (query strings)
+  const cleanPath = location.pathname === '/' ? '' : location.pathname.replace(/\/+$/, '');
+  const canonicalUrl = url || `${baseUrl}${cleanPath}`;
 
   // Base site-wide Organization schema
   const organizationSchema = {
@@ -68,7 +69,7 @@ export default function SEO({
       <title>{title}</title>
       <meta name="description" content={description} />
       
-      {/* Canonical Link - Essential for SEO duplicate content prevention */}
+      {/* Canonical Link - Essential for SEO duplicate content prevention across parameterized URLs */}
       <link rel="canonical" href={canonicalUrl} />
       
       {/* Open Graph / Facebook */}

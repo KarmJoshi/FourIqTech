@@ -1,0 +1,214 @@
+{
+  "updated_at": "2026-04-01T11:15:44.689Z",
+  "slugs": [
+    "b2b-saas-frontend-architecture-multi-tenant-scale",
+    "blog",
+    "blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+    "blog/enterprise-react-design-system-implementation",
+    "blog/fix-react-memory-leaks-enterprise-saas",
+    "blog/how-to-choose-web-design-company-Global",
+    "blog/nextjs-bff-architecture-enterprise-microservices",
+    "blog/nextjs-multi-tenant-custom-domains-enterprise-guide",
+    "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+    "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+    "blog/why-Global-businesses-need-mobile-first-websites",
+    "managing-complex-state-react-enterprise-case-study",
+    "mastering-enterprise-react-performance-audit-high-traffic-applications",
+    "nextjs-multi-tenant-custom-domains-enterprise-guide",
+    "optimizing-nextjs-server-side-rendering-high-traffic-applications",
+    "react-form-performance-optimization-enterprise-guide",
+    "services/enterprise-headless-commerce-development",
+    "services/legacy-web-application-modernization"
+  ],
+  "opportunities": [
+    {
+      "id": "opp-10",
+      "department": "structural",
+      "playbook": "ctr_optimization",
+      "target": "fouriq",
+      "description": "Build 2-3 backlinks + 1 supporting article to push to page 1",
+      "score": 78.02
+    },
+    {
+      "id": "opp-8",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "target": "fouriq",
+      "description": "Keyword \"fouriq\" at position 8 — Build 2-3 backlinks + 1 supporting article to push to page 1",
+      "score": 41.8
+    },
+    {
+      "id": "opp-6",
+      "department": "structural",
+      "playbook": "pillar_expansion",
+      "target": "https://www.fouriqtech.com/blog",
+      "description": "Create dedicated pillar article for unexpected ranking \"blog\" (89 impressions).",
+      "score": 33.4
+    },
+    {
+      "id": "opp-7",
+      "department": "structural",
+      "playbook": "pillar_expansion",
+      "target": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "description": "Create dedicated pillar article for unexpected ranking \"blog/optimizing-framer-motion-animations-for-enterprise-react-applications\" (62 impressions).",
+      "score": 33.4
+    },
+    {
+      "id": "opp-9",
+      "department": "content",
+      "playbook": "content_refresh",
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "description": "Consider rewriting \"blog/why-Global-businesses-need-mobile-first-websites\" (position 34, 3 impressions). Low priority.",
+      "score": 25
+    },
+    {
+      "id": "opp-1",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "target": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "description": "Create 2 supporting articles for \"blog/nextjs-multi-tenant-routing-performance-edge-middleware\" (position 8). Link back to boost to page 1.",
+      "score": 19.12
+    },
+    {
+      "id": "opp-2",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "target": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+      "description": "Create 2 supporting articles for \"blog/enterprise-react-design-system-implementation\" (position 8.3). Link back to boost to page 1.",
+      "score": 19.12
+    },
+    {
+      "id": "opp-3",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "target": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+      "description": "Create 2 supporting articles for \"blog/fix-react-memory-leaks-enterprise-saas\" (position 8.3). Link back to boost to page 1.",
+      "score": 19.12
+    },
+    {
+      "id": "opp-4",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "target": "https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices",
+      "description": "Create 2 supporting articles for \"blog/nextjs-bff-architecture-enterprise-microservices\" (position 8.5). Link back to boost to page 1.",
+      "score": 19.12
+    },
+    {
+      "id": "opp-5",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "target": "https://www.fouriqtech.com/blog/how-to-choose-web-design-company-Global",
+      "description": "Create 2 supporting articles for \"blog/how-to-choose-web-design-company-Global\" (position 8.6). Link back to boost to page 1.",
+      "score": 19.12
+    },
+    {
+      "id": "opp-11",
+      "department": "content",
+      "playbook": "technical_fix",
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "description": "Audit technical blockers for blog/why-Global-businesses-need-mobile-first-websites before further content investment.",
+      "score": 12.36
+    }
+  ],
+  "collisions": [
+    {
+      "opportunity_id": "opp-6",
+      "target": "https://www.fouriqtech.com/blog",
+      "existing_slug": "blog",
+      "score": 0.2,
+      "department": "structural",
+      "playbook": "pillar_expansion",
+      "severity": "watch",
+      "blocked": false,
+      "reason": "same_slug_existing_asset"
+    },
+    {
+      "opportunity_id": "opp-7",
+      "target": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "existing_slug": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "score": 0.69,
+      "department": "structural",
+      "playbook": "pillar_expansion",
+      "severity": "watch",
+      "blocked": false,
+      "reason": "same_slug_existing_asset"
+    },
+    {
+      "opportunity_id": "opp-9",
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "existing_slug": "blog/why-Global-businesses-need-mobile-first-websites",
+      "score": 0.67,
+      "department": "content",
+      "playbook": "content_refresh",
+      "severity": "safe_refresh",
+      "blocked": false,
+      "reason": "existing_page_refresh"
+    },
+    {
+      "opportunity_id": "opp-1",
+      "target": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "existing_slug": "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "score": 0.67,
+      "department": "structural",
+      "playbook": "cluster_support",
+      "severity": "safe_support",
+      "blocked": false,
+      "reason": "existing_page_support"
+    },
+    {
+      "opportunity_id": "opp-2",
+      "target": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+      "existing_slug": "blog/enterprise-react-design-system-implementation",
+      "score": 0.6,
+      "department": "structural",
+      "playbook": "cluster_support",
+      "severity": "safe_support",
+      "blocked": false,
+      "reason": "existing_page_support"
+    },
+    {
+      "opportunity_id": "opp-3",
+      "target": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+      "existing_slug": "blog/fix-react-memory-leaks-enterprise-saas",
+      "score": 0.64,
+      "department": "structural",
+      "playbook": "cluster_support",
+      "severity": "safe_support",
+      "blocked": false,
+      "reason": "existing_page_support"
+    },
+    {
+      "opportunity_id": "opp-4",
+      "target": "https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices",
+      "existing_slug": "blog/nextjs-bff-architecture-enterprise-microservices",
+      "score": 0.6,
+      "department": "structural",
+      "playbook": "cluster_support",
+      "severity": "safe_support",
+      "blocked": false,
+      "reason": "existing_page_support"
+    },
+    {
+      "opportunity_id": "opp-5",
+      "target": "https://www.fouriqtech.com/blog/how-to-choose-web-design-company-Global",
+      "existing_slug": "blog/how-to-choose-web-design-company-Global",
+      "score": 0.64,
+      "department": "structural",
+      "playbook": "cluster_support",
+      "severity": "safe_support",
+      "blocked": false,
+      "reason": "existing_page_support"
+    },
+    {
+      "opportunity_id": "opp-11",
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "existing_slug": "blog/why-Global-businesses-need-mobile-first-websites",
+      "score": 0.67,
+      "department": "content",
+      "playbook": "technical_fix",
+      "severity": "watch",
+      "blocked": false,
+      "reason": "same_slug_existing_asset"
+    }
+  ]
+}

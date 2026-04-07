@@ -1,0 +1,100 @@
+{
+  "generated_at": "2026-04-01T11:15:44.706Z",
+  "report": [
+    {
+      "target": "fouriq",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "fouriq",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog/how-to-choose-web-design-company-Global",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "blog nextjs multi tenant",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "blog enterprise react design",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "blog fix react memory",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "blog nextjs bff architecture",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "blog how choose web",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "blog b2b saas multi",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "blog optimizing framer motion",
+      "matches": [],
+      "verdict": "safe_new"
+    },
+    {
+      "target": "services legacy web application",
+      "matches": [],
+      "verdict": "safe_new"
+    }
+  ]
+}

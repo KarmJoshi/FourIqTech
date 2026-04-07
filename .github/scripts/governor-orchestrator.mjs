@@ -51,7 +51,7 @@ async function getNextStrategy() {
 
     try {
         if (!aiClient) throw new Error("No Gemini API Key found.");
-        const model = aiClient.getGenerativeModel({ model: 'gemini-1.5-flash-lite' });
+        const model = aiClient.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
         const result = await model.generateContent(prompt);
         const text = result.response.text();
         const jsonMatch = text.match(/\{[\s\S]*\}/);

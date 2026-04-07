@@ -42,6 +42,12 @@ export default function AgentManager() {
   const [activeDept, setActiveDept] = useState<"director" | "content" | "structural" | "technical" | "outreach">("director");
   const [chatOpen, setChatOpen] = useState(false);
 
+  // Auth State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginId, setLoginId] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
   // System State (from API)
   const [directorStatus, setDirectorStatus] = useState<any>(null);
   const [directorJournal, setDirectorJournal] = useState<any>(null);
@@ -52,6 +58,13 @@ export default function AgentManager() {
   const [intelligence, setIntelligence] = useState<any>(null);
   const [isDispatching, setIsDispatching] = useState<string | null>(null);
   const [apiOnline, setApiOnline] = useState(false);
+  const [scheduleSettings, setScheduleSettings] = useState({
+    isAutoPilot: false,
+    startTime: "10:00",
+    cyclesPerDay: 1,
+    lastRunAt: null
+  });
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
   // Outreach State
   const [leads, setLeads] = useState<any[]>([]);
@@ -100,13 +113,14 @@ export default function AgentManager() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statRes, journalRes, feedRes, stagingRes, tasksRes, intelligenceRes] = await Promise.all([
+        const [statRes, journalRes, feedRes, stagingRes, tasksRes, intelligenceRes, settingsRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/status`).catch(() => null),
           fetch(`${API_BASE_URL}/api/journal`).catch(() => null),
           fetch(`${API_BASE_URL}/api/activity`).catch(() => null),
           fetch(`${API_BASE_URL}/api/staging`).catch(() => null),
           fetch(`${API_BASE_URL}/api/tasks`).catch(() => null),
-          fetch(`${API_BASE_URL}/api/intelligence`).catch(() => null)
+          fetch(`${API_BASE_URL}/api/intelligence`).catch(() => null),
+          fetch(`${API_BASE_URL}/api/settings`).catch(() => null)
         ]);
 
         if (statRes?.ok) setDirectorStatus(await statRes.json());
@@ -126,6 +140,7 @@ export default function AgentManager() {
         
         if (tasksRes?.ok) setRunningTasks(await tasksRes.json());
         if (intelligenceRes?.ok) setIntelligence(await intelligenceRes.json());
+        if (settingsRes?.ok) setScheduleSettings(await settingsRes.json());
       } catch (e) {
         setApiOnline(false);
         console.error("API Sync Error", e);
@@ -163,6 +178,26 @@ export default function AgentManager() {
       console.error("Dispatch Error", e);
     } finally {
       setIsDispatching(null);
+    }
+  };
+
+  const updateScheduleSettings = async (updates: any) => {
+    setIsUpdatingSettings(true);
+    const newSettings = { ...scheduleSettings, ...updates };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newSettings)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setScheduleSettings(data.settings);
+      }
+    } catch (e) {
+      console.error("Settings Update Error", e);
+    } finally {
+      setIsUpdatingSettings(false);
     }
   };
 
@@ -347,6 +382,64 @@ export default function AgentManager() {
     };
   }, [leads, emails, replies]);
 
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loginId === "FouriqTech" && loginPassword === "#Fouriqtech04") {
+      setIsAuthenticated(true);
+      setLoginError("");
+    } else {
+      setLoginError("Invalid ID or Password");
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-aether-base flex items-center justify-center text-slate-50 font-sans relative overflow-hidden">
+        {/* BACKGROUND DECOR */}
+        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-ai-primary/[0.03] rounded-full blur-[150px] -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-ai-secondary/[0.02] rounded-full blur-[120px] translate-y-1/2 -translate-x-1/4" />
+        
+        <Card className="w-[420px] border-ai-primary/20 bg-slate-900/60 backdrop-blur-xl shadow-2xl relative z-10">
+          <CardHeader className="pb-4">
+            <div className="flex justify-center mb-4">
+               <Crown className="h-10 w-10 text-ai-primary opacity-80" />
+            </div>
+            <CardTitle className="text-center text-2xl font-bold font-display text-white tracking-wide">Agency Command</CardTitle>
+            <CardDescription className="text-center text-slate-400">Secure Access Required</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operator ID</label>
+                <input 
+                  type="text" 
+                  value={loginId} 
+                  onChange={(e) => setLoginId(e.target.value)} 
+                  className="w-full bg-slate-950/50 border border-slate-800 rounded-xl p-3 text-white outline-none focus:border-ai-primary transition-colors text-sm" 
+                  placeholder="Enter ID"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Authentication Code</label>
+                <input 
+                  type="password" 
+                  value={loginPassword} 
+                  onChange={(e) => setLoginPassword(e.target.value)} 
+                  className="w-full bg-slate-950/50 border border-slate-800 rounded-xl p-3 text-white outline-none focus:border-ai-primary transition-colors text-sm font-mono" 
+                  placeholder="••••••••"
+                />
+              </div>
+              {loginError && <p className="text-red-400 text-xs text-center font-bold">{loginError}</p>}
+              <Button type="submit" className="w-full bg-ai-primary text-slate-950 hover:bg-ai-primary/90 font-bold h-12 rounded-xl mt-2">
+                INITIALIZE LINK
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-aether-base text-slate-50 font-sans selection:bg-ai-primary/30 selection:text-white">
       {/* BACKGROUND DECOR */}
@@ -381,7 +474,7 @@ export default function AgentManager() {
           <div className="flex items-center gap-4">
              <Button 
                onClick={() => setChatOpen(true)}
-               className="h-14 px-10 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-ai-primary/40 text-white font-bold transition-all shadow-2xl group overflow-hidden">
+               className="relative h-14 px-10 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-ai-primary/40 text-white font-bold transition-all shadow-2xl group overflow-hidden">
                <div className="absolute inset-0 bg-gradient-to-r from-ai-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                <MessageCircle className="mr-3 h-5 w-5 text-ai-primary group-hover:scale-110 transition-transform" /> 
                DIRECTOR COMMS
@@ -449,6 +542,72 @@ export default function AgentManager() {
            {activeDept === "director" && (
              <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
                <div className="space-y-8">
+                  {/* STRATEGIC AUTO-PILOT CONTROL */}
+                  <Card className="aether-card border-ai-primary/20 bg-ai-primary/[0.02] rounded-[32px] overflow-hidden group">
+                    <CardHeader className="pb-2">
+                       <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                             <div className="flex items-center gap-2">
+                                <Zap className={`h-4 w-4 ${scheduleSettings.isAutoPilot ? "text-ai-tertiary animate-pulse" : "text-slate-600"}`} />
+                                <span className="text-[10px] font-bold tracking-[0.3em] text-slate-500 uppercase">AUTONOMOUS GOVERNANCE</span>
+                             </div>
+                             <CardTitle className="text-2xl font-display font-bold">Strategic Auto-Pilot</CardTitle>
+                          </div>
+                          <div className="flex items-center gap-4 bg-slate-950/40 p-2 rounded-2xl border border-white/5">
+                             <span className={`text-[10px] font-bold tracking-widest uppercase ${scheduleSettings.isAutoPilot ? "text-ai-tertiary" : "text-slate-500"}`}>
+                                {scheduleSettings.isAutoPilot ? "ACTIVE" : "STANDBY"}
+                             </span>
+                             <button 
+                                onClick={() => updateScheduleSettings({ isAutoPilot: !scheduleSettings.isAutoPilot })}
+                                disabled={isUpdatingSettings}
+                                className={`h-8 w-14 rounded-full transition-all relative ${scheduleSettings.isAutoPilot ? "bg-ai-tertiary shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-slate-800"}`}
+                             >
+                                <div className={`absolute top-1 bottom-1 w-6 rounded-full bg-white transition-all ${scheduleSettings.isAutoPilot ? "right-1" : "left-1"}`} />
+                             </button>
+                          </div>
+                       </div>
+                    </CardHeader>
+                    <CardContent>
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                          <div className="space-y-3">
+                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <Clock className="h-3 w-3" /> Start Time (Morning Duty)
+                             </label>
+                             <input 
+                                type="time" 
+                                value={scheduleSettings.startTime}
+                                onChange={(e) => updateScheduleSettings({ startTime: e.target.value })}
+                                className="w-full bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5 text-sm font-bold text-ai-primary focus:border-ai-primary/50 transition-all outline-none"
+                             />
+                          </div>
+                          <div className="space-y-3">
+                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <Activity className="h-3 w-3" /> Daily Frequency
+                             </label>
+                             <select 
+                                value={scheduleSettings.cyclesPerDay}
+                                onChange={(e) => updateScheduleSettings({ cyclesPerDay: parseInt(e.target.value) })}
+                                className="w-full bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:border-ai-primary/50 transition-all outline-none appearance-none"
+                             >
+                                <option value={1}>1 Cycle / Day</option>
+                                <option value={2}>2 Cycles / Day</option>
+                                <option value={4}>4 Cycles / Day (Every 6h)</option>
+                                <option value={12}>12 Cycles / Day (Every 2h)</option>
+                                <option value={24}>24 Cycles / Day (Hourly)</option>
+                             </select>
+                          </div>
+                          <div className="flex flex-col justify-end">
+                             <div className="bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5">
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Last Strategic Pulse</p>
+                                <p className="text-xs font-mono text-ai-primary/70">
+                                   {scheduleSettings.lastRunAt ? new Date(scheduleSettings.lastRunAt).toLocaleTimeString() : "Never Executed"}
+                                </p>
+                             </div>
+                          </div>
+                       </div>
+                    </CardContent>
+                  </Card>
+
                  <ControlHub 
                    dispatchDepartment={dispatchDepartment}
                    dispatchDirectorCycle={dispatchDirectorCycle}

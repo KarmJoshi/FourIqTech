@@ -5,17 +5,21 @@
       "pillar_slug": null,
       "pillar_published": false,
       "supporting_articles": [
-        "fix-react-memory-leaks-enterprise-saas"
+        "fix-react-memory-leaks-enterprise-saas",
+        "react-performance-bottlenecks-forensic-guide",
+        "react-websocket-memory-leak-sharedworker-forensics"
       ],
       "target_supporting_count": 5,
       "cluster_complete": false
     },
     {
       "cluster_name": "Enterprise Application Modernization & Microservices",
-      "pillar_slug": null,
-      "pillar_published": false,
+      "pillar_slug": "micro-frontend-state-bridge-case-study",
+      "pillar_published": true,
       "supporting_articles": [
-        "enterprise-legacy-system-modernization-strategy-nextjs-strangler-fig"
+        "enterprise-legacy-system-modernization-strategy-nextjs-strangler-fig",
+        "enterprise-frontend-modernization-hybrid-bridge-blueprint",
+        "headless-commerce-migration-strangler-fig-session-state"
       ],
       "target_supporting_count": 5,
       "cluster_complete": false
@@ -26,26 +30,35 @@
       "pillar_published": false,
       "supporting_articles": [
         "enterprise-react-design-system-implementation",
-        "enterprise-design-system-versioning-strategy"
+        "enterprise-design-system-versioning-strategy",
+        "react-tree-shaking-not-working-enterprise-barrel-files"
       ],
       "target_supporting_count": 5,
       "cluster_complete": false
     },
     {
       "cluster_name": "Enterprise React Performance & Scalability",
-      "pillar_slug": null,
-      "pillar_published": false,
+      "pillar_slug": "enterprise-react-dashboard-optimization-post-mortem",
+      "pillar_published": true,
       "supporting_articles": [
-        "react-form-performance-optimization-enterprise-guide"
+        "react-form-performance-optimization-enterprise-guide",
+        "nextjs-memory-leak-production-forensics",
+        "solving-hydration-paradox-headless-commerce-web-vitals",
+        "optimizing-tanstack-query-enterprise-case-study",
+        "architecting-60fps-react-data-grid-performance"
       ],
       "target_supporting_count": 5,
-      "cluster_complete": false
+      "cluster_complete": true
     },
     {
       "cluster_name": "Enterprise SaaS Architecture",
-      "pillar_slug": "managing-complex-state-react-enterprise-case-study",
+      "pillar_slug": "b2b-saas-frontend-architecture-multi-tenant-scale",
       "pillar_published": true,
-      "supporting_articles": [],
+      "supporting_articles": [
+        "nextjs-slow-ttfb-dynamic-routes-forensics",
+        "fix-react-main-thread-blocking-dashboard-inp",
+        "fixing-nextjs-serverless-function-timeout-queues-rsc"
+      ],
       "target_supporting_count": 5,
       "cluster_complete": false
     }

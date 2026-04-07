@@ -52,6 +52,7 @@ const TASK_REGISTRY    = path.join(SEO_MEMORY_DIR, 'task-registry.json');
 const PLAYBOOK_SCORES  = path.join(SEO_MEMORY_DIR, 'playbook-scores.json');
 const OUTCOME_HISTORY  = path.join(SEO_MEMORY_DIR, 'outcome-history.json');
 const COMPETITOR_INTEL = path.join(SEO_MEMORY_DIR, 'competitor-intelligence.json');
+const SETTINGS_PATH     = path.join(CWD, '.github/staging/system-settings.json');
 
 // ── Department Scripts ──
 const DEPARTMENTS = {
@@ -515,9 +516,92 @@ app.get('/api/staging/:id/content', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// GET/POST /api/settings — Strategic Auto-Pilot Settings
+// ═══════════════════════════════════════════════════════════════════════
+app.get('/api/settings', (req, res) => {
+  const settings = readJson(SETTINGS_PATH, {
+    isAutoPilot: false,
+    startTime: "10:00",
+    cyclesPerDay: 1,
+    lastRunAt: null
+  });
+  res.json(settings);
+});
+
+app.post('/api/settings', (req, res) => {
+  try {
+    const settings = readJson(SETTINGS_PATH, {});
+    const newSettings = { ...settings, ...req.body };
+    
+    const dir = path.dirname(SETTINGS_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    
+    fs.writeFileSync(SETTINGS_PATH, JSON.stringify(newSettings, null, 2));
+    logActivity('⚙️', 'system', 'Strategic Auto-Pilot settings updated', 'info');
+    res.json({ success: true, settings: newSettings });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// STRATEGIC SCHEDULER — Heartbeat
+// ═══════════════════════════════════════════════════════════════════════
+function startScheduler() {
+  console.log(`[Scheduler] Strategic heartbeat initialized (Interval: 1m)`);
+  
+  setInterval(async () => {
+    const settings = readJson(SETTINGS_PATH, { isAutoPilot: false });
+    if (!settings.isAutoPilot) return;
+
+    const now = new Date();
+    const currentHM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const startTime = settings.startTime || "10:00";
+    
+    // Simple logic: Trigger if time matches EXACTLY (polled every 60s)
+    // For multiple cycles per day, we calculate intervals
+    const intervalHours = 24 / (settings.cyclesPerDay || 1);
+    const startHour = parseInt(startTime.split(':')[0]);
+    const startMin = parseInt(startTime.split(':')[1]);
+    
+    let shouldTrigger = false;
+    for (let i = 0; i < settings.cyclesPerDay; i++) {
+        const targetHour = (startHour + (i * intervalHours)) % 24;
+        const targetHM = `${String(Math.floor(targetHour)).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
+        
+        if (currentHM === targetHM) {
+            shouldTrigger = true;
+            break;
+        }
+    }
+
+    if (shouldTrigger) {
+      const lastRun = settings.lastRunAt ? new Date(settings.lastRunAt).getTime() : 0;
+      const oneHour = 60 * 60 * 1000;
+      
+      // Prevent double-triggering within the same minute or hour
+      if (Date.now() - lastRun > oneHour) {
+        console.log(`[Scheduler] 🚀 TIME TRIGGER MATCHED (${currentHM}). Dispatching Director Cycle.`);
+        logActivity('🚀', 'scheduler', `Time trigger matched (${currentHM}). Strategic Auto-Pilot activated.`, 'info');
+        
+        // Update last run immediately to prevent race conditions
+        settings.lastRunAt = new Date().toISOString();
+        fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
+
+        // Use the manual trigger logic
+        const script = '.github/scripts/agency-director.mjs';
+        const child = spawn('node', [script], { cwd: CWD, stdio: 'ignore', detached: true });
+        child.unref();
+      }
+    }
+  }, 60000); // 1 minute heartbeat
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════════════════════════
 app.listen(PORT, () => {
+  startScheduler();
   console.log('╔═══════════════════════════════════════════════════════════════╗');
   console.log(`║  👔 AGENCY API v2 — Manager Is The Boss — Port ${PORT}          ║`);
   console.log('╠═══════════════════════════════════════════════════════════════╣');

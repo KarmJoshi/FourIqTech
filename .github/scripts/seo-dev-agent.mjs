@@ -3,6 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
 import crypto from 'crypto';
+import { submitToStaging, logActivity } from './agency-core.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🏗️ FOURIQTECH SEO DEV AGENT — Landing Page Task Generator v1.0
@@ -24,19 +25,26 @@ const APP_TSX_PATH      = path.join(process.cwd(), 'src/App.tsx');
 const KNOWLEDGE_DIR     = path.join(process.cwd(), '.github/knowledge_base');
 const QUEUE_PATH        = path.join(process.cwd(), '.github/dev-tasks/queue.json');
 
-// ── AI Models — Gemini 2.5 Flash primary ──
+// ── AI Models — Prioritize Pro-tier now that billing is on ──
+const SCANNER_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+const ARCHITECT_MODELS = ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+
 function getModels(taskType) {
   const tasks = {
-    'scanning':     ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
-    'architecting': ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
+    'scanning':     SCANNER_MODELS,
+    'architecting': ARCHITECT_MODELS,
   };
-  return tasks[taskType] || ['gemini-3-flash-preview'];
+  return tasks[taskType] || ARCHITECT_MODELS;
 }
 
 // ── Multi-API Key Rotation ──
-const API_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+const PRO_KEY = process.env.GEMINI_PRO_API_KEY || '';
+const OTHER_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
   .replace(/["']/g, '')
   .split(',').map(k => k.trim()).filter(k => k.length > 0);
+
+// Prioritize Pro Key (Billed) and deduplicate with others
+const API_KEYS = [...new Set([PRO_KEY, ...OTHER_KEYS])].filter(k => k.length > 0);
 
 let currentKeyIdx = 0;
 if (API_KEYS.length > 0) {
@@ -108,15 +116,29 @@ async function healedCall(agent, fn, retries = 2) {
   throw lastErr;
 }
 
-// ── Queue Management ──
-function loadQueue() {
-  try { return JSON.parse(fs.readFileSync(QUEUE_PATH, 'utf8')); }
-  catch { return { tasks: [], completed: [], last_updated: null }; }
-}
+// ═══════════════════════════════════════════════════════════════════════
+// 🌐 ROUTER INJECTOR — Adds the page to App.tsx
+// ═══════════════════════════════════════════════════════════════════════
+function injectRouteIntoApp(routePath, componentPath) {
+  const componentName = path.basename(componentPath, '.tsx');
+  let appCode = fs.readFileSync(APP_TSX_PATH, 'utf8');
 
-function saveQueue(queue) {
-  queue.last_updated = new Date().toISOString();
-  fs.writeFileSync(QUEUE_PATH, JSON.stringify(queue, null, 2));
+  if (appCode.includes(`path="${routePath}"`)) return;
+
+  const importAnchor = 'import AgentManager';
+  if (appCode.includes(importAnchor)) {
+    const importStatement = `import ${componentName} from "./pages/services/${componentName}";\n`;
+    appCode = appCode.replace(importAnchor, importStatement + importAnchor);
+  }
+
+  const routeAnchor = '{/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}';
+  if (appCode.includes(routeAnchor)) {
+    const routeStatement = `\n              <Route path="${routePath}" element={<${componentName} />} />`;
+    appCode = appCode.replace(routeAnchor, routeAnchor + routeStatement);
+  }
+
+  fs.writeFileSync(APP_TSX_PATH, appCode);
+  console.log(`   🛣️ Injected route ${routePath} into App.tsx`);
 }
 
 // ── Knowledge Base Loader ──
@@ -141,16 +163,43 @@ function getExistingRoutes() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// 📋 CEO EXECUTIVE ORDERS
+// ═══════════════════════════════════════════════════════════════════════
+function loadDirectorOrders() {
+  const ordersPath = path.join(process.cwd(), '.github/director_orders.json');
+  try {
+    const orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8'));
+    return `\n\n👔 EXECUTIVE ORDERS FROM AGENCY DIRECTOR:\nDepartment: ${orders.department}\nReasoning: ${orders.reasoning}\nOrders: ${orders.cross_department_orders}\nAgency Health: ${orders.agency_health_score}/10\n\nYOU MUST STRICTLY FOLLOW THESE ORDERS WHEN CHOOSING THE ROUTE AND KEYWORD.`;
+  } catch {
+    return "";
+  }
+}
+
+function hasFreshStructuralOrders() {
+  const ordersPath = path.join(process.cwd(), '.github/director_orders.json');
+  try {
+    const orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8'));
+    const orderDate = orders.timestamp.split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    return orderDate === today && orders.department === 'structural';
+  } catch {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // 🔍 MARKET SCANNER — Find high buyer-intent keywords for landing pages
 // ═══════════════════════════════════════════════════════════════════════
 async function marketScannerAgent(config, existingRoutes, existingSlugs, knowledgeCtx) {
   const models = getModels('scanning');
   console.log(`\n🔍 MARKET SCANNER: Finding commercial-intent keywords for landing pages...`);
+  const directorOrders = loadDirectorOrders();
 
   return await healedCall('Market Scanner', async (prevErr) => {
     const fix = prevErr ? `\nFIX PREVIOUS ERROR: "${prevErr.message}". Return valid JSON.` : '';
 
     const raw = await smartCall(models, `You are an Elite Growth Hacker and Revenue Strategist with 15 years of experience generating millions in inbound B2B pipeline. FouriqTech is your client — a premium global web design & development agency targeting enterprises and startups with $25k+ budgets.
+${directorOrders}
 
 COMPANY CONTEXT:
 ${knowledgeCtx}
@@ -226,8 +275,13 @@ async function pageArchitectAgent(scanResult, knowledgeCtx, designSystemCtx) {
   const models = getModels('architecting');
   console.log(`\n🏛️ PAGE ARCHITECT: Designing landing page structure...`);
 
+  // Pre-calculate target file name to assist the AI and ensure consistency
+  const routeSlug = scanResult.proposed_route.split('/').pop() || 'service-page';
+  const componentName = routeSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+  const targetFile = `src/pages/services/${componentName}.tsx`;
+
   return await healedCall('Page Architect', async (prevErr) => {
-    const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
+    const fix = prevErr ? `\nFIX: "${prevErr.message}". Ensure you return a complete, valid JSON object with all required fields.` : '';
 
     const raw = await smartCall(models, `You are an elite, World-Class Conversion Rate Optimization (CRO) Architect and UX Director who has designed 8-figure SaaS landing pages. You work for FouriqTech.
 
@@ -298,7 +352,7 @@ RETURN VALID JSON:
 {
   "page_title": "${scanResult.page_title}",
   "route": "${scanResult.proposed_route}",
-  "target_file": "src/pages/services/${scanResult.proposed_route.split('/').pop().split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}.tsx",
+  "target_file": "${targetFile}",
   "seo": {
     "meta_title": "Max 60 chars SEO title with keyword",
     "meta_description": "Max 155 chars compelling meta description"
@@ -363,12 +417,83 @@ RETURN VALID JSON:
   ]
 }`, 'Page Architect');
 
-    const result = JSON.parse(raw);
+    // Robust JSON parsing
+    let cleanRaw = raw.trim();
+    if (cleanRaw.includes('```')) {
+      cleanRaw = cleanRaw.replace(/```json\n?/, '').replace(/```\n?/, '').trim();
+    }
+    
+    const result = JSON.parse(cleanRaw);
+    
+    // Ensure critical fields exist
+    result.page_title = result.page_title || scanResult.page_title;
+    result.route = result.route || scanResult.proposed_route;
+    result.target_file = result.target_file || targetFile;
+    result.sections = result.sections || [];
+
     console.log(`   📐 Page: "${result.page_title}"`);
     console.log(`   📄 Target: ${result.target_file}`);
-    console.log(`   🔧 Sections: ${result.sections?.length}`);
-    console.log(`   🏷️  SEO: "${result.seo?.meta_title}"`);
+    console.log(`   🔧 Sections: ${result.sections.length}`);
+    console.log(`   🏷️  SEO: "${result.seo?.meta_title || 'N/A'}"`);
     return result;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🏗️ PAGE BUILDER — Generates Production-Ready React Code
+// ═══════════════════════════════════════════════════════════════════════
+async function pageBuilderAgent(pageDesign, designSystemCtx) {
+  // Use a mix of Pro and Flash models for the builder
+  const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+  console.log(`\n🏗️ PAGE BUILDER: Assembling React Component...`);
+
+  const componentName = path.basename(pageDesign.target_file, '.tsx');
+
+  return await healedCall('Page Builder', async (prevErr) => {
+    const fix = prevErr ? `\n⚠️ PREVIOUS ATTEMPT FAILED: "${prevErr.message}". YOU MUST ENSURE THE CODE IS COMPLETE AND EXPORTED.` : '';
+
+    const raw = await smartCall(models, `You are a Senior Frontend Engineer at FouriqTech. Your job is to output a single, complete, production-ready React (.tsx) landing page component based on the Page Architect's Blueprint.
+
+⚠️ MANDATORY: Name the main function exactly: "export default function ${componentName}() { ... }"
+
+⚠️ CRITICAL RULES ⚠️
+1. Output ONLY the raw TypeScript React code. NO markdown code blocks (\`\`\`tsx). NO explanations. Just code.
+2. The component MUST use lucide-react icons, framer-motion, and the design system Tailwind classes (e.g., text-gradient, glass-card, liquid-blob).
+3. Include all necessary imports at the top:
+import { useEffect, useState, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
+import { useScrollLock } from '@/components/SmoothScroll';
+// Import all used icons from 'lucide-react'.
+
+4. Implement all sections exactly as specified in the Architect Blueprint. Write polished, hardcoded text.
+
+═══ DESIGN SYSTEM ═══
+${designSystemCtx}
+
+═══ ARCHITECT BLUEPRINT ═══
+${JSON.stringify(pageDesign, null, 2)}
+${fix}`, 'Page Builder');
+
+    let cleanedCode = raw.trim();
+    if (cleanedCode.startsWith('\`\`\`tsx')) cleanedCode = cleanedCode.replace(/^\`\`\`tsx\n/, '');
+    if (cleanedCode.startsWith('\`\`\`typescript')) cleanedCode = cleanedCode.replace(/^\`\`\`typescript\n/, '');
+    if (cleanedCode.startsWith('\`\`\`')) cleanedCode = cleanedCode.replace(/^\`\`\`\n/, '');
+    if (cleanedCode.endsWith('\`\`\`')) cleanedCode = cleanedCode.slice(0, -3).trim();
+
+    // Auto-fix missing export default if the function itself exists
+    if (!cleanedCode.includes('export default')) {
+      if (cleanedCode.includes(`function ${componentName}`)) {
+        cleanedCode = cleanedCode.replace(`function ${componentName}`, `export default function ${componentName}`);
+      } else {
+        // Fallback: append it if we can find a likely candidate or just wrap it
+        throw new Error("Generated code is missing 'export default'. The model failed to provide the entry point.");
+      }
+    }
+
+    return cleanedCode;
   });
 }
 
@@ -388,16 +513,13 @@ async function managerAgent() {
     process.exit(1);
   }
 
-  // ── Load queue and check pending task limit ──
-  const queue = loadQueue();
-  const pendingCount = queue.tasks.filter(t => t.status === 'pending').length;
-
-  if (pendingCount >= 5) {
-    console.log(`🚫 Already ${pendingCount} pending tasks in queue. Execute them first via Antigravity.`);
-    console.log('   Run /dev-tasks in Antigravity to process pending tasks.');
+  // 👔 Absolute Manger Authority: Only run if commanded
+  if (!hasFreshStructuralOrders() && !process.env.FORCE_PUBLISH) {
+    console.log(`🛑 MANAGER OVERRIDE: No explicit orders from the Agency Director today to build a page. Standing down.`);
     process.exit(0);
+  } else {
+    console.log(`👔 DIRECTOR ORDERS DETECTED: Proceeding with landing page architecture...`);
   }
-  console.log(`📋 Queue: ${pendingCount} pending | ${queue.completed.length} completed`);
 
   // ── Load resources ──
   const knowledgeCtx = loadKnowledge();
@@ -422,11 +544,9 @@ async function managerAgent() {
   }
   config._flatKeywords = flatKw;
 
-  // Also check existing queue task routes
-  const queuedRoutes = queue.tasks.map(t => t.route).concat(queue.completed.map(t => t.route));
-  const allRoutes = [...existingRoutes, ...queuedRoutes];
+  const allRoutes = existingRoutes;
 
-  console.log(`🛣️  Existing routes: ${existingRoutes.length} | Queued: ${queuedRoutes.length}`);
+  console.log(`\n🛣️  Existing service routes: ${existingRoutes.length}`);
   console.log(`📰 Existing blogs: ${existingSlugs.length} | 🔑 Keywords: ${flatKw.length}\n`);
 
   // ══════════════════════════════════════
@@ -461,45 +581,52 @@ async function managerAgent() {
   }
 
   // ══════════════════════════════════════
-  // Stage 3: Write Task to Queue
+  // Stage 3: Page Builder (Autonomous Coding)
   // ══════════════════════════════════════
-  const taskId = crypto.randomUUID();
+  let tsxCode;
+  try {
+    tsxCode = await pageBuilderAgent(pageDesign, designSystemCtx);
+  } catch (e) {
+    console.error(`❌ Page Builder failed: ${e.message}`);
+    process.exit(1);
+  }
 
-  const task = {
-    id: taskId,
-    type: 'landing_page',
-    status: 'pending',
-    created_at: new Date().toISOString(),
-    completed_at: null,
-    keyword: scanResult.primary_keyword,
-    secondary_keywords: scanResult.secondary_keywords,
+  // ══════════════════════════════════════
+  // Stage 4: Deploy (Save & Route) -> Redirected to Staging
+  // ══════════════════════════════════════
+  const targetFile = pageDesign.target_file || 'src/pages/services/GeneratedPage.tsx';
+  const fileName = targetFile.split('/').pop();
+  
+  const payload = JSON.stringify({
+    target_file: targetFile,
     route: pageDesign.route,
-    page_title: pageDesign.page_title,
-    target_file: pageDesign.target_file,
-    target_persona: scanResult.target_persona,
-    service_alignment: scanResult.service_alignment,
-    seo: pageDesign.seo,
-    sections: pageDesign.sections,
-    lead_score: scanResult.lead_score,
-    business_relevance: scanResult.business_relevance,
-    reasoning: scanResult.reasoning
-  };
+    code: tsxCode
+  });
 
-  queue.tasks.push(task);
-  saveQueue(queue);
+  if (process.env.DRY_RUN === 'true') {
+    console.log(`\n🧪 DRY_RUN: Landing page generated but NOT submitted to Staging.`);
+    console.log(`📄 PREVIEW ${targetFile}:\n${tsxCode.substring(0, 500)}...`);
+  } else {
+    console.log(`\n📦 SUBMITTING to Manager Staging Queue...`);
+    await submitToStaging({
+      type: 'landing_page',
+      department: 'Structural Team',
+      title: fileName,
+      content: payload,
+      metadata: { lead_score: scanResult.lead_score, keyword: scanResult.primary_keyword, route: pageDesign.route }
+    });
+    await logActivity('Structural Team', `🏗️ Submitted new landing page "${fileName}" to Staging Queue.`, "publish");
+
+    console.log(`\n📦 STAGED: ${targetFile} successfully queued for Manager review.`);
+  }
 
   console.log('\n╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  📋 TASK CREATED — Ready for Antigravity                 ║');
+  console.log('║  📋 STRUCTURAL TEAM REPORT — ⏳ STAGED                  ║');
   console.log('╠═══════════════════════════════════════════════════════════╣');
-  console.log(`║  🆔 Task ID: ${taskId.substring(0, 8)}...`);
   console.log(`║  🎯 Keyword: "${scanResult.primary_keyword}"`);
   console.log(`║  🛣️  Route: ${pageDesign.route}`);
-  console.log(`║  📄 File: ${pageDesign.target_file}`);
-  console.log(`║  🔧 Sections: ${pageDesign.sections?.length}`);
+  console.log(`║  📄 Component: ${targetFile}`);
   console.log(`║  💰 Lead Score: ${scanResult.lead_score}/10`);
-  console.log(`║  📋 Pending tasks: ${queue.tasks.filter(t => t.status === 'pending').length}`);
-  console.log('║                                                          ║');
-  console.log('║  ➡️  Run /dev-tasks in Antigravity to build this page     ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
 
   console.log('\n👔 DEV AGENT: Signing off. ✅');

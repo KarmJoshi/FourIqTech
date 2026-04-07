@@ -1,0 +1,96 @@
+{
+  "generated_at": "2026-04-01T11:15:44.707Z",
+  "safe_auto": [
+    {
+      "id": "opp-10",
+      "target": "fouriq",
+      "department": "structural",
+      "playbook": "ctr_optimization",
+      "score": 78.02,
+      "reason": "support_or_ctr_iteration"
+    },
+    {
+      "id": "opp-8",
+      "target": "fouriq",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "score": 41.8,
+      "reason": "support_or_ctr_iteration"
+    },
+    {
+      "id": "opp-9",
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "department": "content",
+      "playbook": "content_refresh",
+      "score": 25,
+      "reason": "existing_page_refresh"
+    },
+    {
+      "id": "opp-1",
+      "target": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "score": 19.12,
+      "reason": "support_or_ctr_iteration"
+    },
+    {
+      "id": "opp-2",
+      "target": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "score": 19.12,
+      "reason": "support_or_ctr_iteration"
+    },
+    {
+      "id": "opp-3",
+      "target": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "score": 19.12,
+      "reason": "support_or_ctr_iteration"
+    },
+    {
+      "id": "opp-4",
+      "target": "https://www.fouriqtech.com/blog/nextjs-bff-architecture-enterprise-microservices",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "score": 19.12,
+      "reason": "support_or_ctr_iteration"
+    },
+    {
+      "id": "opp-5",
+      "target": "https://www.fouriqtech.com/blog/how-to-choose-web-design-company-Global",
+      "department": "structural",
+      "playbook": "cluster_support",
+      "score": 19.12,
+      "reason": "support_or_ctr_iteration"
+    }
+  ],
+  "review_required": [
+    {
+      "id": "opp-6",
+      "target": "https://www.fouriqtech.com/blog",
+      "department": "structural",
+      "playbook": "pillar_expansion",
+      "score": 33.4,
+      "reason": "new_pillar_content"
+    },
+    {
+      "id": "opp-7",
+      "target": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "department": "structural",
+      "playbook": "pillar_expansion",
+      "score": 33.4,
+      "reason": "new_pillar_content"
+    },
+    {
+      "id": "opp-11",
+      "target": "https://www.fouriqtech.com/blog/why-Global-businesses-need-mobile-first-websites",
+      "department": "content",
+      "playbook": "technical_fix",
+      "score": 12.36,
+      "reason": "technical_changes_need_review"
+    }
+  ],
+  "blocked": []
+}

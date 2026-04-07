@@ -68,5 +68,55 @@
       "Brand name 'FouriqTech' appears 5 times (headers, text, code), exceeding the strict limit of 2."
     ],
     "date": "2026-03-23"
+  },
+  {
+    "keyword": "architecting high-performance enterprise SaaS",
+    "qa_score": 75,
+    "human_tone": 9,
+    "issues": [
+      "The article is structurally incomplete, ending abruptly in the 'Measured Results' section without fully detailing the outcomes or concluding the report.",
+      "Key incident report sections such as 'Trade-off analysis' and 'Unexpected Problem' are entirely missing, which are crucial for a comprehensive engineering deep-dive.",
+      "The content cuts off mid-paragraph/sentence, which is unprofessional and leaves the reader without a complete understanding of the resolution."
+    ],
+    "date": "2026-03-30"
+  },
+  {
+    "keyword": "nextjs slow route transitions",
+    "qa_score": 10,
+    "human_tone": 1,
+    "issues": [
+      "No article text was provided for review.",
+      "Word count is 0, completely missing the 1000-word target.",
+      "Cannot evaluate tone, angle, formatting, or technical depth because the payload is empty."
+    ],
+    "date": "2026-03-30"
+  },
+  {
+    "keyword": "headless commerce seo issues",
+    "qa_score": 75,
+    "human_tone": 9,
+    "issues": [
+      "The article abruptly ends mid-sentence in Section 10 ('...canonical tag and a product pric')."
+    ],
+    "date": "2026-03-31"
+  },
+  {
+    "keyword": "react design system performance",
+    "qa_score": 73,
+    "human_tone": 9,
+    "issues": [
+      "The article abruptly ends mid-sentence ('For applicat') in the Trade-off Analysis section, failing the completeness check.",
+      "The keyword 'react design system performance' fails to capitalize the proper noun 'React' in the text, making its insertion look slightly forced despite good contextual placement."
+    ],
+    "date": "2026-04-01"
+  },
+  {
+    "keyword": "framer motion performance optimization",
+    "qa_score": 78,
+    "human_tone": 9,
+    "issues": [
+      "The article abruptly ends mid-sentence at the very end of the text ('5. Layer Demotion & Destruction: Animat')."
+    ],
+    "date": "2026-04-01"
   }
 ]

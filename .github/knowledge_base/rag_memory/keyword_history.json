@@ -31,5 +31,500 @@
       "day28_due": "2026-04-15",
       "last_checked": null
     }
+  },
+  {
+    "article_id": "enterprise-react-dashboard-optimization-post-mortem",
+    "metadata": {
+      "published_date": "2026-03-28",
+      "word_count": 593,
+      "keyword_primary": "enterprise react dashboard optimization",
+      "keyword_density": 0.34,
+      "internal_links_injected": 0,
+      "qa_score": 90,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Performance & Scalability"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-29",
+      "day3_due": "2026-03-31",
+      "day7_due": "2026-04-04",
+      "day14_due": "2026-04-11",
+      "day28_due": "2026-04-25",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "nextjs-memory-leak-production-forensics",
+    "metadata": {
+      "published_date": "2026-03-29",
+      "word_count": 875,
+      "keyword_primary": "nextjs memory leak production",
+      "keyword_density": 0.34,
+      "internal_links_injected": 0,
+      "qa_score": 90,
+      "human_tone_score": 8,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Performance & Scalability"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-30",
+      "day3_due": "2026-04-01",
+      "day7_due": "2026-04-05",
+      "day14_due": "2026-04-12",
+      "day28_due": "2026-04-26",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "solving-hydration-paradox-headless-commerce-web-vitals",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 877,
+      "keyword_primary": "headless commerce web vitals optimization",
+      "keyword_density": 0.34,
+      "internal_links_injected": 0,
+      "qa_score": 90,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Performance & Scalability"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "optimizing-tanstack-query-enterprise-case-study",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 908,
+      "keyword_primary": "optimizing tanstack query enterprise",
+      "keyword_density": 0.22,
+      "internal_links_injected": 0,
+      "qa_score": 88,
+      "human_tone_score": 8,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Performance & Scalability"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "enterprise-frontend-modernization-hybrid-bridge-blueprint",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 505,
+      "keyword_primary": "legacy frontend modernization",
+      "keyword_density": 0.2,
+      "internal_links_injected": 0,
+      "qa_score": 95,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise Application Modernization & Microservices"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "micro-frontend-state-bridge-case-study",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 918,
+      "keyword_primary": "modernizing legacy enterprise applications with micro-frontends",
+      "keyword_density": 0.22,
+      "internal_links_injected": 0,
+      "qa_score": 98,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "commercial",
+      "cluster": "Enterprise Application Modernization & Microservices"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "architecting-60fps-react-data-grid-performance",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 547,
+      "keyword_primary": "react data grid performance",
+      "keyword_density": 0.37,
+      "internal_links_injected": 0,
+      "qa_score": 95,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Performance & Scalability"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "headless-commerce-migration-strangler-fig-session-state",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 886,
+      "keyword_primary": "monolith to headless commerce migration",
+      "keyword_density": 0.34,
+      "internal_links_injected": 0,
+      "qa_score": 95,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "commercial",
+      "cluster": "Enterprise Application Modernization & Microservices"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "react-performance-bottlenecks-forensic-guide",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 1371,
+      "keyword_primary": "react performance bottleneck analysis",
+      "keyword_density": 0.15,
+      "internal_links_injected": 0,
+      "qa_score": 80,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "nextjs-slow-ttfb-dynamic-routes-forensics",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 952,
+      "keyword_primary": "nextjs slow ttfb",
+      "keyword_density": 0.21,
+      "internal_links_injected": 0,
+      "qa_score": 95,
+      "human_tone_score": 10,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise SaaS Architecture"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "fix-react-main-thread-blocking-dashboard-inp",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 865,
+      "keyword_primary": "fix react main thread blocking",
+      "keyword_density": 0.35,
+      "internal_links_injected": 0,
+      "qa_score": 95,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "commercial",
+      "cluster": "Enterprise SaaS Architecture"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "b2b-saas-frontend-architecture-multi-tenant-scale",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 911,
+      "keyword_primary": "b2b saas frontend architecture",
+      "keyword_density": 0.44,
+      "internal_links_injected": 0,
+      "qa_score": 90,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise SaaS Architecture"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "react-websocket-memory-leak-sharedworker-forensics",
+    "metadata": {
+      "published_date": "2026-03-30",
+      "word_count": 984,
+      "keyword_primary": "react websocket memory leak",
+      "keyword_density": 0.2,
+      "internal_links_injected": 0,
+      "qa_score": 95,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-03-31",
+      "day3_due": "2026-04-02",
+      "day7_due": "2026-04-06",
+      "day14_due": "2026-04-13",
+      "day28_due": "2026-04-27",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "react-tree-shaking-not-working-enterprise-barrel-files",
+    "metadata": {
+      "published_date": "2026-03-31",
+      "word_count": 926,
+      "keyword_primary": "react tree shaking not working",
+      "keyword_density": 0.22,
+      "internal_links_injected": 0,
+      "qa_score": 93,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Design Systems & UI/UX"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-04-01",
+      "day3_due": "2026-04-03",
+      "day7_due": "2026-04-07",
+      "day14_due": "2026-04-14",
+      "day28_due": "2026-04-28",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "fixing-nextjs-serverless-function-timeout-queues-rsc",
+    "metadata": {
+      "published_date": "2026-03-31",
+      "word_count": 763,
+      "keyword_primary": "nextjs serverless function timeout",
+      "keyword_density": 0.26,
+      "internal_links_injected": 0,
+      "qa_score": 89,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise SaaS Architecture"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-04-01",
+      "day3_due": "2026-04-03",
+      "day7_due": "2026-04-07",
+      "day14_due": "2026-04-14",
+      "day28_due": "2026-04-28",
+      "last_checked": null
+    }
   }
 ]

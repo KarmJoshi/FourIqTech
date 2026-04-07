@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-04-01T08:06:19.690Z",
+  "queries": [
+    {
+      "query": "fouriq",
+      "error": "1 is an invalid safe search type!",
+      "competitor_results": [],
+      "our_coverage": [],
+      "gap_signal": "lookup_failed"
+    },
+    {
+      "query": "nextjs multi tenant routing performance edge middleware",
+      "error": "1 is an invalid safe search type!",
+      "competitor_results": [],
+      "our_coverage": [],
+      "gap_signal": "lookup_failed"
+    },
+    {
+      "query": "enterprise react design system implementation",
+      "error": "1 is an invalid safe search type!",
+      "competitor_results": [],
+      "our_coverage": [],
+      "gap_signal": "lookup_failed"
+    },
+    {
+      "query": "fix react memory leaks enterprise saas",
+      "error": "1 is an invalid safe search type!",
+      "competitor_results": [],
+      "our_coverage": [],
+      "gap_signal": "lookup_failed"
+    },
+    {
+      "query": "nextjs bff architecture enterprise microservices",
+      "error": "1 is an invalid safe search type!",
+      "competitor_results": [],
+      "our_coverage": [],
+      "gap_signal": "lookup_failed"
+    },
+    {
+      "query": "how to choose web design company Global",
+      "error": "1 is an invalid safe search type!",
+      "competitor_results": [],
+      "our_coverage": [],
+      "gap_signal": "lookup_failed"
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "generated_at": "2026-04-01T11:15:44.699Z",
+  "plans": [
+    {
+      "target": "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "target_page": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+      "target_position": 8,
+      "target_impressions": 21,
+      "suggested_sources": [
+        {
+          "source": "blog/b2b-saas-frontend-architecture-multi-tenant-scale",
+          "source_title": "B2B SaaS Frontend Architecture: Scaling Multi-Tenant React & Next.js to 12M RPM",
+          "target": "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+          "target_page": "https://www.fouriqtech.com/blog/nextjs-multi-tenant-routing-performance-edge-middleware",
+          "overlap": 0.18,
+          "target_position": 8,
+          "target_impressions": 21
+        }
+      ],
+      "anchor_direction": "Use natural descriptive anchors related to blog nextjs multi tenant routing performance edge middleware"
+    },
+    {
+      "target": "blog/enterprise-react-design-system-implementation",
+      "target_page": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+      "target_position": 8.3,
+      "target_impressions": 4,
+      "suggested_sources": [
+        {
+          "source": "services/enterprise-react-performance-optimization",
+          "source_title": "enterprise react performance optimization",
+          "target": "blog/enterprise-react-design-system-implementation",
+          "target_page": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+          "overlap": 0.33,
+          "target_position": 8.3,
+          "target_impressions": 4
+        },
+        {
+          "source": "services/enterprise-ui-ux-design-services",
+          "source_title": "enterprise ui ux design services",
+          "target": "blog/enterprise-react-design-system-implementation",
+          "target_page": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+          "overlap": 0.33,
+          "target_position": 8.3,
+          "target_impressions": 4
+        },
+        {
+          "source": "blog/mastering-enterprise-react-performance-audit-high-traffic-applications",
+          "source_title": "Mastering the Enterprise React Performance Audit for High-Traffic Applications",
+          "target": "blog/enterprise-react-design-system-implementation",
+          "target_page": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+          "overlap": 0.2,
+          "target_position": 8.3,
+          "target_impressions": 4
+        },
+        {
+          "source": "blog/react-form-performance-optimization-enterprise-guide",
+          "source_title": "React Form Performance Optimization: Architecting Ultra-Responsive Enterprise Data Entry Modules",
+          "target": "blog/enterprise-react-design-system-implementation",
+          "target_page": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+          "overlap": 0.18,
+          "target_position": 8.3,
+          "target_impressions": 4
+        }
+      ],
+      "anchor_direction": "Use natural descriptive anchors related to blog enterprise react design system implementation"
+    },
+    {
+      "target": "blog/fix-react-memory-leaks-enterprise-saas",
+      "target_page": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+      "target_position": 8.3,
+      "target_impressions": 3,
+      "suggested_sources": [
+        {
+          "source": "services/enterprise-react-performance-optimization",
+          "source_title": "enterprise react performance optimization",
+          "target": "blog/fix-react-memory-leaks-enterprise-saas",
+          "target_page": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+          "overlap": 0.29,
+          "target_position": 8.3,
+          "target_impressions": 3
+        },
+        {
+          "source": "blog/mastering-enterprise-react-performance-audit-high-traffic-applications",
+          "source_title": "Mastering the Enterprise React Performance Audit for High-Traffic Applications",
+          "target": "blog/fix-react-memory-leaks-enterprise-saas",
+          "target_page": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+          "overlap": 0.2,
+          "target_position": 8.3,
+          "target_impressions": 3
+        },
+        {
+          "source": "blog/b2b-saas-frontend-architecture-multi-tenant-scale",
+          "source_title": "B2B SaaS Frontend Architecture: Scaling Multi-Tenant React & Next.js to 12M RPM",
+          "target": "blog/fix-react-memory-leaks-enterprise-saas",
+          "target_page": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+          "overlap": 0.18,
+          "target_position": 8.3,
+          "target_impressions": 3
+        },
+        {
+          "source": "blog/react-form-performance-optimization-enterprise-guide",
+          "source_title": "React Form Performance Optimization: Architecting Ultra-Responsive Enterprise Data Entry Modules",
+          "target": "blog/fix-react-memory-leaks-enterprise-saas",
+          "target_page": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+          "overlap": 0.18,
+          "target_position": 8.3,
+          "target_impressions": 3
+        }
+      ],
+      "anchor_direction": "Use natural descriptive anchors related to blog fix react memory leaks enterprise saas"
+    },
+    {
+      "target": "blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+      "target_page": "https://www.fouriqtech.com/blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+      "target_position": 8.8,
+      "target_impressions": 5,
+      "suggested_sources": [
+        {
+          "source": "blog/b2b-saas-frontend-architecture-multi-tenant-scale",
+          "source_title": "B2B SaaS Frontend Architecture: Scaling Multi-Tenant React & Next.js to 12M RPM",
+          "target": "blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+          "target_page": "https://www.fouriqtech.com/blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+          "overlap": 0.27,
+          "target_position": 8.8,
+          "target_impressions": 5
+        },
+        {
+          "source": "blog/nextjs-multi-tenant-custom-domains-enterprise-guide",
+          "source_title": "Next.js Multi-Tenant Custom Domains: An Enterprise Guide to White-Label SaaS Architecture & SSL Automation",
+          "target": "blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+          "target_page": "https://www.fouriqtech.com/blog/b2b-saas-multi-tenancy-patterns-nextjs-guide",
+          "overlap": 0.23,
+          "target_position": 8.8,
+          "target_impressions": 5
+        }
+      ],
+      "anchor_direction": "Use natural descriptive anchors related to blog b2b saas multi tenancy patterns nextjs guide"
+    },
+    {
+      "target": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "target_page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+      "target_position": 10,
+      "target_impressions": 62,
+      "suggested_sources": [
+        {
+          "source": "blog/mastering-enterprise-react-performance-audit-high-traffic-applications",
+          "source_title": "Mastering the Enterprise React Performance Audit for High-Traffic Applications",
+          "target": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "target_page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "overlap": 0.4,
+          "target_position": 10,
+          "target_impressions": 62
+        },
+        {
+          "source": "blog/optimizing-nextjs-server-side-rendering-high-traffic-applications",
+          "source_title": "Optimizing Next.js Server-Side Rendering: A Reliability-First Approach for High-Traffic Enterprise Applications",
+          "target": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "target_page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "overlap": 0.31,
+          "target_position": 10,
+          "target_impressions": 62
+        },
+        {
+          "source": "services/enterprise-react-performance-optimization",
+          "source_title": "enterprise react performance optimization",
+          "target": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "target_page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "overlap": 0.22,
+          "target_position": 10,
+          "target_impressions": 62
+        },
+        {
+          "source": "blog/react-form-performance-optimization-enterprise-guide",
+          "source_title": "React Form Performance Optimization: Architecting Ultra-Responsive Enterprise Data Entry Modules",
+          "target": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "target_page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "overlap": 0.18,
+          "target_position": 10,
+          "target_impressions": 62
+        }
+      ],
+      "anchor_direction": "Use natural descriptive anchors related to blog optimizing framer motion animations for enterprise react applications"
+    },
+    {
+      "target": "services/legacy-web-application-modernization",
+      "target_page": "https://www.fouriqtech.com/services/legacy-web-application-modernization",
+      "target_position": 12.5,
+      "target_impressions": 2,
+      "suggested_sources": [
+        {
+          "source": "services/enterprise-ui-ux-design-services",
+          "source_title": "enterprise ui ux design services",
+          "target": "services/legacy-web-application-modernization",
+          "target_page": "https://www.fouriqtech.com/services/legacy-web-application-modernization",
+          "overlap": 0.2,
+          "target_position": 12.5,
+          "target_impressions": 2
+        }
+      ],
+      "anchor_direction": "Use natural descriptive anchors related to services legacy web application modernization"
+    }
+  ]
+}

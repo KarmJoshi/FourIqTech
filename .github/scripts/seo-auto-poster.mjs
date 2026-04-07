@@ -1,8 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import puppeteer from 'puppeteer';
 import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
 import crypto from 'crypto';
+import { submitToStaging, logActivity } from './agency-core.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🏢 FOURIQTECH AI SEO ENGINE — V8.0 "Autonomous Agency"
@@ -48,8 +50,21 @@ const RAG_GSC_SNAPSHOTS = path.join(RAG_DIR, 'gsc_snapshots');
 // ═══════════════════════════════════════════════════════════════════════
 // 🔑 MULTI-API KEY ROTATION & SMART CALL ENGINE
 // ═══════════════════════════════════════════════════════════════════════
-const API_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+// ── API KEY ROTATION ──
+const PRO_KEY = process.env.GEMINI_PRO_API_KEY || '';
+const OTHER_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+  .replace(/["']/g, '')
   .split(',').map(k => k.trim()).filter(k => k.length > 0);
+
+const MODEL_PRESETS = {
+  'research':  ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  'manager':   ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  'writing':   ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  'qa':        ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+};
+
+// Prioritize Pro Key (Billed) and deduplicate with others
+const API_KEYS = [...new Set([PRO_KEY, ...OTHER_KEYS])].filter(k => k.length > 0);
 
 let currentKeyIdx = 0;
 if (API_KEYS.length > 0) process.env.GEMINI_API_KEY = API_KEYS[0];
@@ -67,12 +82,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function getModels(taskType) {
   const tasks = {
-    'research':  ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
-    'manager':   ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
-    'writing':   ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash'],
-    'qa':        ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash']
+    'research':  ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+    'manager':   ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+    'writing':   ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+    'qa':        ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash']
   };
-  return tasks[taskType] || ['gemini-3-flash-preview'];
+  return tasks[taskType] || ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'];
 }
 
 async function smartCall(modelArray, contents, agentName = 'AI') {
@@ -581,17 +596,44 @@ function getClusterContext() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// 📋 CEO EXECUTIVE ORDERS
+// ═══════════════════════════════════════════════════════════════════════
+function loadDirectorOrders() {
+  const ordersPath = path.join(process.cwd(), '.github/director_orders.json');
+  try {
+    const orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8'));
+    return `\n\n👔 EXECUTIVE ORDERS FROM AGENCY DIRECTOR:\nDepartment: ${orders.department}\nReasoning: ${orders.reasoning}\nOrders: ${orders.cross_department_orders}\nAgency Health: ${orders.agency_health_score}/10\n\nYOU MUST STRICTLY FOLLOW THESE ORDERS IN YOUR CONTENT STRATEGY.`;
+  } catch {
+    return "";
+  }
+}
+
+function hasFreshDirectorOrders() {
+  const ordersPath = path.join(process.cwd(), '.github/director_orders.json');
+  try {
+    const orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8'));
+    const orderDate = orders.timestamp.split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    return orderDate === today && orders.department === 'content';
+  } catch {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // 🔬 RESEARCHER — Keyword Discovery + SERP Analysis + Semantic Clusters
 // ═══════════════════════════════════════════════════════════════════════
 async function researcherAgent(existingSlugs, knowledgeCtx, ragCtx) {
   const models = getModels('research');
   console.log(`\n🔬 RESEARCHER: Deep keyword + SERP analysis...`);
+  const directorOrders = loadDirectorOrders();
 
   return await healedCall('Researcher', async (prevErr) => {
     const fix = prevErr ? `\nFIX: "${prevErr.message}". Return valid JSON.` : '';
     const clusterCtx = getClusterContext();
 
     const raw = await smartCall(models, `You are a top-tier SEO Data Scientist with 10+ years of experience analyzing Google algorithms and SERP volatility for enterprise tech companies. FouriqTech is your client — a premium web design & development agency targeting global startups and enterprises.
+${directorOrders}
 
 COMPANY CONTEXT:
 ${knowledgeCtx}
@@ -658,9 +700,82 @@ RETURN VALID JSON:
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// 🌐 SCRAPER — Live SERP Data Extraction (Headless with Fallback)
+// ═══════════════════════════════════════════════════════════════════════
+async function scrapeSerp(keyword) {
+  let browser = null;
+  try {
+    console.log(`\n🕵️ SCRAPER: Launching headless browser for real-time SERP scrape...`);
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080']
+    });
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
+    // --- TRY GOOGLE FIRST ---
+    console.log(`   🌐 Primary Attempt: Google Search for "${keyword}"`);
+    await page.goto(`https://www.google.com/search?q=${encodeURIComponent(keyword)}&hl=en`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await new Promise(r => setTimeout(r, 2000));
+
+    let results = await page.evaluate(() => {
+      if (document.body.innerText.includes('unusual traffic') || document.querySelector('#captcha-form')) return [];
+      const items = document.querySelectorAll('div.tF2Cxc, div.g');
+      const data = [];
+      items.forEach((item, index) => {
+        if(index >= 10) return;
+        const titleEl = item.querySelector('h3');
+        const snippetEl = item.querySelector('.VwiC3b, .yXK7lf, .MUxGbd, .yDYNvb');
+        if(titleEl) {
+          data.push({
+            position: index + 1,
+            title: titleEl.innerText || '',
+            snippet: snippetEl ? snippetEl.innerText : ''
+          });
+        }
+      });
+      return data;
+    });
+
+    // --- FALLBACK TO DUCKDUCKGO IF BLOCKED ---
+    if (!results || results.length === 0) {
+      console.log(`   ⚠️ Google blocked us (CAPTCHA). Falling back to DuckDuckGo...`);
+      await page.goto(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(keyword)}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await new Promise(r => setTimeout(r, 1500));
+      
+      results = await page.evaluate(() => {
+        const items = document.querySelectorAll('.result');
+        const data = [];
+        items.forEach((item, index) => {
+          if(index >= 10) return;
+          const titleEl = item.querySelector('.result__title');
+          const snippetEl = item.querySelector('.result__snippet');
+          if(titleEl) {
+            data.push({
+              position: index + 1,
+              title: titleEl.innerText || '',
+              snippet: snippetEl ? snippetEl.innerText : ''
+            });
+          }
+        });
+        return data;
+      });
+    }
+    
+    console.log(`   ✅ Extracted ${results.length} live organic results.`);
+    return results;
+  } catch(e) {
+    console.log(`   ⚠️ SERP Scrape Failed: ${e.message}`);
+    return null;
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // 🧠 AI MANAGER — The Strategic Brain (Replaces Strategist + Lead Scorer + Meta-Manager)
 // ═══════════════════════════════════════════════════════════════════════
-async function aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existingSlugs, existingTitles, knowledgeCtx) {
+async function aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existingSlugs, existingTitles, knowledgeCtx, liveSerpData) {
   const models = getModels('manager');
   console.log(`\n🧠 AI MANAGER: Creating strategy brief...`);
 
@@ -669,6 +784,10 @@ async function aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existi
 
     const gscSummary = gscInsights?.summary ? JSON.stringify(gscInsights.summary) : 'No GSC data yet — site is new.';
     const slugTitleMap = existingSlugs.map((s, i) => `/blog/${s} → "${existingTitles[i] || s}"`).join('\n');
+    
+    const liveSerpSection = liveSerpData && liveSerpData.length > 0
+      ? `\n3.5 LIVE COMPETITOR SEARCH RESULTS (TODAY):\nThis is what ranks on Page 1 for "${research.primary_keyword}" RIGHT NOW:\n${liveSerpData.map(r => `[#${r.position}] Title: "${r.title}"\n    Snippet: "${r.snippet}"`).join('\n')}\n-> MANAGER INSTRUCTION: Read these exact titles. Your "angle" and "competitor_gap" must directly exploit a weakness in these specific 10 results.`
+      : `\n3.5 LIVE COMPETITOR SEARCH RESULTS:\n(Live scrape failed. Fall back to Researcher's guessed SERP gap).`;
 
     const raw = await smartCall(models, `You are the SEO Account Manager at FouriqTech's autonomous SEO agency. You have 10 years of experience as an expert SEO manager scaling enterprise tech companies. You make ALL strategic content decisions to drive maximum ranking and ROI. No human is involved.
 
@@ -692,9 +811,9 @@ ${ragCtx}
 - Intent: ${research.search_intent}
 - Angle: ${research.content_angle}
 - Competitor Gap: ${research.competitor_gap}
-- Article Type: ${research.article_type}
 - SERP Data: ${JSON.stringify(research.serp_analysis)}
 - Semantic Keywords: ${JSON.stringify(research.semantic_keywords)}
+${liveSerpSection}
 
 4. CLUSTER STATUS:
 ${getClusterContext()}
@@ -899,7 +1018,8 @@ RETURN VALID JSON:
 
     const result = JSON.parse(raw);
     const wordCount = result.content?.split(/\s+/).length || 0;
-    const kwCount = (result.content?.toLowerCase().match(new RegExp(brief.keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+    const kw = brief.keyword || "";
+    const kwCount = (result.content?.toLowerCase().match(new RegExp(kw.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
 
     console.log(`   📄 "${result.title}" (${wordCount} words)`);
     console.log(`   🔑 Keyword "${brief.keyword}" appears ${kwCount} times`);
@@ -1063,11 +1183,14 @@ async function engine() {
   // Sync sitemap at start
   try { regenerateFullSitemap(); } catch {}
 
+  // 👔 Manger Override: If the Director specifically ordered a post today, bypass velocity limits.
+  const overrideVelocity = process.env.FORCE_PUBLISH || hasFreshDirectorOrders();
+
   // Check weekly velocity (2x/week limit)
   const weeklyCount = getWeeklyPublishCount();
   console.log(`📅 Published this week: ${weeklyCount}/2 (Target: 2x/week)`);
 
-  if (weeklyCount >= 2 && !process.env.FORCE_PUBLISH) {
+  if (weeklyCount >= 2 && !overrideVelocity) {
     console.log(`🛑 VELOCITY GOVERNOR: Weekly limit reached. Skipping to prevent SpamBrain detection.`);
     process.exit(0);
   }
@@ -1075,9 +1198,13 @@ async function engine() {
   // Check daily limit
   const todayCount = getTodayPublishCount();
   console.log(`📰 Published today: ${todayCount}/1`);
-  if (todayCount >= 1 && !process.env.FORCE_PUBLISH) {
+  if (todayCount >= 1 && !overrideVelocity) {
     console.log('🧠 Daily limit reached. Signing off. ✅');
     process.exit(0);
+  }
+
+  if (overrideVelocity) {
+    console.log(`👔 DIRECTOR OVERRIDE ACTIVE: Bypassing standard velocity limits...`);
   }
 
   // Load all context
@@ -1107,10 +1234,18 @@ async function engine() {
   }
 
   // ══════════════════════════════════════
+  // Stage 1.5: LIVE SERP SCRAPER
+  // ══════════════════════════════════════
+  let liveSerpData = null;
+  if(research.primary_keyword) {
+    liveSerpData = await scrapeSerp(research.primary_keyword);
+  }
+
+  // ══════════════════════════════════════
   // Stage 2: AI MANAGER (Strategy)
   // ══════════════════════════════════════
   let brief;
-  try { brief = await aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existingSlugs, existingTitles, knowledgeCtx); }
+  try { brief = await aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existingSlugs, existingTitles, knowledgeCtx, liveSerpData); }
   catch (e) {
     console.error('❌ AI Manager failed:', e.message);
     process.exit(1);
@@ -1207,18 +1342,22 @@ async function engine() {
       ${(draft.content || '').replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`,
   },`;
 
-    let updated = blogDataFile.replace(
-      'export const blogPosts: BlogPost[] = [',
-      `export const blogPosts: BlogPost[] = [${newPost}`
-    );
-
     if (process.env.DRY_RUN === 'true') {
-      console.log(`\n🧪 DRY_RUN: Post generated but NOT saved to disk.`);
+      console.log(`\n🧪 DRY_RUN: Post generated but NOT submitted to Staging.`);
       console.log(`📄 PREVIEW NEW POST:\n${newPost}`);
     } else {
-      fs.writeFileSync(BLOG_DATA_PATH, updated);
+      console.log(`\n📦 SUBMITTING to Manager Staging Queue...`);
+      await submitToStaging({
+        type: 'blog_post',
+        department: 'Content Team',
+        title: draft.title,
+        content: newPost,
+        metadata: { word_count: draft.wordCount, qa_score: qa.score, human_tone: qa.human_tone, keyword: brief.keyword }
+      });
+      await logActivity('Content Team', `✍️ Submitted new blog post "${draft.title}" to Staging Queue.`, "publish");
+
       incrementPublishCount();
-      regenerateFullSitemap();
+      // Only regenerate full sitemap when it's ACTUALLY published, maybe we leave it up to the Publisher script.
       saveArticleToRag(draft, brief, research, qa);
       updateClusterMap(brief, draft);
     }
@@ -1231,7 +1370,7 @@ async function engine() {
     console.log(`║  📊 QA: ${qa.score}/100 | Human Tone: ${qa.human_tone}/10`);
     console.log(`║  📏 Words: ${draft.wordCount}`);
     console.log(`║  🏗️ Cluster: ${brief.cluster}`);
-    console.log(`║  🕸️ Spider: ${spiderRes.injectedCount} reverse links`);
+    console.log(`║  🕸️ Spider: Linked`);
     console.log(`║  🔗 /blog/${draft.slug}`);
     console.log('╚═══════════════════════════════════════════════════════════╝');
   } else {

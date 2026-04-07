@@ -1,0 +1,4 @@
+{
+  "tools": [],
+  "description": "Registry of pre-built browser automation scripts. Manager generates once, agents reuse forever."
+}

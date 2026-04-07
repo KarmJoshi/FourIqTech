@@ -1,38 +1,38 @@
-  name: FouriqTech
-  website: https://www.fouriqtech.com
-  tagline: Next-Gen Digital Services
-  address: Worldwide (Remote-First)
-  phones:
-    - "+91 81403 71710" (Primary)
-    - "+91 97253 10310"
-    - "+91 88669 20015"
-  services:
-    primary:
-      - Web Design & Development
-      - digital strategy
-      - SEO Services
-      - Custom Web Applications
-    secondary:
-      - E-commerce Development
-      - Mobile-Responsive Design
-      - WordPress Development
-      - Social Media Marketing
-      - Google Ads Management
-      - Content Marketing
-  location:
-    primary: India, India
-    service_areas:
-      - India
-      - India
-      - Global (Remote)
-  target_clients:
-    - Global Startups and Enterprises
-    - Startups across India
-    - E-commerce stores
-    - Service-based businesses
-    - Local businesses going digital
-  cms:
-    type: detect_automatically
+name: FouriqTech
+website: https://www.fouriqtech.com
+tagline: Next-Gen Digital Services
+address: Worldwide (Remote-First)
+phones:
+  - "+91 81403 71710 (Primary)"
+  - "+91 97253 10310"
+  - "+91 88669 20015"
+services:
+  primary:
+    - Web Design & Development
+    - digital strategy
+    - SEO Services
+    - Custom Web Applications
+  secondary:
+    - E-commerce Development
+    - Mobile-Responsive Design
+    - WordPress Development
+    - Social Media Marketing
+    - Google Ads Management
+    - Content Marketing
+location:
+  primary: India, India
+  service_areas:
+    - India
+    - India
+    - Global (Remote)
+target_clients:
+  - Global Startups and Enterprises
+  - Startups across India
+  - E-commerce stores
+  - Service-based businesses
+  - Local businesses going digital
+cms:
+  type: detect_automatically
 goals:
   primary: Generate 20-30 qualified leads per month within 6-12 months
   milestones:
