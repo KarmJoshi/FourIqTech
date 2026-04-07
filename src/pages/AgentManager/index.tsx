@@ -35,6 +35,8 @@ const API_KEYS = (
   ""
 ).split(",").filter(Boolean);
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3848";
+
 export default function AgentManager() {
   // Navigation State
   const [activeDept, setActiveDept] = useState<"director" | "content" | "structural" | "technical" | "outreach">("director");
@@ -99,12 +101,12 @@ export default function AgentManager() {
     const fetchData = async () => {
       try {
         const [statRes, journalRes, feedRes, stagingRes, tasksRes, intelligenceRes] = await Promise.all([
-          fetch("http://localhost:3848/api/status").catch(() => null),
-          fetch("http://localhost:3848/api/journal").catch(() => null),
-          fetch("http://localhost:3848/api/activity").catch(() => null),
-          fetch("http://localhost:3848/api/staging").catch(() => null),
-          fetch("http://localhost:3848/api/tasks").catch(() => null),
-          fetch("http://localhost:3848/api/intelligence").catch(() => null)
+          fetch(`${API_BASE_URL}/api/status`).catch(() => null),
+          fetch(`${API_BASE_URL}/api/journal`).catch(() => null),
+          fetch(`${API_BASE_URL}/api/activity`).catch(() => null),
+          fetch(`${API_BASE_URL}/api/staging`).catch(() => null),
+          fetch(`${API_BASE_URL}/api/tasks`).catch(() => null),
+          fetch(`${API_BASE_URL}/api/intelligence`).catch(() => null)
         ]);
 
         if (statRes?.ok) setDirectorStatus(await statRes.json());
@@ -139,7 +141,7 @@ export default function AgentManager() {
   const dispatchDirectorCycle = async () => {
     setIsDispatching("director");
     try {
-      await fetch("http://localhost:3848/api/director/cycle", {
+      await fetch(`${API_BASE_URL}/api/director/cycle`, {
         method: "POST"
       });
     } catch (e) {
@@ -152,7 +154,7 @@ export default function AgentManager() {
   const dispatchDepartment = async (dept: string) => {
     setIsDispatching(dept);
     try {
-      await fetch(`http://localhost:3848/api/dispatch/${dept}`, {
+      await fetch(`${API_BASE_URL}/api/dispatch/${dept}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orders: `Manager dispatched ${dept} team via command center` })
@@ -166,7 +168,7 @@ export default function AgentManager() {
 
   const reviewItem = async (id: string, verdict: "approved" | "rejected", feedback: string) => {
     try {
-      await fetch(`http://localhost:3848/api/staging/${id}/review`, {
+      await fetch(`${API_BASE_URL}/api/staging/${id}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ verdict, feedback })
@@ -180,7 +182,7 @@ export default function AgentManager() {
   const [previewContent, setPreviewContent] = useState<{ id: string; content: string } | null>(null);
   const previewItem = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:3848/api/staging/${id}/content`);
+      const res = await fetch(`${API_BASE_URL}/api/staging/${id}/content`);
       if (res.ok) {
         const data = await res.json();
         setPreviewContent({ id, content: data.content || "No content available." });
@@ -237,7 +239,7 @@ export default function AgentManager() {
         finalNiche = "Roofers in Miami"; 
       }
       
-      const res = await fetch("http://localhost:3001/run-task", {
+      const res = await fetch(`${API_BASE_URL}/api/run-task`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: "lead_hunter", args: [finalNiche, String(leadCount)] })
@@ -260,7 +262,7 @@ export default function AgentManager() {
 
     setIsSending(true);
     try {
-      const res = await fetch("http://localhost:3001/send-email", {
+      const res = await fetch(`${API_BASE_URL}/api/send-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
