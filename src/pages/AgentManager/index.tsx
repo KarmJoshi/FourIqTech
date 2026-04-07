@@ -345,22 +345,41 @@ export default function AgentManager() {
 
   const syncLeads = async () => {
     setIsImporting(true);
+    console.log("[Sync Hub] Synchronizing leads with backend database...");
     try {
       const res = await fetch(`${API_BASE_URL}/api/leads`);
       if (res.ok) {
         const data = await res.json();
+        console.log("[Sync Hub] Data received:", data);
         if (data.leads && data.leads.length > 0) {
           // Merge avoiding duplicates by id
-          setLeads(prev => {
-            const existingIds = new Set(prev.map((l: any) => l.id));
+          setLeads(prevLeads => {
+            const existingIds = new Set(prevLeads.map((l: any) => l.id));
             const newLeads = data.leads.filter((l: any) => !existingIds.has(l.id));
-            if (newLeads.length > 0) alert(`Successfully synced ${newLeads.length} new leads.`);
-            return [...prev, ...newLeads];
+            
+            if (newLeads.length > 0) {
+              // Extract the layman-friendly AI-drafted emails and push to email state
+              const newEmails = newLeads.map((l: any) => l.draftEmail).filter(Boolean);
+              setEmails(prevEmails => {
+                const prevIds = new Set(prevEmails.map((e: any) => e.leadId));
+                const uniqueEmails = newEmails.filter((e: any) => !prevIds.has(e.leadId));
+                return [...prevEmails, ...uniqueEmails];
+              });
+              setTimeout(() => alert(`Successfully synced ${newLeads.length} new leads with pre-written drafts.`), 100);
+            } else {
+              setTimeout(() => alert("Sync complete. No new unique leads found (duplicates ignored)."), 100);
+            }
+            return [...prevLeads, ...newLeads];
           });
+        } else {
+          alert("No leads found in the hunter database. Start a new hunt first.");
         }
+      } else {
+        throw new Error(`API Status: ${res.status}`);
       }
     } catch (err) {
-      alert("Failed to sync leads from the Agency Intelligence database.");
+      console.error("[Sync Hub] Sync failed:", err);
+      alert("Failed to sync leads. Verify the Agency API is running on port 3848.");
     } finally {
       setIsImporting(false);
     }
