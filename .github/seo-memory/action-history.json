@@ -124,5 +124,41 @@
     },
     "score": 78.02,
     "recommendation": "structural"
+  },
+  {
+    "id": "act-1775558748499",
+    "timestamp": "2026-04-07T10:45:48.499Z",
+    "department": "structural",
+    "playbook": "ctr_optimization",
+    "target_slug": "fouriq",
+    "target": "fouriq",
+    "opportunity_id": "opp-10",
+    "opportunity_type": "ctr_optimization",
+    "baseline": {
+      "clicks": 3,
+      "impressions": 23,
+      "ctr": 13.04,
+      "position": 8
+    },
+    "score": 78.02,
+    "recommendation": "structural"
+  },
+  {
+    "id": "act-1775563321721",
+    "timestamp": "2026-04-07T12:02:01.721Z",
+    "department": "structural",
+    "playbook": "ctr_optimization",
+    "target_slug": "fouriq",
+    "target": "fouriq",
+    "opportunity_id": "opp-10",
+    "opportunity_type": "ctr_optimization",
+    "baseline": {
+      "clicks": 3,
+      "impressions": 23,
+      "ctr": 13.04,
+      "position": 8
+    },
+    "score": 78.02,
+    "recommendation": "structural"
   }
 ]

@@ -7,7 +7,8 @@
       "supporting_articles": [
         "fix-react-memory-leaks-enterprise-saas",
         "react-performance-bottlenecks-forensic-guide",
-        "react-websocket-memory-leak-sharedworker-forensics"
+        "react-websocket-memory-leak-sharedworker-forensics",
+        "fixing-nextjs-docker-memory-leak-standalone-heap-snapshot"
       ],
       "target_supporting_count": 5,
       "cluster_complete": false
@@ -57,7 +58,8 @@
       "supporting_articles": [
         "nextjs-slow-ttfb-dynamic-routes-forensics",
         "fix-react-main-thread-blocking-dashboard-inp",
-        "fixing-nextjs-serverless-function-timeout-queues-rsc"
+        "fixing-nextjs-serverless-function-timeout-queues-rsc",
+        "fixing-slow-nextjs-monorepo-build-enterprise-case-study"
       ],
       "target_supporting_count": 5,
       "cluster_complete": false

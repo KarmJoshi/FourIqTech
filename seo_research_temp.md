@@ -1,31 +1,31 @@
 # SEO Engine V8 — Research Log
 
-> **Generated:** 2026-04-01T11:21:20.115Z
+> **Generated:** 2026-04-07T14:12:37.332Z
 
 ---
 
 ## 🔬 Research
-**Keyword:** framer motion performance optimization
+**Keyword:** nextjs docker memory leak
 **Intent:** informational
-**Angle:** An enterprise-grade, case-study backed guide to debugging and optimizing Framer Motion in React/Next.js to maintain 60fps without main-thread blocking.
-**SERP Avg:** 2800 words
-**Gaps:** hardware acceleration forced layers, layout animation benchmarking metrics, garbage collection spikes during unmounts, measuring animation TBT impact
+**Angle:** A highly technical case study on tracing Node.js heap snapshots to diagnose and eliminate memory leaks in Next.js standalone Docker deployments for enterprise SaaS.
+**SERP Avg:** 1850 words
+**Gaps:** Node.js inspector integration inside Docker, Next.js standalone output specific memory retention, Heap snapshot comparison techniques via Chrome DevTools, Impact of Next.js App Router data cache on Docker RAM limits
 
 ---
 
 ## 🧠 Manager's Strategy
 **Decision:** publish
-**Title:** Framer Motion Performance Optimization: Fixing Layout Thrashing & Memory Leaks in Enterprise React
+**Title:** Fixing Next.js Docker Memory Leaks: A Standalone Mode Heap Snapshot Case Study
 **Target:** 1000 words
-**Tone:** Highly technical, authoritative, and case-study driven, speaking directly to senior engineers and enterprise technical directors.
-**Angle:** Unlike basic documentation or generic UI tutorials, this article provides an enterprise-grade engineering deep dive into debugging Framer Motion. We focus entirely on 'negative knowledge'—what actually causes jank, layout shift thrashing, garbage collection spikes in AnimatePresence, and how to trace GPU acceleration to maintain a flawless 60fps.
-**Reasoning:** The current SERP is extremely weak, dominated by basic documentation, generic AI lists, and low-level CodeSandbox tutorials. By deploying an advanced, enterprise-level debugging guide focusing on memory leaks and layout thrashing, we exploit this glaring content gap. This also perfectly allows us to interlink our orphaned React performance pages, clustering our technical authority.
+**Tone:** Highly technical, authoritative, and analytical, reading like an elite engineering post-mortem focused on enterprise infrastructure stability.
+**Angle:** While competitors offer superficial band-aids like increasing Kubernetes pod memory limits, this article provides a step-by-step engineering guide on extracting and analyzing V8 heap snapshots from a running Next.js standalone Docker container to pinpoint the exact closures causing OOM kills.
+**Reasoning:** Our RAG memory explicitly shows that deep, highly technical case studies on specific React/Next.js performance bottlenecks succeed, while generic architecture posts fail. The current SERP is dominated by disjointed StackOverflow threads and superficial DevOps posts, leaving a massive gap for a definitive, expert-led engineering guide that will build our raw topical authority.
 
 ---
 
 ## ✅ QA Result
-**Score:** 78/100 ❌ FAILED
+**Score:** 83/100 ✅ PASSED
 **Human Tone:** 9/10
-**Brief Compliance:** 10/10
-**Completeness:** 2/10
-**Summary:** Highly technical and brilliantly written enterprise case study with fantastic debugging insights, but automatically fails due to a broken, mid-sentence cutoff at the end.
+**Brief Compliance:** 9/10
+**Completeness:** 5/10
+**Summary:** An exceptionally authentic, highly technical engineering post-mortem that perfectly captures the requested elite tone, marred only by a truncated ending.

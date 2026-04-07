@@ -28,7 +28,7 @@ interface OutreachDepartmentProps {
   setLeadCount: (c: number) => void;
   exportLeads: () => void;
   exportOutreach: () => void;
-  importLeads: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  syncLeads: () => void;
   isImporting: boolean;
   selectedLeadId: string | null;
   setSelectedLeadId: (id: string | null) => void;
@@ -52,7 +52,7 @@ interface OutreachDepartmentProps {
 export function OutreachDepartment({ 
   leads, emails, replies, stats, outreachTab, setOutreachTab, 
   autoDecideNicheAndHunt, isGeneratingNiche, aiNiche, manualNiche, setManualNiche, 
-  leadCount, setLeadCount, exportLeads, exportOutreach, importLeads, isImporting,
+  leadCount, setLeadCount, exportLeads, exportOutreach, syncLeads, isImporting,
   selectedLeadId, setSelectedLeadId, leadFilter, setLeadFilter, search, setSearch,
   isEditing, setIsEditing, editForm, setEditForm, saveEdit, startEditing,
   handleSendEmail, isSending, addReply, newReply, setNewReply
@@ -193,7 +193,7 @@ export function OutreachDepartment({
                 <CardHeader className="pb-4 border-b border-white/5 bg-white/[0.02]">
                   <div className="flex items-center justify-between mb-4">
                     <CardTitle className="text-xs font-bold tracking-widest text-neutral-400 uppercase">Lead Directory</CardTitle>
-                    <Button size="sm" variant="outline" onClick={importLeads} disabled={isImporting} className="h-8 px-3 text-[10px] font-bold border-ai-primary/20 text-ai-primary hover:bg-ai-primary/10 rounded-xl">
+                    <Button size="sm" variant="outline" onClick={syncLeads} disabled={isImporting} className="h-8 px-3 text-[10px] font-bold border-ai-primary/20 text-ai-primary hover:bg-ai-primary/10 rounded-xl">
                       {isImporting ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Zap className="mr-2 h-3.5 w-3.5" />} SYNC HUB
                     </Button>
                   </div>

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-01T11:15:44.699Z",
+  "generated_at": "2026-04-07T11:58:09.241Z",
   "plans": [
     {
       "target": "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
@@ -44,6 +44,15 @@
           "target_impressions": 4
         },
         {
+          "source": "blog/fix-react-main-thread-blocking-dashboard-inp",
+          "source_title": "Fix React Main Thread Blocking: Enterprise Dashboard INP Optimization",
+          "target": "blog/enterprise-react-design-system-implementation",
+          "target_page": "https://www.fouriqtech.com/blog/enterprise-react-design-system-implementation",
+          "overlap": 0.22,
+          "target_position": 8.3,
+          "target_impressions": 4
+        },
+        {
           "source": "blog/mastering-enterprise-react-performance-audit-high-traffic-applications",
           "source_title": "Mastering the Enterprise React Performance Audit for High-Traffic Applications",
           "target": "blog/enterprise-react-design-system-implementation",
@@ -70,6 +79,15 @@
       "target_position": 8.3,
       "target_impressions": 3,
       "suggested_sources": [
+        {
+          "source": "blog/fix-react-main-thread-blocking-dashboard-inp",
+          "source_title": "Fix React Main Thread Blocking: Enterprise Dashboard INP Optimization",
+          "target": "blog/fix-react-memory-leaks-enterprise-saas",
+          "target_page": "https://www.fouriqtech.com/blog/fix-react-memory-leaks-enterprise-saas",
+          "overlap": 0.33,
+          "target_position": 8.3,
+          "target_impressions": 3
+        },
         {
           "source": "services/enterprise-react-performance-optimization",
           "source_title": "enterprise react performance optimization",
@@ -157,6 +175,15 @@
           "target": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
           "target_page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
           "overlap": 0.31,
+          "target_position": 10,
+          "target_impressions": 62
+        },
+        {
+          "source": "blog/fix-react-main-thread-blocking-dashboard-inp",
+          "source_title": "Fix React Main Thread Blocking: Enterprise Dashboard INP Optimization",
+          "target": "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "target_page": "https://www.fouriqtech.com/blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
+          "overlap": 0.22,
           "target_position": 10,
           "target_impressions": 62
         },

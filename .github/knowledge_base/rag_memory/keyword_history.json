@@ -526,5 +526,71 @@
       "day28_due": "2026-04-28",
       "last_checked": null
     }
+  },
+  {
+    "article_id": "fixing-slow-nextjs-monorepo-build-enterprise-case-study",
+    "metadata": {
+      "published_date": "2026-04-07",
+      "word_count": 841,
+      "keyword_primary": "slow nextjs monorepo build",
+      "keyword_density": 0.36,
+      "internal_links_injected": 0,
+      "qa_score": 88,
+      "human_tone_score": 8.5,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise SaaS Architecture"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-04-08",
+      "day3_due": "2026-04-10",
+      "day7_due": "2026-04-14",
+      "day14_due": "2026-04-21",
+      "day28_due": "2026-05-05",
+      "last_checked": null
+    }
+  },
+  {
+    "article_id": "fixing-nextjs-docker-memory-leak-standalone-heap-snapshot",
+    "metadata": {
+      "published_date": "2026-04-07",
+      "word_count": 1131,
+      "keyword_primary": "nextjs docker memory leak",
+      "keyword_density": 0.09,
+      "internal_links_injected": 0,
+      "qa_score": 83,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "React Memory Leak Management for Enterprise SaaS Performance"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-04-08",
+      "day3_due": "2026-04-10",
+      "day7_due": "2026-04-14",
+      "day14_due": "2026-04-21",
+      "day28_due": "2026-05-05",
+      "last_checked": null
+    }
   }
 ]

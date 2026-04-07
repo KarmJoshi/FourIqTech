@@ -343,26 +343,27 @@ export default function AgentManager() {
     link.href = url; link.download = `fouriq_outreach_${new Date().toISOString().slice(0,10)}.csv`; link.click();
   };
 
-  const importLeads = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const syncLeads = async () => {
     setIsImporting(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        const [headerStr, ...rows] = text.split("\n").filter(Boolean);
-        const headers = headerStr.split(",");
-        const parsed = rows.map(row => {
-          const values = row.match(/(".*?"|[^,]+)/g)?.map(v => v.replace(/^"|"$/g, "").replace(/""/g, '"')) || [];
-          return headers.reduce((acc, h, i) => ({ ...acc, [h]: values[i] }), {});
-        });
-        setLeads(prev => [...prev, ...parsed]);
-        alert(`Successfully imported ${parsed.length} leads.`);
-      } catch (err) { alert("Failed to parse CSV."); }
-      finally { setIsImporting(false); }
-    };
-    reader.readAsText(file);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/leads`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.leads && data.leads.length > 0) {
+          // Merge avoiding duplicates by id
+          setLeads(prev => {
+            const existingIds = new Set(prev.map((l: any) => l.id));
+            const newLeads = data.leads.filter((l: any) => !existingIds.has(l.id));
+            if (newLeads.length > 0) alert(`Successfully synced ${newLeads.length} new leads.`);
+            return [...prev, ...newLeads];
+          });
+        }
+      }
+    } catch (err) {
+      alert("Failed to sync leads from the Agency Intelligence database.");
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const departments = [
@@ -655,7 +656,7 @@ export default function AgentManager() {
                setLeadCount={setLeadCount}
                exportLeads={exportLeads}
                exportOutreach={exportOutreach}
-               importLeads={importLeads}
+               syncLeads={syncLeads}
                isImporting={isImporting}
                selectedLeadId={selectedLeadId}
                setSelectedLeadId={setSelectedLeadId}

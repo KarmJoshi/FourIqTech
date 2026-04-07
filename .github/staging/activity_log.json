@@ -1,6 +1,550 @@
 {
   "entries": [
     {
+      "id": "00e86c8e-8651-4a9e-ac8c-5575c492e375",
+      "emoji": "📣",
+      "source": "publisher",
+      "message": "Deployed blog_post: \"Fixing Next.js Docker Memory Leaks: A Standalone Mode Heap Snapshot Case Study\" to production",
+      "type": "publish",
+      "timestamp": "2026-04-07T14:17:02.144Z"
+    },
+    {
+      "id": "mnopdpchdf8o",
+      "emoji": "✅",
+      "source": "manager",
+      "message": "APPROVED: \"Fixing Next.js Docker Memory Leaks: A Standalone Mode Heap Snapshot Case Study\" — Strategic approval.",
+      "type": "review",
+      "timestamp": "2026-04-07T14:17:01.841Z"
+    },
+    {
+      "id": "mnop81a1amhu",
+      "emoji": "✅",
+      "source": "content",
+      "message": "CONTENT TEAM completed successfully",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.369Z"
+    },
+    {
+      "id": "mnop819p5qbx",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "🧠 ENGINE V8: Signing off. ✅",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.357Z"
+    },
+    {
+      "id": "mnop819ofwzn",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "🎯 Keyword: \"nextjs docker memory leak\"",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.356Z"
+    },
+    {
+      "id": "mnop819m8384",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📝 \"Fixing Next.js Docker Memory Leaks: A Standalone Mode Heap Snapshot Case Study\"",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.354Z"
+    },
+    {
+      "id": "mnop819l6u0h",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📋 V8 RUN REPORT — ✅ PUBLISHED",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.353Z"
+    },
+    {
+      "id": "mnop819j44y4",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📦 RAG: Saved \"fixing-nextjs-docker-memory-leak-standalone-heap-snapshot\" to memory (18 total entries)",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.351Z"
+    },
+    {
+      "id": "c073ac5d-2447-4ec7-bb78-9c10db99cbee",
+      "emoji": "Content Team",
+      "source": "✍️ Submitted new blog post \"Fixing Next.js Docker Memory Leaks: A Standalone Mode Heap Snapshot Case Study\" to Staging Queue.",
+      "message": "publish",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.345Z"
+    },
+    {
+      "id": "5e778f6e-c52b-4269-8a3a-98d87630176e",
+      "emoji": "📝",
+      "source": "Content Team",
+      "message": "Submitted \"Fixing Next.js Docker Memory Leaks: A Standalone Mode Heap Snapshot Case Study\" to staging (stg-024)",
+      "type": "staging",
+      "timestamp": "2026-04-07T14:12:37.343Z"
+    },
+    {
+      "id": "mnop8194o7cc",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📦 SUBMITTING to Manager Staging Queue...",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.336Z"
+    },
+    {
+      "id": "mnop8193azjh",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📦 PUBLISHING approved content...",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.335Z"
+    },
+    {
+      "id": "mnop8190z07u",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📊 Overall: 83/100 ✅ PASSED",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:37.332Z"
+    },
+    {
+      "id": "mnop7l1dw50m",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "✅ QA INSPECTOR: Validating article...",
+      "type": "info",
+      "timestamp": "2026-04-07T14:12:16.321Z"
+    },
+    {
+      "id": "mnop5cqw7aqw",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "🎯 Keyword: \"nextjs docker memory leak\"",
+      "type": "info",
+      "timestamp": "2026-04-07T14:10:32.264Z"
+    },
+    {
+      "id": "mnop5cqud1o7",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📝 Title: \"Fixing Next.js Docker Memory Leaks: A Standalone Mode Heap Snapshot Case Study\"",
+      "type": "info",
+      "timestamp": "2026-04-07T14:10:32.262Z"
+    },
+    {
+      "id": "mnop4oxquzde",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "✅ Extracted 10 live organic results.",
+      "type": "info",
+      "timestamp": "2026-04-07T14:10:01.406Z"
+    },
+    {
+      "id": "mnop4ihra5mg",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "🎯 Keyword: \"nextjs docker memory leak\" [medium]",
+      "type": "info",
+      "timestamp": "2026-04-07T14:09:53.055Z"
+    },
+    {
+      "id": "mnop47k9qomp",
+      "emoji": "🚀",
+      "source": "lead_hunter",
+      "message": "Manual Task Executed: lead_hunter",
+      "type": "info",
+      "timestamp": "2026-04-07T14:09:38.889Z"
+    },
+    {
+      "id": "mnop3tdmrzru",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📦 RAG: Running feedback checks...",
+      "type": "info",
+      "timestamp": "2026-04-07T14:09:20.506Z"
+    },
+    {
+      "id": "mnop3tdi13le",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "👔 DIRECTOR OVERRIDE ACTIVE: Bypassing standard velocity limits...",
+      "type": "info",
+      "timestamp": "2026-04-07T14:09:20.502Z"
+    },
+    {
+      "id": "mnop3sq0tg3i",
+      "emoji": "📜",
+      "source": "manager",
+      "message": "Orders written for content team",
+      "type": "info",
+      "timestamp": "2026-04-07T14:09:19.656Z"
+    },
+    {
+      "id": "mnop3spx7y2t",
+      "emoji": "⚡",
+      "source": "content",
+      "message": "CONTENT TEAM dispatched",
+      "type": "info",
+      "timestamp": "2026-04-07T14:09:19.653Z"
+    },
+    {
+      "id": "mnop3017ngn8",
+      "emoji": "⚙️",
+      "source": "system",
+      "message": "Strategic Auto-Pilot settings updated",
+      "type": "info",
+      "timestamp": "2026-04-07T14:08:42.475Z"
+    },
+    {
+      "id": "0a0ce242-d9ab-4a81-b8d8-26d447690871",
+      "emoji": "📣",
+      "source": "publisher",
+      "message": "Deployed blog_post: \"Fixing a Slow Next.js Monorepo Build: An Enterprise CI/CD Case Study\" to production",
+      "type": "publish",
+      "timestamp": "2026-04-07T14:07:15.529Z"
+    },
+    {
+      "id": "mnop14rt4mnn",
+      "emoji": "✅",
+      "source": "manager",
+      "message": "APPROVED: \"Fixing a Slow Next.js Monorepo Build: An Enterprise CI/CD Case Study\" — Strategic approval.",
+      "type": "review",
+      "timestamp": "2026-04-07T14:07:15.305Z"
+    },
+    {
+      "id": "mnoozuw4jxm5",
+      "emoji": "⚙️",
+      "source": "system",
+      "message": "Strategic Auto-Pilot settings updated",
+      "type": "info",
+      "timestamp": "2026-04-07T14:06:15.844Z"
+    },
+    {
+      "id": "mnoozqrxcpfl",
+      "emoji": "⚙️",
+      "source": "system",
+      "message": "Strategic Auto-Pilot settings updated",
+      "type": "info",
+      "timestamp": "2026-04-07T14:06:10.509Z"
+    },
+    {
+      "id": "mnoozjqkwrx1",
+      "emoji": "⚙️",
+      "source": "system",
+      "message": "Strategic Auto-Pilot settings updated",
+      "type": "info",
+      "timestamp": "2026-04-07T14:06:01.388Z"
+    },
+    {
+      "id": "mnoozdpub5cw",
+      "emoji": "⚙️",
+      "source": "system",
+      "message": "Strategic Auto-Pilot settings updated",
+      "type": "info",
+      "timestamp": "2026-04-07T14:05:53.586Z"
+    },
+    {
+      "id": "mnokk39w6798",
+      "emoji": "✅",
+      "source": "manager",
+      "message": "Director cycle completed",
+      "type": "info",
+      "timestamp": "2026-04-07T12:02:01.748Z"
+    },
+    {
+      "id": "mnokk39dp80z",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "👔 DIRECTOR: Signing off. The agency is in good hands. ✅",
+      "type": "info",
+      "timestamp": "2026-04-07T12:02:01.729Z"
+    },
+    {
+      "id": "mnokk39akzg0",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "✅ Dispatch: FAILED",
+      "type": "info",
+      "timestamp": "2026-04-07T12:02:01.726Z"
+    },
+    {
+      "id": "mnokk3980q5w",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "🎯 Deployed: STRUCTURAL TEAM",
+      "type": "info",
+      "timestamp": "2026-04-07T12:02:01.724Z"
+    },
+    {
+      "id": "mnokk396b3ns",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "✅ Cycle #23 logged to director_journal.json",
+      "type": "info",
+      "timestamp": "2026-04-07T12:02:01.722Z"
+    },
+    {
+      "id": "mnokj07opmel",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "❌ Model gemini-1.5-flash unavailable (404). Falling back...",
+      "type": "info",
+      "timestamp": "2026-04-07T12:01:11.124Z"
+    },
+    {
+      "id": "mnokizywbqkz",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "❌ Model gemini-2.0-flash unavailable (404). Falling back...",
+      "type": "info",
+      "timestamp": "2026-04-07T12:01:10.808Z"
+    },
+    {
+      "id": "mnokiey1y3dg",
+      "emoji": "✅",
+      "source": "content",
+      "message": "CONTENT TEAM completed successfully",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.561Z"
+    },
+    {
+      "id": "mnokiexpxq3r",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "🧠 ENGINE V8: Signing off. ✅",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.549Z"
+    },
+    {
+      "id": "mnokiexnw87c",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "🎯 Keyword: \"slow nextjs monorepo build\"",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.547Z"
+    },
+    {
+      "id": "mnokiexljj5g",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📝 \"Fixing a Slow Next.js Monorepo Build: An Enterprise CI/CD Case Study\"",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.546Z"
+    },
+    {
+      "id": "mnokiexkgbqc",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📋 V8 RUN REPORT — ✅ PUBLISHED",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.544Z"
+    },
+    {
+      "id": "mnokiexitr2v",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📦 RAG: Saved \"fixing-slow-nextjs-monorepo-build-enterprise-case-study\" to memory (17 total entries)",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.542Z"
+    },
+    {
+      "id": "70cbe4ae-1456-43e0-a52e-240edec16e05",
+      "emoji": "Content Team",
+      "source": "✍️ Submitted new blog post \"Fixing a Slow Next.js Monorepo Build: An Enterprise CI/CD Case Study\" to Staging Queue.",
+      "message": "publish",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.536Z"
+    },
+    {
+      "id": "d5f79f36-63ad-426a-b693-7cc2ffc83987",
+      "emoji": "📝",
+      "source": "Content Team",
+      "message": "Submitted \"Fixing a Slow Next.js Monorepo Build: An Enterprise CI/CD Case Study\" to staging (stg-023)",
+      "type": "staging",
+      "timestamp": "2026-04-07T12:00:43.534Z"
+    },
+    {
+      "id": "mnokiex5o63x",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📦 SUBMITTING to Manager Staging Queue...",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.529Z"
+    },
+    {
+      "id": "mnokiex36qoy",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📦 PUBLISHING approved content...",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.527Z"
+    },
+    {
+      "id": "mnokiex1l4jo",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📊 Overall: 88/100 ✅ PASSED",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:43.525Z"
+    },
+    {
+      "id": "mnokhzr35a2w",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "✅ QA INSPECTOR: Validating article...",
+      "type": "info",
+      "timestamp": "2026-04-07T12:00:23.871Z"
+    },
+    {
+      "id": "mnokh638i8x5",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "❌ Model gemini-1.5-flash unavailable (404). Falling back...",
+      "type": "info",
+      "timestamp": "2026-04-07T11:59:45.428Z"
+    },
+    {
+      "id": "mnokh5yg7ynt",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "❌ Model gemini-2.0-flash unavailable (404). Falling back...",
+      "type": "info",
+      "timestamp": "2026-04-07T11:59:45.256Z"
+    },
+    {
+      "id": "mnokgvjzyqu8",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "🎯 Keyword: \"slow nextjs monorepo build\"",
+      "type": "info",
+      "timestamp": "2026-04-07T11:59:31.775Z"
+    },
+    {
+      "id": "mnokgvjxpsuc",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📝 Title: \"Fixing a Slow Next.js Monorepo Build: An Enterprise CI/CD Case Study\"",
+      "type": "info",
+      "timestamp": "2026-04-07T11:59:31.773Z"
+    },
+    {
+      "id": "mnokgavdhbf3",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "🎯 Keyword: \"Enterprise React Development Company\"",
+      "type": "info",
+      "timestamp": "2026-04-07T11:59:04.969Z"
+    },
+    {
+      "id": "mnokfz0w26y4",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "✅ Extracted 10 live organic results.",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:49.616Z"
+    },
+    {
+      "id": "mnokftytqdih",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "👔 DIRECTOR ORDERS DETECTED: Proceeding with landing page architecture...",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:43.061Z"
+    },
+    {
+      "id": "mnokftg31iu8",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "🎯 Keyword: \"slow nextjs monorepo build\" [medium]",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:42.387Z"
+    },
+    {
+      "id": "mnokffpg2mpz",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "🎯 Decision: Deploy → STRUCTURAL TEAM",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:24.580Z"
+    },
+    {
+      "id": "mnokf3ulf9i9",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "👔 FOURIQTECH AGENCY DIRECTOR v1.0",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:09.213Z"
+    },
+    {
+      "id": "mnokf3ebegmo",
+      "emoji": "👔",
+      "source": "manager",
+      "message": "Director strategic cycle started",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:08.627Z"
+    },
+    {
+      "id": "mnokf23titwd",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "📦 RAG: Running feedback checks...",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:06.953Z"
+    },
+    {
+      "id": "mnokf23o9ceu",
+      "emoji": "🔄",
+      "source": "content",
+      "message": "👔 DIRECTOR OVERRIDE ACTIVE: Bypassing standard velocity limits...",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:06.948Z"
+    },
+    {
+      "id": "mnokf1is4s9w",
+      "emoji": "📜",
+      "source": "manager",
+      "message": "Orders written for content team",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:06.196Z"
+    },
+    {
+      "id": "mnokf1iolncp",
+      "emoji": "⚡",
+      "source": "content",
+      "message": "CONTENT TEAM dispatched",
+      "type": "info",
+      "timestamp": "2026-04-07T11:58:06.192Z"
+    },
+    {
+      "id": "mnohv8146f4w",
+      "emoji": "🚀",
+      "source": "lead_hunter",
+      "message": "Manual Task Executed: lead_hunter",
+      "type": "info",
+      "timestamp": "2026-04-07T10:46:42.280Z"
+    },
+    {
+      "id": "mnoht2u1i0qm",
+      "emoji": "🚀",
+      "source": "scheduler",
+      "message": "Time trigger matched (16:15). Strategic Auto-Pilot activated.",
+      "type": "info",
+      "timestamp": "2026-04-07T10:45:02.233Z"
+    },
+    {
+      "id": "mnohsxp16g6r",
+      "emoji": "⚙️",
+      "source": "system",
+      "message": "Strategic Auto-Pilot settings updated",
+      "type": "info",
+      "timestamp": "2026-04-07T10:44:55.573Z"
+    },
+    {
+      "id": "mnohsk1lj6fn",
+      "emoji": "⚙️",
+      "source": "system",
+      "message": "Strategic Auto-Pilot settings updated",
+      "type": "info",
+      "timestamp": "2026-04-07T10:44:37.881Z"
+    },
+    {
       "id": "mnogi3wuzk96",
       "emoji": "⚙️",
       "source": "system",
@@ -1055,550 +1599,6 @@
       "message": "📋 V8 RUN REPORT — ✅ PUBLISHED",
       "type": "info",
       "timestamp": "2026-03-30T13:25:34.735Z"
-    },
-    {
-      "id": "mnd80pzhk1y8",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "📦 RAG: Saved \"react-performance-bottlenecks-forensic-guide\" to memory (10 total entries)",
-      "type": "info",
-      "timestamp": "2026-03-30T13:25:34.733Z"
-    },
-    {
-      "id": "mnd80pzawchp",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "📝 STAGING: \"Beyond Profiling: A Forensic Guide to Identifying React Performance Bottlenecks in Enterprise SaaS\" → stg-013 (pending_review)",
-      "type": "info",
-      "timestamp": "2026-03-30T13:25:34.726Z"
-    },
-    {
-      "id": "c4a05aa8-bdfd-4691-8fca-c7173b220b68",
-      "emoji": "📝",
-      "source": "Content Team",
-      "message": "Submitted \"Beyond Profiling: A Forensic Guide to Identifying React Performance Bottlenecks in Enterprise SaaS\" to staging (stg-013)",
-      "type": "staging",
-      "timestamp": "2026-03-30T13:25:34.725Z"
-    },
-    {
-      "id": "mnd80pz4bcl2",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "📦 SUBMITTING to Manager Staging Queue...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:25:34.720Z"
-    },
-    {
-      "id": "mnd80pyy599q",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "📦 PUBLISHING approved content...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:25:34.714Z"
-    },
-    {
-      "id": "mnd80pyxet23",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "📊 Overall: 80/100 ✅ PASSED",
-      "type": "info",
-      "timestamp": "2026-03-30T13:25:34.713Z"
-    },
-    {
-      "id": "mnd806npmh4m",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "✅ QA INSPECTOR: Validating article...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:25:09.685Z"
-    },
-    {
-      "id": "mnd7ziuyjurz",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "❌ Model gemini-3.1-flash-lite-preview unavailable. Falling back...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:24:38.842Z"
-    },
-    {
-      "id": "mnd7ze8ib9hu",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "❌ Model gemini-3-flash-preview unavailable. Falling back...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:24:32.850Z"
-    },
-    {
-      "id": "mnd7z1sk82yx",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "🎯 Keyword: \"react performance bottleneck analysis\"",
-      "type": "info",
-      "timestamp": "2026-03-30T13:24:16.724Z"
-    },
-    {
-      "id": "mnd7z1sj2buk",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "📝 Title: \"Beyond Profiling: A Forensic Guide to Identifying React Performance Bottlenecks in Enterprise SaaS\"",
-      "type": "info",
-      "timestamp": "2026-03-30T13:24:16.723Z"
-    },
-    {
-      "id": "mnd7ywcecvh4",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "❌ Model gemini-3-flash-preview unavailable. Falling back...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:24:09.662Z"
-    },
-    {
-      "id": "mnd7y1g04wac",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "✅ Extracted 10 live organic results.",
-      "type": "info",
-      "timestamp": "2026-03-30T13:23:29.616Z"
-    },
-    {
-      "id": "mnd7xuzkdqz4",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "🎯 Keyword: \"react performance bottleneck analysis\" [medium]",
-      "type": "info",
-      "timestamp": "2026-03-30T13:23:21.248Z"
-    },
-    {
-      "id": "mnd7xpp156zq",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "❌ Model gemini-3-flash-preview unavailable. Falling back...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:23:14.389Z"
-    },
-    {
-      "id": "mnd7wwbe3ezz",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "📦 RAG: Running feedback checks...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:22:36.314Z"
-    },
-    {
-      "id": "mnd7wwbb7gmu",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "👔 DIRECTOR OVERRIDE ACTIVE: Bypassing standard velocity limits...",
-      "type": "info",
-      "timestamp": "2026-03-30T13:22:36.311Z"
-    },
-    {
-      "id": "mnd7wvsp1fbi",
-      "emoji": "📜",
-      "source": "manager",
-      "message": "Orders written for content team",
-      "type": "info",
-      "timestamp": "2026-03-30T13:22:35.641Z"
-    },
-    {
-      "id": "mnd7wvsnzuti",
-      "emoji": "⚡",
-      "source": "content",
-      "message": "CONTENT TEAM dispatched",
-      "type": "info",
-      "timestamp": "2026-03-30T13:22:35.639Z"
-    },
-    {
-      "id": "0ac870ca-0605-4385-91ea-a93f794c3715",
-      "emoji": "📣",
-      "source": "publisher",
-      "message": "Deployed landing_page: \"EnterpriseUiUxDesignServices.tsx\" to production",
-      "type": "publish",
-      "timestamp": "2026-03-30T13:01:11.681Z"
-    },
-    {
-      "id": "d634ebb1-14a4-4137-89dc-cb538b5583bb",
-      "emoji": "Structural Team",
-      "source": "🏗️ Submitted new landing page \"EnterpriseUiUxDesignServices.tsx\" to Staging Queue.",
-      "message": "publish",
-      "type": "info",
-      "timestamp": "2026-03-30T13:00:57.590Z"
-    },
-    {
-      "id": "2e0b0d60-589a-4b33-beda-f9f925dd1681",
-      "emoji": "📝",
-      "source": "Structural Team",
-      "message": "Submitted \"EnterpriseUiUxDesignServices.tsx\" to staging (stg-012)",
-      "type": "staging",
-      "timestamp": "2026-03-30T13:00:57.589Z"
-    },
-    {
-      "id": "mnd6fa7rerfc",
-      "emoji": "✅",
-      "source": "manager",
-      "message": "Director cycle completed",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.903Z"
-    },
-    {
-      "id": "mnd6fa6q0kmn",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "👔 DIRECTOR: Signing off. The agency is in good hands. ✅",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.866Z"
-    },
-    {
-      "id": "mnd6fa5g632j",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "✅ Dispatch: SUCCESS",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.821Z"
-    },
-    {
-      "id": "mnd6fa5fctlu",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "🎯 Deployed: CONTENT TEAM",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.819Z"
-    },
-    {
-      "id": "mnd6fa5djgts",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "✅ Cycle #11 logged to director_journal.json",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.817Z"
-    },
-    {
-      "id": "mnd6fa3ztlx8",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "✅ Success!",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.767Z"
-    },
-    {
-      "id": "ffa726cc-5a61-4407-94ba-542a15c775da",
-      "emoji": "📣",
-      "source": "publisher",
-      "message": "Deployed blog_post: \"Headless Commerce Migration: Solving Session Persistence in Strangler Fig Architectures\" to production",
-      "type": "publish",
-      "timestamp": "2026-03-30T12:40:54.765Z"
-    },
-    {
-      "id": "mnd6fa3knq9h",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📦 PUBLISHER: Deploying [stg-011] Headless Commerce Migration: Solving Session Persistence in Strangler Fig Architectures...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.752Z"
-    },
-    {
-      "id": "mnd6f9nnvyck",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📦 SUCCESS: Item stg-011 successfully reviewed and approved.",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.179Z"
-    },
-    {
-      "id": "mnd6f9nmijrc",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "👔 VERDICT: [APPROVED] — The post meets all criteria with a clear H1, a solid word count, and logically sound technical depth that excellently represents FouriqTech's engineering expertise.",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:54.178Z"
-    },
-    {
-      "id": "d84d3145-cc5d-4b4c-9a81-1af90b106b7f",
-      "emoji": "📣",
-      "source": "publisher",
-      "message": "Deployed blog_post: \"Headless Commerce Migration: Solving Session Persistence in Strangler Fig Architectures\" to production",
-      "type": "publish",
-      "timestamp": "2026-03-30T12:40:47.897Z"
-    },
-    {
-      "id": "mnd6f4k19wal",
-      "emoji": "✅",
-      "source": "manager",
-      "message": "APPROVED: \"Headless Commerce Migration: Solving Session Persistence in Strangler Fig Architectures\" — Approved by Manager.",
-      "type": "review",
-      "timestamp": "2026-03-30T12:40:47.569Z"
-    },
-    {
-      "id": "mnd6evzyc8ht",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "✅ CONTENT TEAM completed successfully.",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.478Z"
-    },
-    {
-      "id": "mnd6evzfnk9b",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "🧠 ENGINE V8: Signing off. ✅",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.459Z"
-    },
-    {
-      "id": "mnd6evzej55q",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "🎯 Keyword: \"monolith to headless commerce migration\"",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.458Z"
-    },
-    {
-      "id": "mnd6evzdn9n0",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📝 \"Headless Commerce Migration: Solving Session Persistence in Strangler Fig Architectures\"",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.457Z"
-    },
-    {
-      "id": "mnd6evzc5xzi",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📋 V8 RUN REPORT — ✅ PUBLISHED",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.456Z"
-    },
-    {
-      "id": "mnd6evzbj5j2",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📦 RAG: Saved \"headless-commerce-migration-strangler-fig-session-state\" to memory (9 total entries)",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.455Z"
-    },
-    {
-      "id": "mnd6evz4zxun",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📝 STAGING: \"Headless Commerce Migration: Solving Session Persistence in Strangler Fig Architectures\" → stg-011 (pending_review)",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.448Z"
-    },
-    {
-      "id": "df324150-604b-4cee-87c7-e936baf5c045",
-      "emoji": "📝",
-      "source": "Content Team",
-      "message": "Submitted \"Headless Commerce Migration: Solving Session Persistence in Strangler Fig Architectures\" to staging (stg-011)",
-      "type": "staging",
-      "timestamp": "2026-03-30T12:40:36.446Z"
-    },
-    {
-      "id": "mnd6evyxbzkl",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📦 SUBMITTING to Manager Staging Queue...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.441Z"
-    },
-    {
-      "id": "mnd6evyta65s",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📦 PUBLISHING approved content...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.437Z"
-    },
-    {
-      "id": "mnd6evys4unh",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📊 Overall: 95/100 ✅ PASSED",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:36.436Z"
-    },
-    {
-      "id": "mnd6eqwp0dsc",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "❌ Model gemini-3-flash-preview unavailable. Falling back...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:29.881Z"
-    },
-    {
-      "id": "mnd6enqdf1cn",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "✅ QA INSPECTOR: Validating article...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:40:25.765Z"
-    },
-    {
-      "id": "mnd6d1tlk7sc",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "🎯 Keyword: \"monolith to headless commerce migration\"",
-      "type": "info",
-      "timestamp": "2026-03-30T12:39:10.713Z"
-    },
-    {
-      "id": "mnd6d1tky59k",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📝 Title: \"Headless Commerce Migration: Orchestrating the Strangler Fig Pattern with Next.js & Shared State\"",
-      "type": "info",
-      "timestamp": "2026-03-30T12:39:10.712Z"
-    },
-    {
-      "id": "mnd6bqgzfode",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "✅ Extracted 10 live organic results.",
-      "type": "info",
-      "timestamp": "2026-03-30T12:38:09.347Z"
-    },
-    {
-      "id": "mnd6bk2ou0zf",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "🎯 Keyword: \"monolith to headless commerce migration\" [medium]",
-      "type": "info",
-      "timestamp": "2026-03-30T12:38:01.056Z"
-    },
-    {
-      "id": "mnd6b6wvrtzp",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "📦 RAG: Running feedback checks...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:37:43.999Z"
-    },
-    {
-      "id": "mnd6b6wsokp3",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "👔 DIRECTOR OVERRIDE ACTIVE: Bypassing standard velocity limits...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:37:43.996Z"
-    },
-    {
-      "id": "mnd6al2c2sq1",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "🎯 Decision: Deploy → CONTENT TEAM",
-      "type": "info",
-      "timestamp": "2026-03-30T12:37:15.684Z"
-    },
-    {
-      "id": "mnd6a8c630vw",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "👔 FOURIQTECH AGENCY DIRECTOR v1.0",
-      "type": "info",
-      "timestamp": "2026-03-30T12:36:59.190Z"
-    },
-    {
-      "id": "mnd6a838u8dy",
-      "emoji": "👔",
-      "source": "manager",
-      "message": "Director strategic cycle started",
-      "type": "info",
-      "timestamp": "2026-03-30T12:36:58.868Z"
-    },
-    {
-      "id": "mnd54xzwbq59",
-      "emoji": "✅",
-      "source": "technical",
-      "message": "TECHNICAL TEAM completed successfully",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:52.892Z"
-    },
-    {
-      "id": "mnd54xzemkc9",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "\\n⚙️ TECHNICAL TEAM: Signing off. ✅",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:52.874Z"
-    },
-    {
-      "id": "mnd54xzde55c",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "✅ Successfully queued patch for index.html",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:52.873Z"
-    },
-    {
-      "id": "mnd54xzcio7w",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "📝 STAGING: \"Tech Patch: Incorrect meta viewport settings resulting in poor mobile usability scores.\" → stg-010 (pending_review)",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:52.872Z"
-    },
-    {
-      "id": "0196a356-f23c-4f50-94a6-9187231bea73",
-      "emoji": "📝",
-      "source": "Technical Team",
-      "message": "Submitted \"Tech Patch: Incorrect meta viewport settings resulting in poor mobile usability scores.\" to staging (stg-010)",
-      "type": "staging",
-      "timestamp": "2026-03-30T12:04:52.871Z"
-    },
-    {
-      "id": "mnd54xz8j4za",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "📦 SUBMITTING to Manager Staging Queue...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:52.868Z"
-    },
-    {
-      "id": "mnd54w63lisr",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "✅ Successfully queued patch for index.html",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:50.523Z"
-    },
-    {
-      "id": "mnd54w6212je",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "📝 STAGING: \"Tech Patch: Unoptimized LCP (Largest Contentful Paint) due to render-blocking resources.\" → stg-009 (pending_review)",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:50.522Z"
-    },
-    {
-      "id": "0fc96e28-cd80-45d4-891a-78c3a43b7d24",
-      "emoji": "📝",
-      "source": "Technical Team",
-      "message": "Submitted \"Tech Patch: Unoptimized LCP (Largest Contentful Paint) due to render-blocking resources.\" to staging (stg-009)",
-      "type": "staging",
-      "timestamp": "2026-03-30T12:04:50.521Z"
-    },
-    {
-      "id": "mnd54w60bc83",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "📦 SUBMITTING to Manager Staging Queue...",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:50.520Z"
-    },
-    {
-      "id": "mnd54tudidzc",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "✅ Successfully queued patch for SEO.tsx",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:47.509Z"
-    },
-    {
-      "id": "mnd54tuclhkh",
-      "emoji": "🔄",
-      "source": "technical",
-      "message": "📝 STAGING: \"Tech Patch: Missing canonical tags on dynamic route pages causing duplicate content issues.\" → stg-008 (pending_review)",
-      "type": "info",
-      "timestamp": "2026-03-30T12:04:47.508Z"
     }
   ]
 }

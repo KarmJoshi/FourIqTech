@@ -545,6 +545,19 @@ app.post('/api/settings', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// GET /api/leads — Fetch Leads Gathered by the Hunter
+// ═══════════════════════════════════════════════════════════════════════
+app.get('/api/leads', (req, res) => {
+  try {
+    const leadsPath = path.join(CWD, "public", "collected_leads.json");
+    const leads = readJson(leadsPath, []);
+    res.json({ leads });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to read leads database." });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
 // STRATEGIC SCHEDULER — Heartbeat
 // ═══════════════════════════════════════════════════════════════════════
 function startScheduler() {

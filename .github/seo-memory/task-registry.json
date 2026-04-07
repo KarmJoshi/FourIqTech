@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-04-01T11:15:44.689Z",
+  "updated_at": "2026-04-07T11:58:09.229Z",
   "slugs": [
     "b2b-saas-frontend-architecture-multi-tenant-scale",
     "blog",
@@ -12,6 +12,7 @@
     "blog/nextjs-multi-tenant-routing-performance-edge-middleware",
     "blog/optimizing-framer-motion-animations-for-enterprise-react-applications",
     "blog/why-Global-businesses-need-mobile-first-websites",
+    "fix-react-main-thread-blocking-dashboard-inp",
     "managing-complex-state-react-enterprise-case-study",
     "mastering-enterprise-react-performance-audit-high-traffic-applications",
     "nextjs-multi-tenant-custom-domains-enterprise-guide",
