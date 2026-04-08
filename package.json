@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start": "node agency-bridge.mjs",
+    "start": "node .github/scripts/agency-api.mjs",
     "agency": "node --env-file=.env .github/scripts/agency-api.mjs",
     "build": "vite build",
     "lint": "eslint .",
