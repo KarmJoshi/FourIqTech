@@ -550,10 +550,13 @@ export default function AgentManager() {
              <Card className="mb-8 aether-card bg-red-500/5 border-red-500/20 rounded-[24px]">
                <CardContent className="p-6 flex items-center justify-between gap-6">
                  <div className="space-y-2">
-                   <p className="text-sm font-bold text-red-300 uppercase tracking-[0.2em]">Agency Backend Required</p>
-                   <p className="text-sm text-slate-300 max-w-3xl">
-                     The `/agent-manager` page depends on the local SEO agency API at `http://localhost:3848`. If it is not running, the chat and dispatch buttons will feel broken and department data will be missing.
-                   </p>
+                    <p className="text-sm font-bold text-red-300 uppercase tracking-[0.2em]">Agency Intelligence Offline</p>
+                    <p className="text-sm text-slate-300 max-w-3xl">
+                      The dashboard cannot reach the Agency Engine at `{API_BASE_URL}`. 
+                      {API_BASE_URL.includes('localhost') 
+                        ? "Ensure your local API is running on port 3848." 
+                        : "Verify your Render service is active and not cold-starting."}
+                    </p>
                  </div>
                </CardContent>
              </Card>
