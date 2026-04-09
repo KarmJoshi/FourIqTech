@@ -35,7 +35,10 @@ const API_KEYS = (
   ""
 ).split(",").filter(Boolean);
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3848";
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (typeof window !== "undefined" && window.location.hostname !== "localhost" 
+    ? "https://fouriqtech.onrender.com" 
+    : "http://localhost:3848");
 
 export default function AgentManager() {
   // Navigation State
