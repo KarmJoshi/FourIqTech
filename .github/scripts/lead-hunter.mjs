@@ -43,6 +43,7 @@ async function callGemini(prompt, systemInstruction) {
   const payload = {
     system_instruction: { parts: [{ text: systemInstruction }] },
     contents: [{ role: "user", parts: [{ text: prompt }] }],
+    tools: [{ googleSearch: {} }],
     generationConfig: { maxOutputTokens: 4096, temperature: 0.7 }
   };
   const models = ["gemini-2.5-flash", "gemini-2.0-flash"];

@@ -57,10 +57,10 @@ const OTHER_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY ||
   .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
 const MODEL_PRESETS = {
-  'research':  ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  'manager':   ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  'writing':   ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  'qa':        ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  'research': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  'manager': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  'writing': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  'qa': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
 };
 
 // Prioritize Pro Key (Billed) and deduplicate with others
@@ -82,10 +82,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function getModels(taskType) {
   const tasks = {
-    'research':  ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-    'manager':   ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-    'writing':   ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-    'qa':        ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash']
+    'research': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+    'manager': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+    'writing': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+    'qa': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash']
   };
   return tasks[taskType] || ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'];
 }
@@ -99,13 +99,17 @@ async function smartCall(modelArray, contents, agentName = 'AI') {
     while (tries < API_KEYS.length * 2) {
       try {
         const resp = await aiClient.models.generateContent({
-          model, contents, config: { responseMimeType: "application/json", maxOutputTokens: 8192 }
+          model, contents, config: { 
+            responseMimeType: "application/json", 
+            maxOutputTokens: 8192,
+            tools: [{ googleSearch: {} }]
+          }
         });
         await sleep(3000);
         return resp.candidates[0].content.parts[0].text;
       } catch (err) {
         if (err.status === 429 || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
-          console.log(`   ⏳ Rate limit hit! Backing off for ${backoffMs/1000}s...`);
+          console.log(`   ⏳ Rate limit hit! Backing off for ${backoffMs / 1000}s...`);
           await sleep(backoffMs);
           tries++;
           if (tries % 2 !== 0 && API_KEYS.length > 1) rotateKey();
@@ -163,7 +167,7 @@ function getWeeklyPublishCount() {
 
 function incrementPublishCount() {
   let log = {};
-  try { log = JSON.parse(fs.readFileSync(PUBLISH_LOG_PATH, 'utf8')); } catch {}
+  try { log = JSON.parse(fs.readFileSync(PUBLISH_LOG_PATH, 'utf8')); } catch { }
   const today = new Date().toISOString().split('T')[0];
   log[today] = (log[today] || 0) + 1;
   fs.writeFileSync(PUBLISH_LOG_PATH, JSON.stringify(log, null, 2));
@@ -389,7 +393,7 @@ function runFeedbackChecks(gscInsights) {
 // Helper: derive short, natural anchor text (2-5 words) from a blog title
 function shortAnchorText(title) {
   // Strip common filler words and take first 3-4 meaningful words
-  const stopWords = new Set(['the','a','an','and','or','for','to','of','in','on','at','with','how','why','what','is','are','as']);
+  const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'for', 'to', 'of', 'in', 'on', 'at', 'with', 'how', 'why', 'what', 'is', 'are', 'as']);
   const words = title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
   return words.slice(0, 3).join(' ') || title.split(' ').slice(0, 3).join(' ');
 }
@@ -416,12 +420,12 @@ function spiderForwardLink(content, brief, blogDataFile) {
   // 2. Check for Pillar/Related Blog matches — Max 3 total, short natural anchor text
   const slugMatches = [...blogDataFile.matchAll(/slug:\s*'([^']+)'/g)];
   const titleMatches = [...blogDataFile.matchAll(/title:\s*'([^']+)'/g)];
-  
+
   for (let i = 0; i < slugMatches.length; i++) {
     if (linksAdded >= 3) break; // Max 3 total internal links (Rule 2)
     const slug = slugMatches[i][1];
     const title = titleMatches[i] ? titleMatches[i][1] : 'related article';
-    
+
     // Relevance check: does the title share meaningful words with this content?
     const titleWords = title.toLowerCase().split(/\s+/).filter(w => w.length > 4);
     const matchedWord = titleWords.find(w => updatedContent.toLowerCase().includes(w));
@@ -712,7 +716,7 @@ async function scrapeSerp(keyword) {
     });
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    
+
     // --- TRY GOOGLE FIRST ---
     console.log(`   🌐 Primary Attempt: Google Search for "${keyword}"`);
     await page.goto(`https://www.google.com/search?q=${encodeURIComponent(keyword)}&hl=en`, { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -723,10 +727,10 @@ async function scrapeSerp(keyword) {
       const items = document.querySelectorAll('div.tF2Cxc, div.g');
       const data = [];
       items.forEach((item, index) => {
-        if(index >= 10) return;
+        if (index >= 10) return;
         const titleEl = item.querySelector('h3');
         const snippetEl = item.querySelector('.VwiC3b, .yXK7lf, .MUxGbd, .yDYNvb');
-        if(titleEl) {
+        if (titleEl) {
           data.push({
             position: index + 1,
             title: titleEl.innerText || '',
@@ -742,15 +746,15 @@ async function scrapeSerp(keyword) {
       console.log(`   ⚠️ Google blocked us (CAPTCHA). Falling back to DuckDuckGo...`);
       await page.goto(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(keyword)}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
       await new Promise(r => setTimeout(r, 1500));
-      
+
       results = await page.evaluate(() => {
         const items = document.querySelectorAll('.result');
         const data = [];
         items.forEach((item, index) => {
-          if(index >= 10) return;
+          if (index >= 10) return;
           const titleEl = item.querySelector('.result__title');
           const snippetEl = item.querySelector('.result__snippet');
-          if(titleEl) {
+          if (titleEl) {
             data.push({
               position: index + 1,
               title: titleEl.innerText || '',
@@ -761,10 +765,10 @@ async function scrapeSerp(keyword) {
         return data;
       });
     }
-    
+
     console.log(`   ✅ Extracted ${results.length} live organic results.`);
     return results;
-  } catch(e) {
+  } catch (e) {
     console.log(`   ⚠️ SERP Scrape Failed: ${e.message}`);
     return null;
   } finally {
@@ -784,7 +788,7 @@ async function aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existi
 
     const gscSummary = gscInsights?.summary ? JSON.stringify(gscInsights.summary) : 'No GSC data yet — site is new.';
     const slugTitleMap = existingSlugs.map((s, i) => `/blog/${s} → "${existingTitles[i] || s}"`).join('\n');
-    
+
     const liveSerpSection = liveSerpData && liveSerpData.length > 0
       ? `\n3.5 LIVE COMPETITOR SEARCH RESULTS (TODAY):\nThis is what ranks on Page 1 for "${research.primary_keyword}" RIGHT NOW:\n${liveSerpData.map(r => `[#${r.position}] Title: "${r.title}"\n    Snippet: "${r.snippet}"`).join('\n')}\n-> MANAGER INSTRUCTION: Read these exact titles. Your "angle" and "competitor_gap" must directly exploit a weakness in these specific 10 results.`
       : `\n3.5 LIVE COMPETITOR SEARCH RESULTS:\n(Live scrape failed. Fall back to Researcher's guessed SERP gap).`;
@@ -1181,7 +1185,7 @@ async function engine() {
   }
 
   // Sync sitemap at start
-  try { regenerateFullSitemap(); } catch {}
+  try { regenerateFullSitemap(); } catch { }
 
   // 👔 Manger Override: If the Director specifically ordered a post today, bypass velocity limits.
   const overrideVelocity = process.env.FORCE_PUBLISH || hasFreshDirectorOrders();
@@ -1237,7 +1241,7 @@ async function engine() {
   // Stage 1.5: LIVE SERP SCRAPER
   // ══════════════════════════════════════
   let liveSerpData = null;
-  if(research.primary_keyword) {
+  if (research.primary_keyword) {
     liveSerpData = await scrapeSerp(research.primary_keyword);
   }
 
@@ -1280,8 +1284,8 @@ async function engine() {
   let rewriteFeedback = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try { 
-      draft = await writerAgent(brief, knowledgeCtx, rewriteFeedback); 
+    try {
+      draft = await writerAgent(brief, knowledgeCtx, rewriteFeedback);
     } catch (e) {
       console.error(`❌ Writer failed on attempt ${attempt}:`, e.message);
       if (attempt === maxRetries) {
@@ -1291,8 +1295,8 @@ async function engine() {
       continue;
     }
 
-    try { 
-      qa = await qaAgent(draft, brief); 
+    try {
+      qa = await qaAgent(draft, brief);
     } catch (e) {
       console.error(`⚠️ QA Agent failed unexpectedly on attempt ${attempt}.`);
       if (attempt === maxRetries) {
@@ -1308,7 +1312,7 @@ async function engine() {
       console.log(`\n⚠️ QA REJECTED ARTICLE (Attempt ${attempt}/${maxRetries}). Sending back to Writer...`);
       const issues = (qa.issues || []).join('\\n- ');
       rewriteFeedback = `PREVIOUS DRAFT REJECTED.\\nYour previous draft scored ${qa.score}/100 and failed QA for the following reasons:\\n- ${issues}\\n\\nYou MUST fix these exact issues in this rewrite. DO NOT repeat the same mistakes. Keep the parts that were good, but strictly fix the problems noted above. Ensure it sounds like a human engineer, not AI.`;
-      
+
       // If we've reached max retries and it still fails, the loop ends and it's marked as failed.
     }
   }

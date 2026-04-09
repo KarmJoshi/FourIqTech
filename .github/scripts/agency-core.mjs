@@ -99,7 +99,10 @@ export async function smartCall(modelArray, contents, agentName = 'AI', options 
     console.log(`   🚀 [${agentName}] Trying model: ${model}...`);
     while (tries < API_KEYS.length * 2) {
       try {
-        const config = { maxOutputTokens: maxTokens };
+        const config = { 
+          maxOutputTokens: maxTokens,
+          tools: [{ googleSearch: {} }]
+        };
         if (json) config.responseMimeType = "application/json";
 
         const resp = await aiClient.models.generateContent({
