@@ -10,16 +10,40 @@ import SEO from '@/components/SEO';
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const [navVisible, setNavVisible] = useState(false);
+  const [post, setPost] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { setScrollLocked } = useScrollLock();
   
-  const post = getPostBySlug(slug || '');
-
   useEffect(() => {
     setNavVisible(true);
     setScrollLocked(false);
     // Scroll to top when loading a new post
     window.scrollTo(0, 0);
+
+    // 1. Try static
+    const staticPost = getPostBySlug(slug || '');
+    if (staticPost) {
+      setPost(staticPost);
+      setIsLoading(false);
+    } else {
+      // 2. Try live storage
+      fetch('/live_posts.json')
+        .then(res => res.json())
+        .then(data => {
+          const livePost = data.posts.find((p: any) => p.slug === slug);
+          setPost(livePost || null);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          setPost(null);
+          setIsLoading(false);
+        });
+    }
   }, [slug, setScrollLocked]);
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-primary tracking-widest font-bold">LOADING ARTICLE...</div></div>;
+  }
 
   if (!post) {
     return <Navigate to="/blog" replace />;

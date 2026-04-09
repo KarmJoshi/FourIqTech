@@ -9,12 +9,30 @@ import SEO from '@/components/SEO';
 
 export default function Blog() {
   const [navVisible, setNavVisible] = useState(false);
+  const [displayPosts, setDisplayPosts] = useState(blogPosts);
   const { setScrollLocked } = useScrollLock();
 
   useEffect(() => {
     // Show nav immediately on secondary pages
     setNavVisible(true);
     setScrollLocked(false);
+
+    // Fetch Live Posts
+    fetch('/live_posts.json')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.posts && data.posts.length > 0) {
+          // Merge static and live, deduplicating by slug
+          const merged = [...data.posts, ...blogPosts];
+          const unique = merged.filter((post, index, self) =>
+            index === self.findIndex((p) => p.slug === post.slug)
+          );
+          // Sort by date descending
+          unique.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          setDisplayPosts(unique);
+        }
+      })
+      .catch(err => console.error("Could not fetch live posts:", err));
   }, [setScrollLocked]);
 
   return (
@@ -41,7 +59,7 @@ export default function Blog() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.map((post) => (
+          {displayPosts.map((post) => (
             <Link 
               key={post.slug} 
               to={`/blog/${post.slug}`}

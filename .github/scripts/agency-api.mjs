@@ -53,6 +53,8 @@ const PLAYBOOK_SCORES  = path.join(SEO_MEMORY_DIR, 'playbook-scores.json');
 const OUTCOME_HISTORY  = path.join(SEO_MEMORY_DIR, 'outcome-history.json');
 const COMPETITOR_INTEL = path.join(SEO_MEMORY_DIR, 'competitor-intelligence.json');
 const SETTINGS_PATH     = path.join(CWD, '.github/staging/system-settings.json');
+const LIVE_POSTS_PATH  = path.join(CWD, 'public/live_posts.json');
+const LIVE_ROUTES_PATH = path.join(CWD, 'public/live_routes.json');
 
 // ── Department Scripts ──
 const DEPARTMENTS = {
@@ -320,6 +322,8 @@ app.post('/api/staging/:id/review', (req, res) => {
     
     if (verdict === 'approved') {
       item.published_at = new Date().toISOString();
+      // TRIGGER LIVE PUBLISHING
+      await publishApprovedItem(item);
     }
 
     // Recalculate stats
@@ -609,6 +613,87 @@ function startScheduler() {
     }
   }, 60000); // 1 minute heartbeat
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🚀 LIVE PUBLISHING LOGIC
+// ═══════════════════════════════════════════════════════════════════════
+
+async function publishApprovedItem(item) {
+  try {
+    if (item.type === 'blog_post') {
+      const data = readJson(LIVE_POSTS_PATH, { posts: [] });
+      // Ensure we don't duplicate
+      const slugMatch = item.content.match(/slug:\s*'([^']+)'/);
+      const titleMatch = item.content.match(/title:\s*'([^']+)'/);
+      const excerptMatch = item.content.match(/excerpt:\s*'([^']+)'/);
+      const dateMatch = item.content.match(/date:\s*'([^']+)'/);
+      const categoryMatch = item.content.match(/category:\s*'([^']+)'/);
+      const authorMatch = item.content.match(/author:\s*'([^']+)'/);
+      const readTimeMatch = item.content.match(/readTime:\s*'([^']+)'/);
+      
+      // Extract content - look between content: \` and \`,
+      const contentPartMatch = item.content.match(/content:\s*\`([\s\S]*)\`,/);
+
+      const slug = slugMatch ? slugMatch[1] : `post-${Date.now()}`;
+      
+      if (data.posts.find(p => p.slug === slug)) {
+        console.log(`   ⚠️ Blog with slug "${slug}" already live. Skipping duplicate write.`);
+        return;
+      }
+
+      data.posts.unshift({
+        slug,
+        title: titleMatch ? titleMatch[1] : item.title,
+        excerpt: excerptMatch ? excerptMatch[1] : '',
+        date: dateMatch ? dateMatch[1] : new Date().toISOString().split('T')[0],
+        category: categoryMatch ? categoryMatch[1] : 'Engineering',
+        author: authorMatch ? authorMatch[1] : 'FouriqTech',
+        readTime: readTimeMatch ? readTimeMatch[1] : '5 min read',
+        content: contentPartMatch ? contentPartMatch[1].trim() : '',
+        is_live: true,
+        created_at: new Date().toISOString()
+      });
+
+      fs.writeFileSync(LIVE_POSTS_PATH, JSON.stringify(data, null, 2));
+      console.log(`   📦 Live Post Published: ${slug}`);
+      await gitCommitAndPush(`feat: Live published blog "${item.title}"`);
+    }
+
+    if (item.type === 'structural_page') {
+      const data = readJson(LIVE_ROUTES_PATH, { routes: [] });
+      data.routes.push({
+        id: item.id,
+        title: item.title,
+        path: item.metadata?.path || `/services/${item.id}`,
+        content: item.content,
+        created_at: new Date().toISOString()
+      });
+      fs.writeFileSync(LIVE_ROUTES_PATH, JSON.stringify(data, null, 2));
+      console.log(`   🏗️ Live Route Registered: ${item.title}`);
+      await gitCommitAndPush(`feat: Live published landing page "${item.title}"`);
+    }
+  } catch (err) {
+    console.error('❌ Failed to publish live item:', err.message);
+    logActivity('❌', 'publisher', `Failed to publish live item: ${err.message}`, 'error');
+  }
+}
+
+async function gitCommitAndPush(message) {
+  return new Promise((resolve) => {
+    // Stage specifically the live content files to avoid polluting commits
+    const cmd = `git add public/live_posts.json public/live_routes.json .github/staging/staging.json && git commit -m "${message}" && git push origin main`;
+    console.log(`   🐙 Git: Attempting to persist changes...`);
+    exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        console.warn(`   ⚠️ Git push failed (may not have credentials on Render):`, error.message);
+      } else {
+        console.log(`   ✅ Git: Changes pushed to GitHub.`);
+      }
+      resolve();
+    });
+  });
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════
 // START
