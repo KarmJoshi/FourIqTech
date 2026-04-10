@@ -192,13 +192,15 @@ app.post('/api/dispatch/:department', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 function triggerDirectorCycle(req, res, method = 'API') {
   if (runningTasks['director']) {
-    console.log(`[Director] Skip ${method}: Already running.`);
+    const msg = `Director Cycle skip (${method}): Process already active.`;
+    console.log(`[Director] ${msg}`);
+    logActivity('⚠️', 'manager', msg, 'info');
     if (res) res.json({ success: false, message: 'Director cycle is already running.', status: 'busy' });
     return;
   }
 
   console.log(`\n👔 DIRECTOR CYCLE triggered via ${method}`);
-  logActivity('👔', 'manager', `Director strategic cycle started (${method})`, 'info');
+  logActivity('👔', 'manager', `Director strategic pulse started (${method})`, 'info');
 
   const child = spawn('node', ['--env-file=.env', '.github/scripts/agency-director.mjs'], {
     cwd: CWD,
