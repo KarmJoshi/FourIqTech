@@ -39,28 +39,28 @@ app.get('/health', (req, res) => {
 
 // ── Paths ──
 const DIRECTOR_JOURNAL = path.join(CWD, '.github/director_journal.json');
-const DIRECTOR_ORDERS  = path.join(CWD, '.github/director_orders.json');
-const STAGING_PATH     = path.join(CWD, '.github/staging/staging.json');
-const ACTIVITY_PATH    = path.join(CWD, '.github/staging/activity_log.json');
-const PUBLISH_LOG      = path.join(CWD, '.github/publish_log.json');
-const TECH_LOG         = path.join(CWD, '.github/technical_seo_log.json');
-const BLOG_DATA        = path.join(CWD, 'src/data/blogPosts.ts');
-const APP_TSX          = path.join(CWD, 'src/App.tsx');
-const SEO_MEMORY_DIR   = path.join(CWD, '.github/seo-memory');
+const DIRECTOR_ORDERS = path.join(CWD, '.github/director_orders.json');
+const STAGING_PATH = path.join(CWD, '.github/staging/staging.json');
+const ACTIVITY_PATH = path.join(CWD, '.github/staging/activity_log.json');
+const PUBLISH_LOG = path.join(CWD, '.github/publish_log.json');
+const TECH_LOG = path.join(CWD, '.github/technical_seo_log.json');
+const BLOG_DATA = path.join(CWD, 'src/data/blogPosts.ts');
+const APP_TSX = path.join(CWD, 'src/App.tsx');
+const SEO_MEMORY_DIR = path.join(CWD, '.github/seo-memory');
 const OPPORTUNITY_PATH = path.join(SEO_MEMORY_DIR, 'latest-opportunities.json');
-const TASK_REGISTRY    = path.join(SEO_MEMORY_DIR, 'task-registry.json');
-const PLAYBOOK_SCORES  = path.join(SEO_MEMORY_DIR, 'playbook-scores.json');
-const OUTCOME_HISTORY  = path.join(SEO_MEMORY_DIR, 'outcome-history.json');
+const TASK_REGISTRY = path.join(SEO_MEMORY_DIR, 'task-registry.json');
+const PLAYBOOK_SCORES = path.join(SEO_MEMORY_DIR, 'playbook-scores.json');
+const OUTCOME_HISTORY = path.join(SEO_MEMORY_DIR, 'outcome-history.json');
 const COMPETITOR_INTEL = path.join(SEO_MEMORY_DIR, 'competitor-intelligence.json');
-const SETTINGS_PATH     = path.join(CWD, '.github/staging/system-settings.json');
-const LIVE_POSTS_PATH  = path.join(CWD, 'public/live_posts.json');
+const SETTINGS_PATH = path.join(CWD, '.github/staging/system-settings.json');
+const LIVE_POSTS_PATH = path.join(CWD, 'public/live_posts.json');
 const LIVE_ROUTES_PATH = path.join(CWD, 'public/live_routes.json');
 
 // ── Department Scripts ──
 const DEPARTMENTS = {
-  content:    '.github/scripts/seo-auto-poster.mjs',
+  content: '.github/scripts/seo-auto-poster.mjs',
   structural: '.github/scripts/seo-dev-agent.mjs',
-  technical:  '.github/scripts/technical-seo-agent.mjs',
+  technical: '.github/scripts/technical-seo-agent.mjs',
 };
 
 // Track running tasks
@@ -143,9 +143,9 @@ app.post('/api/dispatch/:department', (req, res) => {
     // Log significant lines to activity feed
     const lines = text.split('\n').filter(l => l.trim());
     for (const line of lines) {
-      if (line.includes('✅') || line.includes('❌') || line.includes('📝') || 
-          line.includes('🎯') || line.includes('📦') || line.includes('👔') ||
-          line.includes('STAGING') || line.includes('PUBLISHED')) {
+      if (line.includes('✅') || line.includes('❌') || line.includes('📝') ||
+        line.includes('🎯') || line.includes('📦') || line.includes('👔') ||
+        line.includes('STAGING') || line.includes('PUBLISHED')) {
         logActivity('🔄', dept, line.replace(/[═╔╗╚╝║╣╠]/g, '').trim(), 'info');
       }
     }
@@ -188,13 +188,15 @@ app.post('/api/dispatch/:department', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 // POST /api/director/cycle — Full Director cycle (non-blocking)
 // ═══════════════════════════════════════════════════════════════════════
-app.post('/api/director/cycle', (req, res) => {
+// Director Cycle (POST & GET for Cron support)
+// ═══════════════════════════════════════════════════════════════════════
+function triggerDirectorCycle(req, res, method = 'API') {
   if (runningTasks['director']) {
     return res.json({ success: false, message: 'Director cycle is already running.', status: 'busy' });
   }
 
-  console.log(`\n👔 DIRECTOR CYCLE triggered via API`);
-  logActivity('👔', 'manager', 'Director strategic cycle started', 'info');
+  console.log(`\n👔 DIRECTOR CYCLE triggered via ${method}`);
+  logActivity('👔', 'manager', `Director strategic cycle started (${method})`, 'info');
 
   const child = spawn('node', ['--env-file=.env', '.github/scripts/agency-director.mjs'], {
     cwd: CWD,
@@ -228,15 +230,18 @@ app.post('/api/director/cycle', (req, res) => {
     }
   });
 
+  // Safety timeout: 15 mins max
   setTimeout(() => {
     if (runningTasks['director']?.id === taskId) {
       child.kill();
       delete runningTasks['director'];
+      console.warn(`[Director] Cycle ${taskId} killed after 15m timeout.`);
     }
-  }, 900000); // 15 min max
+  }, 900000);
+}
 
-  res.json({ success: true, message: 'Director cycle started. Running in background.', taskId, status: 'running' });
-});
+app.post('/api/director/cycle', (req, res) => triggerDirectorCycle(req, res, 'POST'));
+app.get('/api/director/cycle', (req, res) => triggerDirectorCycle(req, res, 'CRON-GET'));
 
 // ═══════════════════════════════════════════════════════════════════════
 // GET /api/staging — Staging queue
@@ -251,18 +256,18 @@ app.get('/api/staging', (req, res) => {
 app.post('/api/staging', async (req, res) => {
   const { type, department, title, content, summary, metadata } = req.body;
   const staging = readJson(STAGING_PATH, { queue: [], stats: {} });
-  
+
   const id = `stg-${(staging.queue.length + 1).toString().padStart(3, '0')}`;
-  
+
   // Also save the raw content to a temp file for previewing if it's large
   const contentFilename = `${id}_${Date.now()}.txt`;
   const contentPath = path.join('.github/staging/drafts', contentFilename);
   const fullContentPath = path.join(CWD, contentPath);
-  
+
   if (!fs.existsSync(path.dirname(fullContentPath))) {
     fs.mkdirSync(path.dirname(fullContentPath), { recursive: true });
   }
-  
+
   fs.writeFileSync(fullContentPath, content || '');
 
   const newItem = {
@@ -281,7 +286,7 @@ app.post('/api/staging', async (req, res) => {
   };
 
   staging.queue.unshift(newItem); // Newest at top
-  
+
   // Update stats
   const q = staging.queue;
   staging.stats = {
@@ -299,7 +304,7 @@ app.post('/api/staging', async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 // POST /api/staging/:id/review — Manager reviews a staging item
 // ═══════════════════════════════════════════════════════════════════════
-app.post('/api/staging/:id/review', (req, res) => {
+app.post('/api/staging/:id/review', async (req, res) => {
   const { id } = req.params;
   const { verdict, feedback } = req.body;
 
@@ -310,16 +315,16 @@ app.post('/api/staging/:id/review', (req, res) => {
   try {
     const staging = readJson(STAGING_PATH, { queue: [] });
     const item = staging.queue.find(i => i.id === id);
-    
+
     if (!item) return res.status(404).json({ error: `Staging item ${id} not found` });
-    
+
     item.status = verdict;
     item.manager_review = {
       verdict,
       feedback: feedback || '',
       reviewed_at: new Date().toISOString(),
     };
-    
+
     if (verdict === 'approved') {
       item.published_at = new Date().toISOString();
       // TRIGGER LIVE PUBLISHING
@@ -333,16 +338,16 @@ app.post('/api/staging/:id/review', (req, res) => {
       approved: q.filter(i => i.status === 'approved').length,
       rejected: q.filter(i => i.status === 'rejected').length,
       pending: q.filter(i => i.status === 'pending_review').length,
-      approval_rate: q.length > 0 
-        ? Math.round((q.filter(i => i.status === 'approved').length / q.length) * 100) + '%' 
+      approval_rate: q.length > 0
+        ? Math.round((q.filter(i => i.status === 'approved').length / q.length) * 100) + '%'
         : '0%'
     };
-    
+
     fs.writeFileSync(STAGING_PATH, JSON.stringify(staging, null, 2));
-    
+
     const emoji = verdict === 'approved' ? '✅' : '❌';
     logActivity(emoji, 'manager', `${verdict.toUpperCase()}: "${item.title}" — ${feedback || 'No comment'}`, 'review');
-    
+
     res.json({ success: true, item });
 
     // Execute Publisher in background if approved
@@ -422,68 +427,68 @@ app.get('/api/status', (req, res) => {
   // Running tasks
   status.running_tasks = Object.keys(runningTasks);
 
-// ═══════════════════════════════════════════════════════════════════════
-// NEW: Unified Outreach & Tasks (From Agency Bridge)
-// ═══════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════
+  // NEW: Unified Outreach & Tasks (From Agency Bridge)
+  // ═══════════════════════════════════════════════════════════════════════
 
-const TASK_SCRIPTS = {
-  writer: 'seo-auto-poster.mjs',
-  auditor: 'seo-dev-agent.mjs',
-  outreach: 'seo-outreach-agent.mjs',
-  lead_hunter: 'lead-hunter.mjs'
-};
+  const TASK_SCRIPTS = {
+    writer: 'seo-auto-poster.mjs',
+    auditor: 'seo-dev-agent.mjs',
+    outreach: 'seo-outreach-agent.mjs',
+    lead_hunter: 'lead-hunter.mjs'
+  };
 
-app.post('/api/run-task', (req, res) => {
-  try {
-    const { task, args } = req.body;
-    const scriptName = TASK_SCRIPTS[task];
-    if (!scriptName) {
-      return res.status(400).json({ error: `Unknown task: ${task}` });
+  app.post('/api/run-task', (req, res) => {
+    try {
+      const { task, args } = req.body;
+      const scriptName = TASK_SCRIPTS[task];
+      if (!scriptName) {
+        return res.status(400).json({ error: `Unknown task: ${task}` });
+      }
+
+      const argsString = args && Array.isArray(args) ? args.map(a => `"${a.replace(/"/g, '\\"')}"`).join(' ') : '';
+      const cmd = `node .github/scripts/${scriptName} ${argsString}`;
+      console.log(`[Unified API] EXECUTING: ${cmd}`);
+      logActivity('🚀', task, `Manual Task Executed: ${task}`, 'info');
+
+      exec(cmd, (error, stdout, stderr) => {
+        const response = { success: !error, stdout, stderr, error: error ? error.message : null };
+        res.status(error ? 500 : 200).json(response);
+      });
+    } catch (e) {
+      res.status(400).json({ error: 'Invalid Task Payload' });
     }
+  });
 
-    const argsString = args && Array.isArray(args) ? args.map(a => `"${a.replace(/"/g, '\\"')}"`).join(' ') : '';
-    const cmd = `node .github/scripts/${scriptName} ${argsString}`;
-    console.log(`[Unified API] EXECUTING: ${cmd}`);
-    logActivity('🚀', task, `Manual Task Executed: ${task}`, 'info');
+  app.post('/api/send-email', async (req, res) => {
+    try {
+      const { to, subject, body: emailBody, fromName } = req.body;
+      console.log(`[Unified API] SENDING EMAIL TO: ${to}`);
 
-    exec(cmd, (error, stdout, stderr) => {
-      const response = { success: !error, stdout, stderr, error: error ? error.message : null };
-      res.status(error ? 500 : 200).json(response);
-    });
-  } catch (e) {
-    res.status(400).json({ error: 'Invalid Task Payload' });
-  }
-});
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '465'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+      });
 
-app.post('/api/send-email', async (req, res) => {
-  try {
-    const { to, subject, body: emailBody, fromName } = req.body;
-    console.log(`[Unified API] SENDING EMAIL TO: ${to}`);
+      const info = await transporter.sendMail({
+        from: `"${fromName || 'FourIqTech Team'}" <${process.env.SMTP_USER}>`,
+        to,
+        subject,
+        text: emailBody
+      });
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '465'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-    });
+      logActivity('📧', 'outreach', `Email successfully sent to ${to}`, 'info');
+      res.json({ success: true, messageId: info.messageId });
+    } catch (e) {
+      console.error(`[Unified API] ERROR SENDING EMAIL: ${e.message}`);
+      logActivity('❌', 'outreach', `Failed to send email to ${to}: ${e.message}`, 'error');
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
 
-    const info = await transporter.sendMail({
-      from: `"${fromName || 'FourIqTech Team'}" <${process.env.SMTP_USER}>`,
-      to,
-      subject,
-      text: emailBody
-    });
-
-    logActivity('📧', 'outreach', `Email successfully sent to ${to}`, 'info');
-    res.json({ success: true, messageId: info.messageId });
-  } catch (e) {
-    console.error(`[Unified API] ERROR SENDING EMAIL: ${e.message}`);
-    logActivity('❌', 'outreach', `Failed to send email to ${to}: ${e.message}`, 'error');
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-res.json(status);
+  res.json(status);
 });
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -504,12 +509,12 @@ app.get('/api/journal', (req, res) => {
 app.get('/api/staging/:id/content', (req, res) => {
   const staging = readJson(STAGING_PATH, { queue: [] });
   const item = staging.queue.find(i => i.id === req.params.id);
-  
+
   if (!item) return res.status(404).json({ error: 'Item not found' });
-  
+
   const contentPath = item.draft_path || item.code_path || item.diff_path;
   if (!contentPath) return res.json({ content: 'No content file associated.' });
-  
+
   try {
     const fullPath = path.join(CWD, contentPath);
     const content = fs.readFileSync(fullPath, 'utf8');
@@ -536,10 +541,10 @@ app.post('/api/settings', (req, res) => {
   try {
     const settings = readJson(SETTINGS_PATH, {});
     const newSettings = { ...settings, ...req.body };
-    
+
     const dir = path.dirname(SETTINGS_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    
+
     fs.writeFileSync(SETTINGS_PATH, JSON.stringify(newSettings, null, 2));
     logActivity('⚙️', 'system', 'Strategic Auto-Pilot settings updated', 'info');
     res.json({ success: true, settings: newSettings });
@@ -566,7 +571,7 @@ app.get('/api/leads', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 function startScheduler() {
   console.log(`[Scheduler] Strategic heartbeat initialized (Interval: 1m)`);
-  
+
   setInterval(async () => {
     const settings = readJson(SETTINGS_PATH, { isAutoPilot: false });
     if (!settings.isAutoPilot) return;
@@ -574,40 +579,40 @@ function startScheduler() {
     const now = new Date();
     const currentHM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const startTime = settings.startTime || "10:00";
-    
+
     // Simple logic: Trigger if time matches EXACTLY (polled every 60s)
     // For multiple cycles per day, we calculate intervals
     const intervalHours = 24 / (settings.cyclesPerDay || 1);
     const startHour = parseInt(startTime.split(':')[0]);
     const startMin = parseInt(startTime.split(':')[1]);
-    
+
     let shouldTrigger = false;
     for (let i = 0; i < settings.cyclesPerDay; i++) {
-        const targetHour = (startHour + (i * intervalHours)) % 24;
-        const targetHM = `${String(Math.floor(targetHour)).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
-        
-        if (currentHM === targetHM) {
-            shouldTrigger = true;
-            break;
-        }
+      const targetHour = (startHour + (i * intervalHours)) % 24;
+      const targetHM = `${String(Math.floor(targetHour)).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
+
+      if (currentHM === targetHM) {
+        shouldTrigger = true;
+        break;
+      }
     }
 
     if (shouldTrigger) {
       const lastRun = settings.lastRunAt ? new Date(settings.lastRunAt).getTime() : 0;
       const oneHour = 60 * 60 * 1000;
-      
+
       // Prevent double-triggering within the same minute or hour
       if (Date.now() - lastRun > oneHour) {
         console.log(`[Scheduler] 🚀 TIME TRIGGER MATCHED (${currentHM}). Dispatching Director Cycle.`);
         logActivity('🚀', 'scheduler', `Time trigger matched (${currentHM}). Strategic Auto-Pilot activated.`, 'info');
-        
+
         // Update last run immediately to prevent race conditions
         settings.lastRunAt = new Date().toISOString();
         fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
 
-        // Use the manual trigger logic
+        // Use the manual trigger logic with environment variables
         const script = '.github/scripts/agency-director.mjs';
-        const child = spawn('node', [script], { cwd: CWD, stdio: 'ignore', detached: true });
+        const child = spawn('node', ['--env-file=.env', script], { cwd: CWD, stdio: 'ignore', detached: true });
         child.unref();
       }
     }
@@ -630,12 +635,12 @@ async function publishApprovedItem(item) {
       const categoryMatch = item.content.match(/category:\s*'([^']+)'/);
       const authorMatch = item.content.match(/author:\s*'([^']+)'/);
       const readTimeMatch = item.content.match(/readTime:\s*'([^']+)'/);
-      
+
       // Extract content - look between content: \` and \`,
       const contentPartMatch = item.content.match(/content:\s*\`([\s\S]*)\`,/);
 
       const slug = slugMatch ? slugMatch[1] : `post-${Date.now()}`;
-      
+
       if (data.posts.find(p => p.slug === slug)) {
         console.log(`   ⚠️ Blog with slug "${slug}" already live. Skipping duplicate write.`);
         return;
@@ -714,3 +719,4 @@ app.listen(PORT, () => {
   console.log('║  GET  /api/journal                → Decision history       ║');
   console.log('╚═══════════════════════════════════════════════════════════════╝');
 });
+

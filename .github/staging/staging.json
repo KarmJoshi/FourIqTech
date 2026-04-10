@@ -1,6 +1,31 @@
 {
   "queue": [
     {
+      "id": "stg-025",
+      "type": "blog_post",
+      "department": "Content Team",
+      "status": "pending_review",
+      "created_at": "2026-04-09T14:06:52.565Z",
+      "title": "MOCK TEST: Future of Autonomous Web Design",
+      "content": "\n  {\n    slug: 'mock-test-autonomous-design',\n    title: 'Future of Autonomous Web Design',\n    excerpt: 'A zero-cost verification of the FouriqTech agency pipeline.',\n    date: '2026-04-09',\n    category: 'Engineering',\n    content: 'This is a mock article generated to verify the cloud-to-UI sync hub connection. No AI tokens were harmed in this test.',\n  },",
+      "summary": {
+        "keyword": "autonomous web design",
+        "tone": "Engineering",
+        "status": "verified_plumbing"
+      },
+      "draft_path": ".github\\staging\\drafts\\stg-025_1775743612564.txt",
+      "code_path": null,
+      "diff_path": null,
+      "metadata": {
+        "word_count": 50,
+        "qa_score": 100,
+        "human_tone": 10,
+        "is_test": true
+      },
+      "manager_review": null,
+      "revision_count": 0
+    },
+    {
       "id": "stg-024",
       "type": "blog_post",
       "department": "Content Team",
@@ -578,11 +603,10 @@
     }
   ],
   "stats": {
-    "total_submitted": 24,
+    "total_submitted": 25,
     "approved": 0,
     "rejected": 0,
-    "pending": 8,
-    "published": 16,
-    "approval_rate": "67%"
+    "pending": 9,
+    "approval_rate": "0%"
   }
 }

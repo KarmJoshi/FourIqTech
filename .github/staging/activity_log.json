@@ -1,6 +1,22 @@
 {
   "entries": [
     {
+      "id": "3677113a-13a7-4062-a7c4-13b5b0be4697",
+      "emoji": "🧪",
+      "source": "test-suite",
+      "message": "Agency Pipeline Mock Test: SUCCESS. Plumbing is 100% operational.",
+      "type": "info",
+      "timestamp": "2026-04-09T14:06:52.573Z"
+    },
+    {
+      "id": "53f89230-aa65-43dc-aab6-4d54657c03fb",
+      "emoji": "📝",
+      "source": "Content Team",
+      "message": "Submitted \"MOCK TEST: Future of Autonomous Web Design\" to staging (stg-025)",
+      "type": "staging",
+      "timestamp": "2026-04-09T14:06:52.570Z"
+    },
+    {
       "id": "mnopsdrlraxu",
       "emoji": "🚀",
       "source": "lead_hunter",
@@ -1583,22 +1599,6 @@
       "message": "🧠 ENGINE V8: Signing off. ✅",
       "type": "info",
       "timestamp": "2026-03-30T13:25:34.742Z"
-    },
-    {
-      "id": "mnd80pzoqa6g",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "🎯 Keyword: \"react performance bottleneck analysis\"",
-      "type": "info",
-      "timestamp": "2026-03-30T13:25:34.740Z"
-    },
-    {
-      "id": "mnd80pzm930i",
-      "emoji": "🔄",
-      "source": "content",
-      "message": "📝 \"Beyond Profiling: A Forensic Guide to Identifying React Performance Bottlenecks in Enterprise SaaS\"",
-      "type": "info",
-      "timestamp": "2026-03-30T13:25:34.738Z"
     }
   ]
 }
