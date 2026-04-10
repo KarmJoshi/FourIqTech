@@ -192,7 +192,9 @@ app.post('/api/dispatch/:department', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 function triggerDirectorCycle(req, res, method = 'API') {
   if (runningTasks['director']) {
-    return res.json({ success: false, message: 'Director cycle is already running.', status: 'busy' });
+    console.log(`[Director] Skip ${method}: Already running.`);
+    if (res) res.json({ success: false, message: 'Director cycle is already running.', status: 'busy' });
+    return;
   }
 
   console.log(`\n👔 DIRECTOR CYCLE triggered via ${method}`);
@@ -238,6 +240,10 @@ function triggerDirectorCycle(req, res, method = 'API') {
       console.warn(`[Director] Cycle ${taskId} killed after 15m timeout.`);
     }
   }, 900000);
+
+  if (res) {
+    res.json({ success: true, message: `Director cycle started (${method}). Running in background.`, taskId, status: 'running' });
+  }
 }
 
 app.post('/api/director/cycle', (req, res) => triggerDirectorCycle(req, res, 'POST'));
@@ -619,10 +625,8 @@ function startScheduler() {
         settings.lastRunAt = new Date().toISOString();
         fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
 
-        // Use the manual trigger logic with environment variables
-        const script = '.github/scripts/agency-director.mjs';
-        const child = spawn('node', ['--env-file=.env', script], { cwd: CWD, stdio: 'ignore', detached: true });
-        child.unref();
+        // Use the unified trigger engine so logs show up in dashboard
+        triggerDirectorCycle(null, null, 'AUTO-PILOT');
       }
     }
   }, 60000); // 1 minute heartbeat
