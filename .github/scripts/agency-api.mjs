@@ -207,6 +207,12 @@ function triggerDirectorCycle(req, res, method = 'API') {
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
+  child.on('error', (err) => {
+    console.error('Spawn Error:', err);
+    logActivity('❌', 'manager', `Spawn Error: ${err.message}`, 'error');
+    delete runningTasks['director'];
+  });
+
   const taskId = Date.now().toString(36);
   runningTasks['director'] = { id: taskId, startedAt: new Date().toISOString(), pid: child.pid };
 
