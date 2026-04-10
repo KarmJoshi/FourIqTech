@@ -581,21 +581,26 @@ function startScheduler() {
     const istTimeString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
     const istTime = new Date(istTimeString);
 
-    const currentHM = `${String(istTime.getHours()).padStart(2, '0')}:${String(istTime.getMinutes()).padStart(2, '0')}`;
     const startTime = settings.startTime || "10:00";
-
-    // Simple logic: Trigger if time matches EXACTLY (polled every 60s)
-    // For multiple cycles per day, we calculate intervals
-    const intervalHours = 24 / (settings.cyclesPerDay || 1);
     const startHour = parseInt(startTime.split(':')[0]);
     const startMin = parseInt(startTime.split(':')[1]);
+    const intervalHours = 24 / (settings.cyclesPerDay || 1);
+
+    const currentTotalMinutes = (istTime.getHours() * 60) + istTime.getMinutes();
 
     let shouldTrigger = false;
+    
+    // Robust Window Mechanism: Allow up to 15 minutes AFTER the target time
+    // This entirely solves missed pulses from server sleep or restarts
     for (let i = 0; i < settings.cyclesPerDay; i++) {
       const targetHour = (startHour + (i * intervalHours)) % 24;
-      const targetHM = `${String(Math.floor(targetHour)).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
+      const targetTotalMinutes = (Math.floor(targetHour) * 60) + startMin;
+      
+      let diffMinutes = currentTotalMinutes - targetTotalMinutes;
+      // Wrap around midnight safely (e.g., target 23:55, current 00:05)
+      if (diffMinutes < 0) diffMinutes += (24 * 60);
 
-      if (currentHM === targetHM) {
+      if (diffMinutes >= 0 && diffMinutes <= 15) {
         shouldTrigger = true;
         break;
       }
@@ -605,10 +610,10 @@ function startScheduler() {
       const lastRun = settings.lastRunAt ? new Date(settings.lastRunAt).getTime() : 0;
       const oneHour = 60 * 60 * 1000;
 
-      // Prevent double-triggering within the same minute or hour
+      // Prevent double-triggering within the same window hour
       if (Date.now() - lastRun > oneHour) {
-        console.log(`[Scheduler] 🚀 TIME TRIGGER MATCHED (${currentHM}). Dispatching Director Cycle.`);
-        logActivity('🚀', 'scheduler', `Time trigger matched (${currentHM}). Strategic Auto-Pilot activated.`, 'info');
+        console.log(`[Scheduler] 🚀 TIME TRIGGER MATCHED. Dispatching Director Cycle.`);
+        logActivity('🚀', 'scheduler', `Time trigger matched. Strategic Auto-Pilot activated.`, 'info');
 
         // Update last run immediately to prevent race conditions
         settings.lastRunAt = new Date().toISOString();
