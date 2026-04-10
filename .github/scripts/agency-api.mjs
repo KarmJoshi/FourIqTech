@@ -576,8 +576,12 @@ function startScheduler() {
     const settings = readJson(SETTINGS_PATH, { isAutoPilot: false });
     if (!settings.isAutoPilot) return;
 
+    // Convert server UTC time to IST (India Standard Time)
     const now = new Date();
-    const currentHM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const istTimeString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const istTime = new Date(istTimeString);
+
+    const currentHM = `${String(istTime.getHours()).padStart(2, '0')}:${String(istTime.getMinutes()).padStart(2, '0')}`;
     const startTime = settings.startTime || "10:00";
 
     // Simple logic: Trigger if time matches EXACTLY (polled every 60s)
