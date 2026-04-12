@@ -9,7 +9,8 @@
     "agency": "node --env-file=.env .github/scripts/agency-api.mjs",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@motionone/utils": "^10.18.0",
