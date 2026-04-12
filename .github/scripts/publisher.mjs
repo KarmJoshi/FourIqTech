@@ -1,40 +1,38 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { logActivity } from './agency-core.mjs';
+import pkgPrisma from '@prisma/client';
+const { PrismaClient } = pkgPrisma;
+import pkgPg from 'pg';
+const { Pool } = pkgPg;
+import { PrismaPg } from '@prisma/adapter-pg';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🚀 THE PUBLISHER — Gatekeeper to Production
+// 🚀 THE PUBLISHER v3 — DB-Native Production Gateway
 // ═══════════════════════════════════════════════════════════════════════
-// This is the ONLY script authorized to write to production files.
-// It scans the staging queue for items explicitly marked `approved` by the Manager
-// and deploys them to the codebase.
+// Reads approved items from PostgreSQL StagingItem table.
+//   blog_post      → Insert into BlogPost table (isLive: true)
+//   landing_page   → Insert into ServicePage table (isLive: true)
+//   technical_patch → Write code file + git commit
 // ═══════════════════════════════════════════════════════════════════════
 
-const STAGING_PATH = path.join(process.cwd(), '.github/staging/staging.json');
-const BLOG_DATA_PATH = path.join(process.cwd(), 'src/data/blogPosts.ts');
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
 const APP_TSX_PATH = path.join(process.cwd(), 'src/App.tsx');
-
-function readJson(filePath, def) {
-  try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  } catch {
-    return def;
-  }
-}
 
 function injectRouteIntoApp(routePath, componentPath) {
   let appCode = fs.readFileSync(APP_TSX_PATH, 'utf8');
-  
-  // Basic check to see if route already imported or exists
   if (appCode.includes(`path="${routePath}"`)) return false;
 
   const compName = componentPath.split('/').pop().replace('.tsx', '');
-  
-  // Inject Import — handle both single and double quote styles
   const importLine = `import ${compName} from "./pages/services/${compName}";`;
+  
   if (!appCode.includes(compName)) {
-    // Find the last import line and add after it
     const importLines = appCode.split('\n');
     let lastImportIdx = 0;
     for (let i = 0; i < importLines.length; i++) {
@@ -44,13 +42,11 @@ function injectRouteIntoApp(routePath, componentPath) {
     appCode = importLines.join('\n');
   }
 
-  // Inject Route — insert BEFORE the catch-all "*" route, not after </Routes>
   const routeElement = `              <Route path="${routePath}" element={<${compName} />} />`;
   const catchAllPattern = /(\s*<Route\s+path="\*")/;
   if (catchAllPattern.test(appCode)) {
     appCode = appCode.replace(catchAllPattern, `${routeElement}\n$1`);
   } else {
-    // Fallback: insert before </Routes>
     appCode = appCode.replace('</Routes>', `${routeElement}\n            </Routes>`);
   }
 
@@ -58,105 +54,167 @@ function injectRouteIntoApp(routePath, componentPath) {
   return true;
 }
 
-async function publishApprovedItems() {
-  const staging = readJson(STAGING_PATH, { queue: [], stats: {} });
-  let publishedCount = 0;
-
-  for (const item of staging.queue) {
-    if (item.status === 'approved' && !item.is_published) {
-      console.log(`\n📦 PUBLISHER: Deploying [${item.id}] ${item.title}...`);
-      
-      try {
-        if (item.type === 'blog_post') {
-          // payload is the raw newPost string block
-          let blogDataFile = fs.readFileSync(BLOG_DATA_PATH, 'utf8');
-          const updated = blogDataFile.replace(
-            'export const blogPosts: BlogPost[] = [',
-            `export const blogPosts: BlogPost[] = [${item.content}`
-          );
-          fs.writeFileSync(BLOG_DATA_PATH, updated);
-          
-        } else if (item.type === 'landing_page') {
-          const payload = JSON.parse(item.content);
-          const fullTargetPath = path.join(process.cwd(), payload.target_file);
-          const dirPath = path.dirname(fullTargetPath);
-          if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
-          
-          // Handle double-nested JSON: agent sometimes wraps code in {"filename":"...","content":"..."}
-          let finalCode = payload.code;
-          try {
-            const inner = JSON.parse(finalCode);
-            if (inner.content && typeof inner.content === 'string') {
-              finalCode = inner.content;
-              console.log(`   🔧 Unwrapped nested JSON for ${payload.target_file}`);
-            }
-          } catch { /* not nested JSON, use as-is */ }
-          
-          fs.writeFileSync(fullTargetPath, finalCode, 'utf8');
-          injectRouteIntoApp(payload.route, payload.target_file);
-
-        } else if (item.type === 'technical_patch') {
-          const payload = JSON.parse(item.content);
-          const cleanPath = payload.target_file.startsWith('/') ? payload.target_file.slice(1) : payload.target_file;
-          const fullPath = path.join(process.cwd(), cleanPath);
-          fs.writeFileSync(fullPath, payload.code, 'utf8');
-        }
-
-        item.status = 'published';
-        item.is_published = true;
-        item.published_at = new Date().toISOString();
-        publishedCount++;
-
-        logActivity('📣', 'publisher', `Deployed ${item.type}: "${item.title}" to production`, 'publish');
-        console.log(`   ✅ Success!`);
-
-      } catch (e) {
-        console.error(`   ❌ Failed to deploy ${item.id}:`, e.message);
-        logActivity('❌', 'publisher', `Failed to deploy ${item.title}: ${e.message}`, 'error');
+async function logActivity(emoji, source, message, type = 'info') {
+  try {
+    await prisma.activityLog.create({
+      data: {
+        id: crypto.randomUUID(),
+        emoji, source, message, type,
+        timestamp: new Date()
       }
-    }
-  }
-
-  if (publishedCount > 0) {
-    // Recalculate stats
-    const q = staging.queue;
-    staging.stats = {
-      total_submitted: q.length,
-      approved: q.filter(i => i.status === 'approved').length,
-      rejected: q.filter(i => i.status === 'rejected').length,
-      pending: q.filter(i => i.status === 'pending_review').length,
-      published: q.filter(i => i.status === 'published').length,
-      approval_rate: q.length > 0 
-        ? Math.round(((q.filter(i => i.status === 'approved').length + q.filter(i => i.status === 'published').length) / q.length) * 100) + '%' 
-        : '0%'
-    };
-    
-    fs.writeFileSync(STAGING_PATH, JSON.stringify(staging, null, 2));
-    console.log(`\n🎉 PUBLISHER: Finished deploying ${publishedCount} items.`);
-    
-    // ── Auto-Commit Section ──
-    if (process.env.GITHUB_ACTIONS === 'true') {
-      try {
-        console.log(`\n👔 CI DETECTED: Committing and pushing ${publishedCount} changes...`);
-        execSync('git config --global user.name "FouriqTech AI Agent"');
-        execSync('git config --global user.email "ai-agent@fouriqtech.com"');
-        execSync('git add .');
-        // Include [skip ci] to prevent recursive triggers
-        execSync(`git commit -m "[AI-AGENCY] Published ${publishedCount} items [skip ci]"`);
-        execSync('git push');
-        console.log('   ✅ Git push successful.');
-      } catch (gitErr) {
-        console.error('   ❌ Git commit/push failed:', gitErr.message);
-      }
-    } else {
-      console.log(`\n💡 LOCAL RUN: Skipping auto-commit. (Only triggers in Cloud environment)`);
-    }
-
-  } else {
-    console.log(`\n💤 PUBLISHER: No approved items found to deploy.`);
+    });
+  } catch (err) {
+    console.error('   ⚠️ Activity log failed:', err.message);
   }
 }
 
-publishApprovedItems().catch(e => {
-  console.error('Publisher failed:', e);
-});
+async function publishApprovedItems() {
+  console.log('╔═══════════════════════════════════════════════════════════╗');
+  console.log('║  🚀 PUBLISHER v3 — DB-Native Production Gateway          ║');
+  console.log('╚═══════════════════════════════════════════════════════════╝');
+
+  // Get approved but not yet published items
+  const approvedItems = await prisma.stagingItem.findMany({
+    where: { status: 'approved' }
+  });
+
+  if (approvedItems.length === 0) {
+    console.log('\n💤 No approved items to deploy.');
+    return;
+  }
+
+  console.log(`\n📦 Found ${approvedItems.length} approved item(s) to deploy.\n`);
+  let publishedCount = 0;
+  let codeChanged = false;
+
+  for (const item of approvedItems) {
+    console.log(`\n📦 PUBLISHING [${item.id}] "${item.title}" (${item.type})...`);
+
+    try {
+      if (item.type === 'blog_post') {
+        // ── BLOG POST → Insert into BlogPost table ──
+        const content = item.content || '';
+        
+        // Parse blog metadata from content (AI generates in specific format)
+        const slug = content.match(/slug:\s*'([^']+)'/)?.[1] || `post-${Date.now()}`;
+        const title = content.match(/title:\s*'([^']+)'/)?.[1] || item.title;
+        const excerpt = content.match(/excerpt:\s*'([^']+)'/)?.[1] || '';
+        const date = content.match(/date:\s*'([^']+)'/)?.[1] || new Date().toISOString().split('T')[0];
+        const category = content.match(/category:\s*'([^']+)'/)?.[1] || 'Engineering';
+        const author = content.match(/author:\s*'([^']+)'/)?.[1] || 'FouriqTech Engineering';
+        const readTime = content.match(/readTime:\s*'([^']+)'/)?.[1] || '5 min read';
+        const htmlContent = content.match(/content:\s*`([\s\S]*)`/)?.[1]?.trim() || content;
+
+        // Check for duplicate slug
+        const existing = await prisma.blogPost.findUnique({ where: { slug } });
+        if (existing) {
+          console.log(`   ⚠️ Blog "${slug}" already exists. Updating...`);
+          await prisma.blogPost.update({
+            where: { slug },
+            data: { title, excerpt, content: htmlContent, isLive: true }
+          });
+        } else {
+          await prisma.blogPost.create({
+            data: {
+              slug, title, excerpt, date, readTime,
+              category, author, content: htmlContent, isLive: true,
+            }
+          });
+        }
+
+        console.log(`   ✅ Blog "${title}" → DB (isLive: true)`);
+
+      } else if (item.type === 'landing_page' || item.type === 'structural_page') {
+        // ── LANDING PAGE → Insert into ServicePage table + write .tsx file ──
+        const payload = JSON.parse(item.content || '{}');
+        const slug = payload.route?.replace('/services/', '') || `page-${Date.now()}`;
+        
+        let finalCode = payload.code || '';
+        try {
+          const inner = JSON.parse(finalCode);
+          if (inner.content) finalCode = inner.content;
+        } catch { /* not nested */ }
+
+        // Save to DB
+        const existingPage = await prisma.servicePage.findUnique({ where: { slug } });
+        if (existingPage) {
+          await prisma.servicePage.update({
+            where: { slug },
+            data: { component: finalCode, isLive: true }
+          });
+        } else {
+          await prisma.servicePage.create({
+            data: {
+              slug,
+              title: item.title,
+              component: finalCode,
+              route: payload.route || `/services/${slug}`,
+              isLive: true,
+            }
+          });
+        }
+
+        // Also write the .tsx file for static rendering
+        if (payload.target_file) {
+          const fullPath = path.join(process.cwd(), payload.target_file);
+          const dirPath = path.dirname(fullPath);
+          if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+          fs.writeFileSync(fullPath, finalCode, 'utf8');
+          injectRouteIntoApp(payload.route, payload.target_file);
+          codeChanged = true;
+        }
+
+        console.log(`   ✅ Page "${item.title}" → DB + file system`);
+
+      } else if (item.type === 'technical_patch') {
+        // ── TECHNICAL PATCH → Write code, needs git commit ──
+        const payload = JSON.parse(item.content || '{}');
+        const cleanPath = payload.target_file?.startsWith('/') 
+          ? payload.target_file.slice(1) : payload.target_file;
+        
+        if (cleanPath && payload.code) {
+          const fullPath = path.join(process.cwd(), cleanPath);
+          fs.writeFileSync(fullPath, payload.code, 'utf8');
+          codeChanged = true;
+          console.log(`   ✅ Patch applied to ${cleanPath}`);
+        }
+      }
+
+      // Mark as published in DB
+      await prisma.stagingItem.update({
+        where: { id: item.id },
+        data: { status: 'published', publishedAt: new Date() }
+      });
+
+      publishedCount++;
+      await logActivity('📣', 'publisher', `Deployed ${item.type}: "${item.title}"`, 'publish');
+
+    } catch (e) {
+      console.error(`   ❌ Failed to deploy ${item.id}:`, e.message);
+      await logActivity('❌', 'publisher', `Failed: "${item.title}" — ${e.message}`, 'error');
+    }
+  }
+
+  console.log(`\n🎉 PUBLISHER: Deployed ${publishedCount}/${approvedItems.length} items.`);
+
+  // ── Auto-Commit (only for code changes) ──
+  if (codeChanged && process.env.GITHUB_ACTIONS === 'true') {
+    try {
+      console.log(`\n👔 CI: Committing code changes...`);
+      execSync('git config --global user.name "FouriqTech AI Agent"');
+      execSync('git config --global user.email "ai-agent@fouriqtech.com"');
+      execSync('git add .');
+      execSync(`git commit -m "[AI-AGENCY] Published ${publishedCount} items [skip ci]"`);
+      execSync('git push');
+      console.log('   ✅ Git push successful.');
+    } catch (gitErr) {
+      console.error('   ❌ Git push failed:', gitErr.message);
+    }
+  } else if (codeChanged) {
+    console.log(`\n💡 LOCAL: Code changed but skipping auto-commit. (CI only)`);
+  }
+}
+
+publishApprovedItems()
+  .catch(e => console.error('Publisher fatal:', e))
+  .finally(() => pool.end());

@@ -7,32 +7,52 @@ import { blogPosts } from '@/data/blogPosts';
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
 import SEO from '@/components/SEO';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export default function Blog() {
   const [navVisible, setNavVisible] = useState(false);
   const [displayPosts, setDisplayPosts] = useState(blogPosts);
+  const [loading, setLoading] = useState(true);
   const { setScrollLocked } = useScrollLock();
 
   useEffect(() => {
-    // Show nav immediately on secondary pages
     setNavVisible(true);
     setScrollLocked(false);
 
-    // Fetch Live Posts
-    fetch('/live_posts.json')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.posts && data.posts.length > 0) {
-          // Merge static and live, deduplicating by slug
-          const merged = [...data.posts, ...blogPosts];
-          const unique = merged.filter((post, index, self) =>
-            index === self.findIndex((p) => p.slug === post.slug)
-          );
-          // Sort by date descending
-          unique.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          setDisplayPosts(unique);
-        }
-      })
-      .catch(err => console.error("Could not fetch live posts:", err));
+    async function loadPosts() {
+      try {
+        // Try DB API first
+        const dbRes = await fetch(`${API_BASE}/api/blogs`);
+        const dbData = await dbRes.json();
+        const dbPosts = dbData.posts || [];
+
+        // Merge: DB posts first, then static (deduplicate by slug)
+        const merged = [...dbPosts, ...blogPosts];
+        const unique = merged.filter((post, index, self) =>
+          index === self.findIndex((p) => p.slug === post.slug)
+        );
+        unique.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setDisplayPosts(unique);
+      } catch {
+        // API unavailable — fall back to static + live_posts.json
+        try {
+          const liveRes = await fetch('/live_posts.json');
+          const liveData = await liveRes.json();
+          if (liveData?.posts?.length > 0) {
+            const merged = [...liveData.posts, ...blogPosts];
+            const unique = merged.filter((post, index, self) =>
+              index === self.findIndex((p) => p.slug === post.slug)
+            );
+            unique.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setDisplayPosts(unique);
+          }
+        } catch { /* static blogPosts already set */ }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPosts();
   }, [setScrollLocked]);
 
   return (

@@ -837,7 +837,9 @@ class WebGLManager {
         if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
         this.common.renderer.dispose();
       }
-    } catch (e) {}
+    } catch {
+      // Ignore disposal errors
+    }
   }
 }
 

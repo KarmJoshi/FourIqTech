@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Lead {
+  id                String      @id
+  businessName      String
+  niche             String
+  location          String
+  source            String
+  website           String?
+  contactEmail      String?
+  competitorName    String?
+  competitorWebsite String?
+  reviewsSnapshot   String?
+  problemTitle      String?
+  problemDetail     String?
+  businessImpact    String?
+  likelyFix         String?
+  confidence        String?
+  status            String
+  collectedAt       DateTime
+  lastTouchedAt     DateTime
+  draftEmail        DraftEmail?
+}
+
+model DraftEmail {
+  id             String    @id
+  leadId         String    @unique
+  subject        String
+  angle          String
+  sentFrom       String
+  body           String
+  deliveryStatus String
+  sentAt         DateTime?
+  lead           Lead      @relation(fields: [leadId], references: [id])
+}
+
+model StagingItem {
+  id             String    @id
+  type           String
+  department     String
+  status         String
+  createdAt      DateTime
+  title          String
+  content        String?
+  summary        Json?
+  draftPath      String?
+  codePath       String?
+  diffPath       String?
+  metadata       Json?
+  managerReview  Json?
+  revisionCount  Int       @default(0)
+  publishedAt    DateTime?
+}
+
+model ActivityLog {
+  id        String   @id
+  emoji     String?
+  source    String
+  message   String
+  type      String
+  timestamp DateTime
+}
+
+model JournalEntry {
+  id                  String   @id @default(uuid())
+  date                DateTime
+  cycle               Int
+  sitrepSummary       Json?
+  decision            String
+  reasoning           String
+  confidence          Int?
+  agencyHealth        Int?
+  scoredRecommendation String?
+  recommendedOrders   Json?
+  crossDeptOrders     String?
+  qualityAudit        Json?
+  dispatchSuccess     Boolean?
+}
+
+model BlogPost {
+  id         String   @id @default(uuid())
+  slug       String   @unique
+  title      String
+  excerpt    String
+  date       String
+  readTime   String   @default("5 min read")
+  category   String   @default("Engineering")
+  author     String   @default("FouriqTech Engineering")
+  content    String
+  metaTitle  String?
+  metaDesc   String?
+  schemaJson String?
+  isLive     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ServicePage {
+  id         String   @id @default(uuid())
+  slug       String   @unique
+  title      String
+  component  String
+  route      String
+  metaTitle  String?
+  metaDesc   String?
+  schemaJson String?
+  isLive     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AgencyConfig {
+  id           String    @id @default("default")
+  isAutoPilot  Boolean   @default(false)
+  startTime    String    @default("10:00")
+  cyclesPerDay Int       @default(1)
+  lastRunAt    DateTime?
+  updatedAt    DateTime  @updatedAt
+}
+
+model SearchPerformance {
+  id              String   @id @default(uuid())
+  dateRangeStart  String
+  dateRangeEnd    String
+  totalClicks     Int
+  totalImpressions Int
+  avgPosition     Float
+  avgCtr          Float
+  page1Count      Int
+  fullReport      Json?
+  generatedAt     DateTime @default(now())
+}

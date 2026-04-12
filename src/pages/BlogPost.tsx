@@ -7,6 +7,8 @@ import { getPostBySlug } from '@/data/blogPosts';
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import SEO from '@/components/SEO';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const [navVisible, setNavVisible] = useState(false);
@@ -17,28 +19,41 @@ export default function BlogPost() {
   useEffect(() => {
     setNavVisible(true);
     setScrollLocked(false);
-    // Scroll to top when loading a new post
     window.scrollTo(0, 0);
 
-    // 1. Try static
-    const staticPost = getPostBySlug(slug || '');
-    if (staticPost) {
-      setPost(staticPost);
+    async function loadPost() {
+      try {
+        // 1. Try DB API first
+        const dbRes = await fetch(`${API_BASE}/api/blogs/${slug}`);
+        if (dbRes.ok) {
+          const data = await dbRes.json();
+          setPost(data.post);
+          setIsLoading(false);
+          return;
+        }
+      } catch { /* fallback below */ }
+
+      // 2. Try static
+      const staticPost = getPostBySlug(slug || '');
+      if (staticPost) {
+        setPost(staticPost);
+        setIsLoading(false);
+        return;
+      }
+
+      // 3. Try live storage
+      try {
+        const liveRes = await fetch('/live_posts.json');
+        const data = await liveRes.json();
+        const livePost = data.posts?.find((p: any) => p.slug === slug);
+        setPost(livePost || null);
+      } catch {
+        setPost(null);
+      }
       setIsLoading(false);
-    } else {
-      // 2. Try live storage
-      fetch('/live_posts.json')
-        .then(res => res.json())
-        .then(data => {
-          const livePost = data.posts.find((p: any) => p.slug === slug);
-          setPost(livePost || null);
-          setIsLoading(false);
-        })
-        .catch(() => {
-          setPost(null);
-          setIsLoading(false);
-        });
     }
+
+    loadPost();
   }, [slug, setScrollLocked]);
 
   if (isLoading) {

@@ -19,11 +19,22 @@ import path from 'path';
 //   GET  /api/journal              → Director decision history
 // ═══════════════════════════════════════════════════════════════════════
 
+import pkgPrisma from '@prisma/client';
+const { PrismaClient } = pkgPrisma;
+import pkgPg from 'pg';
+const { Pool } = pkgPg;
+import { PrismaPg } from '@prisma/adapter-pg';
 import nodemailer from 'nodemailer';
 import { exec } from 'child_process';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
 
 const app = express();
 app.use(cors());
@@ -72,21 +83,22 @@ function readJson(filePath, fallback = {}) {
   catch { return fallback; }
 }
 
-// ── Helper: Log activity ──
-function logActivity(emoji, source, message, type = 'info') {
-  const log = readJson(ACTIVITY_PATH, { entries: [] });
-  log.entries.unshift({
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    emoji,
-    source,
-    message,
-    type,
-    timestamp: new Date().toISOString(),
-  });
-  log.entries = log.entries.slice(0, 200);
-  const dir = path.dirname(ACTIVITY_PATH);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(ACTIVITY_PATH, JSON.stringify(log, null, 2));
+async function logActivity(emoji, source, message, type = 'info') {
+  try {
+    const entry = await prisma.activityLog.create({
+      data: {
+        id: crypto.randomUUID(),
+        emoji,
+        source,
+        message,
+        type,
+        timestamp: new Date()
+      }
+    });
+    return entry;
+  } catch (err) {
+    console.error('Failed to log activity to DB:', err.message);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -260,59 +272,66 @@ app.get('/api/director/cycle', (req, res) => triggerDirectorCycle(req, res, 'CRO
 // ═══════════════════════════════════════════════════════════════════════
 // GET /api/staging — Staging queue
 // ═══════════════════════════════════════════════════════════════════════
-app.get('/api/staging', (req, res) => {
-  res.json(readJson(STAGING_PATH, { queue: [], stats: {} }));
+app.get('/api/staging', async (req, res) => {
+  try {
+    const items = await prisma.stagingItem.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    const stats = {
+      total_submitted: items.length,
+      approved: items.filter(i => i.status === 'approved').length,
+      rejected: items.filter(i => i.status === 'rejected').length,
+      pending: items.filter(i => i.status === 'pending_review').length,
+      approval_rate: items.length > 0 
+        ? Math.round((items.filter(i => i.status === 'approved').length / items.length) * 100) + '%' 
+        : '0%'
+    };
+    
+    res.json({ queue: items, stats });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════
 // POST /api/staging — Submit work to the queue
 // ═══════════════════════════════════════════════════════════════════════
 app.post('/api/staging', async (req, res) => {
-  const { type, department, title, content, summary, metadata } = req.body;
-  const staging = readJson(STAGING_PATH, { queue: [], stats: {} });
+  try {
+    const { type, department, title, content, summary, metadata } = req.body;
+    const count = await prisma.stagingItem.count();
+    const id = `stg-${(count + 1).toString().padStart(3, '0')}`;
 
-  const id = `stg-${(staging.queue.length + 1).toString().padStart(3, '0')}`;
+    // Save content to file for dashboard preview
+    const contentFilename = `${id}_${Date.now()}.txt`;
+    const contentPath = path.join('.github/staging/drafts', contentFilename);
+    const fullContentPath = path.join(CWD, contentPath);
 
-  // Also save the raw content to a temp file for previewing if it's large
-  const contentFilename = `${id}_${Date.now()}.txt`;
-  const contentPath = path.join('.github/staging/drafts', contentFilename);
-  const fullContentPath = path.join(CWD, contentPath);
+    if (!fs.existsSync(path.dirname(fullContentPath))) {
+      fs.mkdirSync(path.dirname(fullContentPath), { recursive: true });
+    }
+    fs.writeFileSync(fullContentPath, content || '');
 
-  if (!fs.existsSync(path.dirname(fullContentPath))) {
-    fs.mkdirSync(path.dirname(fullContentPath), { recursive: true });
+    const newItem = await prisma.stagingItem.create({
+      data: {
+        id,
+        type: type || 'other',
+        department: department || 'Unknown',
+        status: 'pending_review',
+        createdAt: new Date(),
+        title: title || 'Untitled Submission',
+        content: content || '',
+        draftPath: contentPath,
+        summary: summary || {},
+        metadata: metadata || {},
+      }
+    });
+
+    res.json({ success: true, id: newItem.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  fs.writeFileSync(fullContentPath, content || '');
-
-  const newItem = {
-    id,
-    type: type || 'other',
-    department: department || 'Unknown',
-    status: 'pending_review',
-    created_at: new Date().toISOString(),
-    title: title || 'Untitled Submission',
-    content: content || '', // Keep small previews in JSON
-    draft_path: contentPath,
-    summary: summary || {},
-    metadata: metadata || {},
-    manager_review: null,
-    revision_count: 0
-  };
-
-  staging.queue.unshift(newItem); // Newest at top
-
-  // Update stats
-  const q = staging.queue;
-  staging.stats = {
-    total_submitted: q.length,
-    approved: q.filter(i => i.status === 'approved').length,
-    rejected: q.filter(i => i.status === 'rejected').length,
-    pending: q.filter(i => i.status === 'pending_review').length,
-    approval_rate: q.length > 0 ? Math.round((q.filter(i => i.status === 'approved').length / q.length) * 100) + '%' : '0%'
-  };
-
-  fs.writeFileSync(STAGING_PATH, JSON.stringify(staging, null, 2));
-  res.json({ success: true, id });
 });
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -327,47 +346,38 @@ app.post('/api/staging/:id/review', async (req, res) => {
   }
 
   try {
-    const staging = readJson(STAGING_PATH, { queue: [] });
-    const item = staging.queue.find(i => i.id === id);
-
-    if (!item) return res.status(404).json({ error: `Staging item ${id} not found` });
-
-    item.status = verdict;
-    item.manager_review = {
-      verdict,
-      feedback: feedback || '',
-      reviewed_at: new Date().toISOString(),
+    const updateData = {
+      status: verdict,
+      managerReview: {
+        verdict,
+        feedback: feedback || '',
+        reviewed_at: new Date().toISOString(),
+      }
     };
 
     if (verdict === 'approved') {
-      item.published_at = new Date().toISOString();
-      // TRIGGER LIVE PUBLISHING
+      updateData.publishedAt = new Date();
+    } else {
+      updateData.revisionCount = { increment: 1 };
+    }
+
+    const item = await prisma.stagingItem.update({
+      where: { id },
+      data: updateData
+    });
+
+    if (verdict === 'approved') {
       await publishApprovedItem(item);
     }
 
-    // Recalculate stats
-    const q = staging.queue;
-    staging.stats = {
-      total_submitted: q.length,
-      approved: q.filter(i => i.status === 'approved').length,
-      rejected: q.filter(i => i.status === 'rejected').length,
-      pending: q.filter(i => i.status === 'pending_review').length,
-      approval_rate: q.length > 0
-        ? Math.round((q.filter(i => i.status === 'approved').length / q.length) * 100) + '%'
-        : '0%'
-    };
-
-    fs.writeFileSync(STAGING_PATH, JSON.stringify(staging, null, 2));
-
     const emoji = verdict === 'approved' ? '✅' : '❌';
-    logActivity(emoji, 'manager', `${verdict.toUpperCase()}: "${item.title}" — ${feedback || 'No comment'}`, 'review');
+    await logActivity(emoji, 'manager', `${verdict.toUpperCase()}: "${item.title}" — ${feedback || 'No comment'}`, 'review');
 
     res.json({ success: true, item });
 
-    // Execute Publisher in background if approved
     if (verdict === 'approved') {
       const publisher = spawn('node', ['.github/scripts/publisher.mjs'], { stdio: 'ignore' });
-      publisher.unref(); // Run detached in background
+      publisher.unref();
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -377,10 +387,17 @@ app.post('/api/staging/:id/review', async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 // GET /api/activity — Real-time activity feed
 // ═══════════════════════════════════════════════════════════════════════
-app.get('/api/activity', (req, res) => {
-  const limit = parseInt(req.query.limit) || 50;
-  const log = readJson(ACTIVITY_PATH, { entries: [] });
-  res.json({ entries: log.entries.slice(0, limit) });
+app.get('/api/activity', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const items = await prisma.activityLog.findMany({
+      orderBy: { timestamp: 'desc' },
+      take: limit
+    });
+    res.json({ entries: items });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -406,162 +423,185 @@ app.get('/api/intelligence', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 // GET /api/status — Agency health snapshot
 // ═══════════════════════════════════════════════════════════════════════
-app.get('/api/status', (req, res) => {
+app.get('/api/status', async (req, res) => {
   const status = {};
 
-  // Blog count
   try {
-    const blogData = fs.readFileSync(BLOG_DATA, 'utf8');
-    status.blog_posts = [...blogData.matchAll(/slug:\s*'([^']+)'/g)].length;
+    // Blog count from DB
+    status.blog_posts = await prisma.blogPost.count({ where: { isLive: true } });
   } catch { status.blog_posts = 0; }
 
-  // Service pages
   try {
-    const appCode = fs.readFileSync(APP_TSX, 'utf8');
-    status.service_pages = [...appCode.matchAll(/path="\/services\/([^"]+)"/g)].length;
+    // Service pages from DB + static file
+    const dbPages = await prisma.servicePage.count({ where: { isLive: true } });
+    let staticPages = 0;
+    try {
+      const appCode = fs.readFileSync(APP_TSX, 'utf8');
+      staticPages = [...appCode.matchAll(/path="\/services\/([^"]+)"/g)].length;
+    } catch {}
+    status.service_pages = Math.max(dbPages, staticPages);
   } catch { status.service_pages = 0; }
 
-  // Journal
   try {
-    const journal = JSON.parse(fs.readFileSync(DIRECTOR_JOURNAL, 'utf8'));
-    status.director_cycles = journal.total_cycles || 0;
-    status.last_decision = journal.entries?.slice(-1)[0] || null;
+    // Journal from DB
+    const journalEntries = await prisma.journalEntry.findMany({
+      orderBy: { date: 'desc' }, take: 1
+    });
+    status.director_cycles = await prisma.journalEntry.count();
+    status.last_decision = journalEntries[0] || null;
   } catch { status.director_cycles = 0; }
 
-  // Tech log
   try {
+    // Tech log (still file-based)
     const techLog = JSON.parse(fs.readFileSync(TECH_LOG, 'utf8'));
     status.tech_fixes = techLog.applied_fixes?.length || 0;
   } catch { status.tech_fixes = 0; }
 
-  // Staging
-  const staging = readJson(STAGING_PATH, { stats: {} });
-  status.staging = staging.stats;
+  try {
+    // Staging from DB
+    const q = await prisma.stagingItem.findMany();
+    status.staging = {
+      total_submitted: q.length,
+      approved: q.filter(i => i.status === 'approved').length,
+      rejected: q.filter(i => i.status === 'rejected').length,
+      pending: q.filter(i => i.status === 'pending_review').length,
+      published: q.filter(i => i.status === 'published').length,
+      approval_rate: q.length > 0 ? Math.round((q.filter(i => ['approved','published'].includes(i.status)).length / q.length) * 100) + '%' : '0%'
+    };
+  } catch { status.staging = {}; }
 
-  // Running tasks
   status.running_tasks = Object.keys(runningTasks);
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // NEW: Unified Outreach & Tasks (From Agency Bridge)
-  // ═══════════════════════════════════════════════════════════════════════
-
-  const TASK_SCRIPTS = {
-    writer: 'seo-auto-poster.mjs',
-    auditor: 'seo-dev-agent.mjs',
-    outreach: 'seo-outreach-agent.mjs',
-    lead_hunter: 'lead-hunter.mjs'
-  };
-
-  app.post('/api/run-task', (req, res) => {
-    try {
-      const { task, args } = req.body;
-      const scriptName = TASK_SCRIPTS[task];
-      if (!scriptName) {
-        return res.status(400).json({ error: `Unknown task: ${task}` });
-      }
-
-      const argsString = args && Array.isArray(args) ? args.map(a => `"${a.replace(/"/g, '\\"')}"`).join(' ') : '';
-      const cmd = `node .github/scripts/${scriptName} ${argsString}`;
-      console.log(`[Unified API] EXECUTING: ${cmd}`);
-      logActivity('🚀', task, `Manual Task Executed: ${task}`, 'info');
-
-      exec(cmd, (error, stdout, stderr) => {
-        const response = { success: !error, stdout, stderr, error: error ? error.message : null };
-        res.status(error ? 500 : 200).json(response);
-      });
-    } catch (e) {
-      res.status(400).json({ error: 'Invalid Task Payload' });
-    }
-  });
-
-  app.post('/api/send-email', async (req, res) => {
-    try {
-      const { to, subject, body: emailBody, fromName } = req.body;
-      console.log(`[Unified API] SENDING EMAIL TO: ${to}`);
-
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '465'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-      });
-
-      const info = await transporter.sendMail({
-        from: `"${fromName || 'FourIqTech Team'}" <${process.env.SMTP_USER}>`,
-        to,
-        subject,
-        text: emailBody
-      });
-
-      logActivity('📧', 'outreach', `Email successfully sent to ${to}`, 'info');
-      res.json({ success: true, messageId: info.messageId });
-    } catch (e) {
-      console.error(`[Unified API] ERROR SENDING EMAIL: ${e.message}`);
-      logActivity('❌', 'outreach', `Failed to send email to ${to}: ${e.message}`, 'error');
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
 
   res.json(status);
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// Unified Task Runner & Email
+// ═══════════════════════════════════════════════════════════════════════
+
+const TASK_SCRIPTS = {
+  writer: 'seo-auto-poster.mjs',
+  auditor: 'seo-dev-agent.mjs',
+  outreach: 'seo-outreach-agent.mjs',
+  lead_hunter: 'lead-hunter.mjs'
+};
+
+app.post('/api/run-task', (req, res) => {
+  try {
+    const { task, args } = req.body;
+    const scriptName = TASK_SCRIPTS[task];
+    if (!scriptName) {
+      return res.status(400).json({ error: `Unknown task: ${task}` });
+    }
+
+    const argsString = args && Array.isArray(args) ? args.map(a => `"${a.replace(/"/g, '\\"')}"`).join(' ') : '';
+    const cmd = `node .github/scripts/${scriptName} ${argsString}`;
+    console.log(`[Unified API] EXECUTING: ${cmd}`);
+    logActivity('🚀', task, `Manual Task Executed: ${task}`, 'info');
+
+    exec(cmd, (error, stdout, stderr) => {
+      const response = { success: !error, stdout, stderr, error: error ? error.message : null };
+      res.status(error ? 500 : 200).json(response);
+    });
+  } catch (e) {
+    res.status(400).json({ error: 'Invalid Task Payload' });
+  }
+});
+
+app.post('/api/send-email', async (req, res) => {
+  try {
+    const { to, subject, body: emailBody, fromName } = req.body;
+    console.log(`[Unified API] SENDING EMAIL TO: ${to}`);
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '465'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+    });
+
+    const info = await transporter.sendMail({
+      from: `"${fromName || 'FourIqTech Team'}" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      text: emailBody
+    });
+
+    logActivity('📧', 'outreach', `Email successfully sent to ${to}`, 'info');
+    res.json({ success: true, messageId: info.messageId });
+  } catch (e) {
+    console.error(`[Unified API] ERROR SENDING EMAIL: ${e.message}`);
+    logActivity('❌', 'outreach', `Failed to send email: ${e.message}`, 'error');
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
 // GET /api/journal — Director decision history
 // ═══════════════════════════════════════════════════════════════════════
-app.get('/api/journal', (req, res) => {
+app.get('/api/journal', async (req, res) => {
   try {
-    const journal = JSON.parse(fs.readFileSync(DIRECTOR_JOURNAL, 'utf8'));
-    res.json(journal);
-  } catch {
-    res.json({ entries: [], total_cycles: 0 });
+    const items = await prisma.journalEntry.findMany({
+      orderBy: { date: 'desc' },
+      take: 50
+    });
+    res.json({ entries: items, total_cycles: items.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
 // ═══════════════════════════════════════════════════════════════════════
 // GET /api/staging/:id/content — Read a staging item's draft content
 // ═══════════════════════════════════════════════════════════════════════
-app.get('/api/staging/:id/content', (req, res) => {
-  const staging = readJson(STAGING_PATH, { queue: [] });
-  const item = staging.queue.find(i => i.id === req.params.id);
-
-  if (!item) return res.status(404).json({ error: 'Item not found' });
-
-  const contentPath = item.draft_path || item.code_path || item.diff_path;
-  if (!contentPath) return res.json({ content: 'No content file associated.' });
-
+app.get('/api/staging/:id/content', async (req, res) => {
   try {
+    const item = await prisma.stagingItem.findUnique({
+      where: { id: req.params.id }
+    });
+
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+
+    const contentPath = item.draftPath || item.codePath || item.diffPath;
+    if (!contentPath) return res.json({ content: 'No content file associated.' });
+
     const fullPath = path.join(CWD, contentPath);
     const content = fs.readFileSync(fullPath, 'utf8');
     res.json({ content, path: contentPath });
-  } catch {
-    res.json({ content: 'Content file not found on disk.', path: contentPath });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
 // ═══════════════════════════════════════════════════════════════════════
-// GET/POST /api/settings — Strategic Auto-Pilot Settings
+// GET/POST /api/settings — DB-Driven Auto-Pilot Settings
 // ═══════════════════════════════════════════════════════════════════════
-app.get('/api/settings', (req, res) => {
-  const settings = readJson(SETTINGS_PATH, {
-    isAutoPilot: false,
-    startTime: "10:00",
-    cyclesPerDay: 1,
-    lastRunAt: null
-  });
-  res.json(settings);
+app.get('/api/settings', async (req, res) => {
+  try {
+    let config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
+    if (!config) {
+      config = await prisma.agencyConfig.create({ data: { id: 'default' } });
+    }
+    res.json(config);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post('/api/settings', (req, res) => {
+app.post('/api/settings', async (req, res) => {
   try {
-    const settings = readJson(SETTINGS_PATH, {});
-    const newSettings = { ...settings, ...req.body };
-
-    const dir = path.dirname(SETTINGS_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    fs.writeFileSync(SETTINGS_PATH, JSON.stringify(newSettings, null, 2));
-    logActivity('⚙️', 'system', 'Strategic Auto-Pilot settings updated', 'info');
-    res.json({ success: true, settings: newSettings });
+    const { isAutoPilot, startTime, cyclesPerDay } = req.body;
+    const config = await prisma.agencyConfig.upsert({
+      where: { id: 'default' },
+      update: {
+        ...(isAutoPilot !== undefined && { isAutoPilot }),
+        ...(startTime && { startTime }),
+        ...(cyclesPerDay && { cyclesPerDay }),
+      },
+      create: { id: 'default' }
+    });
+    await logActivity('⚙️', 'system', 'Strategic Auto-Pilot settings updated', 'info');
+    res.json({ success: true, settings: config });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }
@@ -570,10 +610,12 @@ app.post('/api/settings', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 // GET /api/leads — Fetch Leads Gathered by the Hunter
 // ═══════════════════════════════════════════════════════════════════════
-app.get('/api/leads', (req, res) => {
+app.get('/api/leads', async (req, res) => {
   try {
-    const leadsPath = path.join(CWD, "public", "collected_leads.json");
-    const leads = readJson(leadsPath, []);
+    const leads = await prisma.lead.findMany({
+      include: { draftEmail: true },
+      orderBy: { collectedAt: 'desc' }
+    });
     res.json({ leads });
   } catch (e) {
     res.status(500).json({ error: "Failed to read leads database." });
@@ -581,37 +623,38 @@ app.get('/api/leads', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
-// STRATEGIC SCHEDULER — Heartbeat
+// STRATEGIC SCHEDULER — DB-Driven Heartbeat
 // ═══════════════════════════════════════════════════════════════════════
 function startScheduler() {
-  console.log(`[Scheduler] Strategic heartbeat initialized (Interval: 1m)`);
+  console.log(`[Scheduler] Strategic heartbeat initialized (Interval: 1m, Source: PostgreSQL)`);
 
   setInterval(async () => {
-    const settings = readJson(SETTINGS_PATH, { isAutoPilot: false });
-    if (!settings.isAutoPilot) return;
+    let config;
+    try {
+      config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
+    } catch { return; }
+
+    if (!config || !config.isAutoPilot) return;
 
     // Convert server UTC time to IST (India Standard Time)
     const now = new Date();
     const istTimeString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
     const istTime = new Date(istTimeString);
 
-    const startTime = settings.startTime || "10:00";
+    const startTime = config.startTime || "10:00";
     const startHour = parseInt(startTime.split(':')[0]);
     const startMin = parseInt(startTime.split(':')[1]);
-    const intervalHours = 24 / (settings.cyclesPerDay || 1);
+    const intervalHours = 24 / (config.cyclesPerDay || 1);
 
     const currentTotalMinutes = (istTime.getHours() * 60) + istTime.getMinutes();
 
     let shouldTrigger = false;
     
-    // Robust Window Mechanism: Allow up to 15 minutes AFTER the target time
-    // This entirely solves missed pulses from server sleep or restarts
-    for (let i = 0; i < settings.cyclesPerDay; i++) {
+    for (let i = 0; i < config.cyclesPerDay; i++) {
       const targetHour = (startHour + (i * intervalHours)) % 24;
       const targetTotalMinutes = (Math.floor(targetHour) * 60) + startMin;
       
       let diffMinutes = currentTotalMinutes - targetTotalMinutes;
-      // Wrap around midnight safely (e.g., target 23:55, current 00:05)
       if (diffMinutes < 0) diffMinutes += (24 * 60);
 
       if (diffMinutes >= 0 && diffMinutes <= 15) {
@@ -621,105 +664,178 @@ function startScheduler() {
     }
 
     if (shouldTrigger) {
-      const lastRun = settings.lastRunAt ? new Date(settings.lastRunAt).getTime() : 0;
+      const lastRun = config.lastRunAt ? new Date(config.lastRunAt).getTime() : 0;
       const oneHour = 60 * 60 * 1000;
 
-      // Prevent double-triggering within the same window hour
       if (Date.now() - lastRun > oneHour) {
         console.log(`[Scheduler] 🚀 TIME TRIGGER MATCHED. Dispatching Director Cycle.`);
         logActivity('🚀', 'scheduler', `Time trigger matched. Strategic Auto-Pilot activated.`, 'info');
 
-        // Update last run immediately to prevent race conditions
-        settings.lastRunAt = new Date().toISOString();
-        fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
+        // Update last run in DB
+        await prisma.agencyConfig.update({
+          where: { id: 'default' },
+          data: { lastRunAt: new Date() }
+        });
 
-        // Use the unified trigger engine so logs show up in dashboard
         triggerDirectorCycle(null, null, 'AUTO-PILOT');
       }
     }
-  }, 60000); // 1 minute heartbeat
+  }, 60000);
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🚀 LIVE PUBLISHING LOGIC
+// 🚀 LIVE PUBLISHING LOGIC — DB-Native
 // ═══════════════════════════════════════════════════════════════════════
 
 async function publishApprovedItem(item) {
   try {
     if (item.type === 'blog_post') {
-      const data = readJson(LIVE_POSTS_PATH, { posts: [] });
-      // Ensure we don't duplicate
-      const slugMatch = item.content.match(/slug:\s*'([^']+)'/);
-      const titleMatch = item.content.match(/title:\s*'([^']+)'/);
-      const excerptMatch = item.content.match(/excerpt:\s*'([^']+)'/);
-      const dateMatch = item.content.match(/date:\s*'([^']+)'/);
-      const categoryMatch = item.content.match(/category:\s*'([^']+)'/);
-      const authorMatch = item.content.match(/author:\s*'([^']+)'/);
-      const readTimeMatch = item.content.match(/readTime:\s*'([^']+)'/);
+      const content = item.content || '';
+      const slug = content.match(/slug:\s*'([^']+)'/)?.[1] || `post-${Date.now()}`;
+      const title = content.match(/title:\s*'([^']+)'/)?.[1] || item.title;
+      const excerpt = content.match(/excerpt:\s*'([^']+)'/)?.[1] || '';
+      const date = content.match(/date:\s*'([^']+)'/)?.[1] || new Date().toISOString().split('T')[0];
+      const category = content.match(/category:\s*'([^']+)'/)?.[1] || 'Engineering';
+      const author = content.match(/author:\s*'([^']+)'/)?.[1] || 'FouriqTech Engineering';
+      const readTime = content.match(/readTime:\s*'([^']+)'/)?.[1] || '5 min read';
+      const htmlContent = content.match(/content:\s*`([\s\S]*)`/)?.[1]?.trim() || content;
 
-      // Extract content - look between content: \` and \`,
-      const contentPartMatch = item.content.match(/content:\s*\`([\s\S]*)\`,/);
-
-      const slug = slugMatch ? slugMatch[1] : `post-${Date.now()}`;
-
-      if (data.posts.find(p => p.slug === slug)) {
-        console.log(`   ⚠️ Blog with slug "${slug}" already live. Skipping duplicate write.`);
-        return;
-      }
-
-      data.posts.unshift({
-        slug,
-        title: titleMatch ? titleMatch[1] : item.title,
-        excerpt: excerptMatch ? excerptMatch[1] : '',
-        date: dateMatch ? dateMatch[1] : new Date().toISOString().split('T')[0],
-        category: categoryMatch ? categoryMatch[1] : 'Engineering',
-        author: authorMatch ? authorMatch[1] : 'FouriqTech',
-        readTime: readTimeMatch ? readTimeMatch[1] : '5 min read',
-        content: contentPartMatch ? contentPartMatch[1].trim() : '',
-        is_live: true,
-        created_at: new Date().toISOString()
+      await prisma.blogPost.upsert({
+        where: { slug },
+        update: { title, excerpt, content: htmlContent, isLive: true },
+        create: {
+          slug, title, excerpt, date, readTime,
+          category, author, content: htmlContent, isLive: true,
+        }
       });
-
-      fs.writeFileSync(LIVE_POSTS_PATH, JSON.stringify(data, null, 2));
-      console.log(`   📦 Live Post Published: ${slug}`);
-      await gitCommitAndPush(`feat: Live published blog "${item.title}"`);
+      console.log(`   📦 Blog → DB: "${title}" (isLive: true)`);
     }
 
-    if (item.type === 'structural_page') {
-      const data = readJson(LIVE_ROUTES_PATH, { routes: [] });
-      data.routes.push({
-        id: item.id,
-        title: item.title,
-        path: item.metadata?.path || `/services/${item.id}`,
-        content: item.content,
-        created_at: new Date().toISOString()
+    if (item.type === 'structural_page' || item.type === 'landing_page') {
+      const payload = JSON.parse(item.content || '{}');
+      const slug = payload.route?.replace('/services/', '') || `page-${Date.now()}`;
+
+      await prisma.servicePage.upsert({
+        where: { slug },
+        update: { component: payload.code || '', isLive: true },
+        create: {
+          slug,
+          title: item.title,
+          component: payload.code || '',
+          route: payload.route || `/services/${slug}`,
+          isLive: true,
+        }
       });
-      fs.writeFileSync(LIVE_ROUTES_PATH, JSON.stringify(data, null, 2));
-      console.log(`   🏗️ Live Route Registered: ${item.title}`);
-      await gitCommitAndPush(`feat: Live published landing page "${item.title}"`);
+      console.log(`   🏗️ Page → DB: "${item.title}" (isLive: true)`);
     }
   } catch (err) {
-    console.error('❌ Failed to publish live item:', err.message);
-    logActivity('❌', 'publisher', `Failed to publish live item: ${err.message}`, 'error');
+    console.error('❌ Failed to publish item:', err.message);
+    logActivity('❌', 'publisher', `Failed to publish: ${err.message}`, 'error');
   }
 }
 
-async function gitCommitAndPush(message) {
-  return new Promise((resolve) => {
-    // Stage specifically the live content files to avoid polluting commits
-    const cmd = `git add public/live_posts.json public/live_routes.json .github/staging/staging.json && git commit -m "${message}" && git push origin main`;
-    console.log(`   🐙 Git: Attempting to persist changes...`);
-    exec(cmd, (error, stdout, stderr) => {
-      if (error) {
-        console.warn(`   ⚠️ Git push failed (may not have credentials on Render):`, error.message);
-      } else {
-        console.log(`   ✅ Git: Changes pushed to GitHub.`);
-      }
-      resolve();
-    });
-  });
-}
 
+// ═══════════════════════════════════════════════════════════════════════
+// 📝 BLOG POSTS API — DB-driven content
+// ═══════════════════════════════════════════════════════════════════════
+
+app.get('/api/blogs', async (req, res) => {
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { isLive: true },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, slug: true, title: true, excerpt: true,
+        date: true, readTime: true, category: true, author: true,
+        metaTitle: true, metaDesc: true, createdAt: true
+      }
+    });
+    res.json({ posts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/blogs/:slug', async (req, res) => {
+  try {
+    const post = await prisma.blogPost.findUnique({
+      where: { slug: req.params.slug }
+    });
+    if (!post || !post.isLive) return res.status(404).json({ error: 'Post not found' });
+    res.json({ post });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🏗️ SERVICE PAGES API — Dynamic landing pages
+// ═══════════════════════════════════════════════════════════════════════
+
+app.get('/api/services', async (req, res) => {
+  try {
+    const pages = await prisma.servicePage.findMany({
+      where: { isLive: true },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, slug: true, title: true, route: true,
+        metaTitle: true, metaDesc: true, createdAt: true
+      }
+    });
+    res.json({ pages });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/services/:slug', async (req, res) => {
+  try {
+    const page = await prisma.servicePage.findUnique({
+      where: { slug: req.params.slug }
+    });
+    if (!page || !page.isLive) return res.status(404).json({ error: 'Page not found' });
+    res.json({ page });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// ⚙️ AGENCY CONFIG API — DB-driven settings (replaces JSON file)
+// ═══════════════════════════════════════════════════════════════════════
+
+app.get('/api/config', async (req, res) => {
+  try {
+    let config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
+    if (!config) {
+      config = await prisma.agencyConfig.create({
+        data: { id: 'default' }
+      });
+    }
+    res.json(config);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/config', async (req, res) => {
+  try {
+    const { isAutoPilot, startTime, cyclesPerDay } = req.body;
+    const config = await prisma.agencyConfig.upsert({
+      where: { id: 'default' },
+      update: {
+        ...(isAutoPilot !== undefined && { isAutoPilot }),
+        ...(startTime && { startTime }),
+        ...(cyclesPerDay && { cyclesPerDay }),
+      },
+      create: { id: 'default' }
+    });
+    await logActivity('⚙️', 'system', 'Agency config updated via API', 'info');
+    res.json({ success: true, config });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════════════
 // START
@@ -727,7 +843,7 @@ async function gitCommitAndPush(message) {
 app.listen(PORT, () => {
   startScheduler();
   console.log('╔═══════════════════════════════════════════════════════════════╗');
-  console.log(`║  👔 AGENCY API v2 — Manager Is The Boss — Port ${PORT}          ║`);
+  console.log(`║  👔 AGENCY API v3 — Full DB-Driven — Port ${PORT}              ║`);
   console.log('╠═══════════════════════════════════════════════════════════════╣');
   console.log('║  POST /api/dispatch/:dept        → Non-blocking dispatch    ║');
   console.log('║  POST /api/director/cycle         → Full Director cycle     ║');
@@ -738,6 +854,10 @@ app.listen(PORT, () => {
   console.log('║  GET  /api/tasks                  → Running tasks          ║');
   console.log('║  GET  /api/status                 → Agency health          ║');
   console.log('║  GET  /api/journal                → Decision history       ║');
+  console.log('║  GET  /api/blogs                  → Live blog posts        ║');
+  console.log('║  GET  /api/blogs/:slug            → Single blog post       ║');
+  console.log('║  GET  /api/services               → Live service pages     ║');
+  console.log('║  GET  /api/services/:slug         → Single service page    ║');
+  console.log('║  GET  /api/config                 → Agency configuration   ║');
   console.log('╚═══════════════════════════════════════════════════════════════╝');
 });
-

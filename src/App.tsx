@@ -45,6 +45,7 @@ const App = () => (
               <Route path="/services/enterprise-headless-commerce-development" element={<EnterpriseHeadlessCommerceDevelopment />} />
               <Route path="/agent-manager" element={<AgentManager />} />
               <Route path="/services/enterprise-ui-ux-design-services" element={<EnterpriseUiUxDesignServices />} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

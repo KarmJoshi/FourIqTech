@@ -1,7 +1,16 @@
-import fs from 'fs';
-import path from 'path';
-import { GoogleGenAI } from '@google/genai';
+import pkgPrisma from '@prisma/client';
+const { PrismaClient } = pkgPrisma;
+import pkgPg from 'pg';
+const { Pool } = pkgPg;
+import { PrismaPg } from '@prisma/adapter-pg';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🧱 AGENCY CORE — Shared Utilities for All Agents
@@ -162,149 +171,116 @@ function ensureStagingDirs() {
   });
 }
 
-export function loadStaging() {
-  ensureStagingDirs();
-  try {
-    return JSON.parse(fs.readFileSync(PATHS.staging, 'utf8'));
-  } catch {
-    const empty = { queue: [], stats: { total_submitted: 0, approved: 0, rejected: 0, pending: 0, approval_rate: '0%' } };
-    fs.writeFileSync(PATHS.staging, JSON.stringify(empty, null, 2));
-    return empty;
-  }
-}
-
-export function saveStaging(data) {
-  ensureStagingDirs();
-  // Recalculate stats
-  const q = data.queue || [];
-  data.stats = {
-    total_submitted: q.length,
-    approved: q.filter(i => i.status === 'approved').length,
-    rejected: q.filter(i => i.status === 'rejected').length,
-    pending: q.filter(i => i.status === 'pending_review').length,
-    approval_rate: q.length > 0 
-      ? Math.round((q.filter(i => i.status === 'approved').length / q.length) * 100) + '%' 
+export async function loadStaging() {
+  const items = await prisma.stagingItem.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+  
+  const stats = {
+    total_submitted: items.length,
+    approved: items.filter(i => i.status === 'approved').length,
+    rejected: items.filter(i => i.status === 'rejected').length,
+    pending: items.filter(i => i.status === 'pending_review').length,
+    approval_rate: items.length > 0 
+      ? Math.round((items.filter(i => i.status === 'approved').length / items.length) * 100) + '%' 
       : '0%'
   };
-  fs.writeFileSync(PATHS.staging, JSON.stringify(data, null, 2));
+
+  return { queue: items, stats };
 }
 
 /**
  * Submit work to the staging area for Manager review.
- * @param {object} item - { type, department, title, keyword, summary, draft_path/code_path/diff_path, metadata }
- * @returns {string} The staging ID
  */
-export function submitToStaging(item) {
-  const staging = loadStaging();
-  const id = `stg-${String(staging.stats.total_submitted + 1).padStart(3, '0')}`;
+export async function submitToStaging(item) {
+  const count = await prisma.stagingItem.count();
+  const id = `stg-${String(count + 1).padStart(3, '0')}`;
   
-  // Ensure we have a physical file for the dashboard to preview
   let draftPath = item.draft_path || null;
   if (item.content && !draftPath) {
     const filename = `${id}_${Date.now()}.txt`;
     const relativePath = path.join('.github/staging/drafts', filename);
     const fullPath = path.join(process.cwd(), relativePath);
-    
-    if (!fs.existsSync(path.dirname(fullPath))) {
-      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    }
-    
+    if (!fs.existsSync(path.dirname(fullPath))) fs.mkdirSync(path.dirname(fullPath), { recursive: true });
     fs.writeFileSync(fullPath, item.content);
     draftPath = relativePath;
   }
 
-  const entry = {
-    id,
-    type: item.type, // 'blog_post', 'landing_page', 'technical_patch'
-    department: item.department,
-    status: 'pending_review',
-    created_at: new Date().toISOString(),
-    title: item.title || 'Untitled',
-    content: item.content || null,
-    summary: item.summary || {},
-    draft_path: draftPath,
-    code_path: item.code_path || null,
-    diff_path: item.diff_path || null,
-    metadata: item.metadata || {},
-    manager_review: null,
-    revision_count: 0,
-  };
+  const entry = await prisma.stagingItem.create({
+    data: {
+      id,
+      type: item.type || 'other',
+      department: item.department || 'Unknown',
+      status: 'pending_review',
+      createdAt: new Date(),
+      title: item.title || 'Untitled',
+      content: item.content || null,
+      summary: item.summary || {},
+      draftPath,
+      codePath: item.code_path || null,
+      diffPath: item.diff_path || null,
+      metadata: item.metadata || {},
+    }
+  });
   
-  staging.queue.unshift(entry); // newest first
-  saveStaging(staging);
-  
-  logActivity('📝', item.department, `Submitted "${item.title}" to staging (${id})`, 'staging');
+  await logActivity('📝', item.department, `Submitted "${item.title}" to staging (${id})`, 'staging');
   console.log(`   📝 STAGING: "${item.title}" → ${id} (pending_review)`);
   
   return id;
 }
 
-/**
- * Manager reviews a staging item.
- * @param {string} stagingId 
- * @param {string} verdict - 'approved' | 'rejected'
- * @param {string} feedback - Manager's comment
- */
-export function reviewStagingItem(stagingId, verdict, feedback) {
-  const staging = loadStaging();
-  const item = staging.queue.find(i => i.id === stagingId);
-  if (!item) throw new Error(`Staging item ${stagingId} not found`);
-  
-  item.status = verdict;
-  item.manager_review = {
-    verdict,
-    feedback,
-    reviewed_at: new Date().toISOString(),
+export async function reviewStagingItem(stagingId, verdict, feedback) {
+  const updateData = {
+    status: verdict,
+    managerReview: {
+      verdict,
+      feedback,
+      reviewed_at: new Date().toISOString(),
+    }
   };
   
   if (verdict === 'approved') {
-    item.published_at = new Date().toISOString();
+    updateData.publishedAt = new Date();
   } else if (verdict === 'rejected') {
-    item.revision_count = (item.revision_count || 0) + 1;
+    updateData.revisionCount = { increment: 1 };
   }
   
-  saveStaging(staging);
+  const item = await prisma.stagingItem.update({
+    where: { id: stagingId },
+    data: updateData
+  });
   
   const emoji = verdict === 'approved' ? '✅' : '❌';
-  logActivity(emoji, 'manager', `${verdict.toUpperCase()}: "${item.title}" — ${feedback}`, 'review');
+  await logActivity(emoji, 'manager', `${verdict.toUpperCase()}: "${item.title}" — ${feedback}`, 'review');
   console.log(`   👔 MANAGER ${emoji}: ${verdict.toUpperCase()} "${item.title}" → "${feedback}"`);
+  return item;
 }
 
-/**
- * Get all pending items for Manager review.
- */
-export function getPendingItems() {
-  const staging = loadStaging();
-  return staging.queue.filter(i => i.status === 'pending_review');
+export async function getPendingItems() {
+  return await prisma.stagingItem.findMany({
+    where: { status: 'pending_review' },
+    orderBy: { createdAt: 'desc' }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════
 // 📋 ACTIVITY LOGGER — Real-time feed for the dashboard
 // ═══════════════════════════════════════════════════════════════════════
 
-export function logActivity(emoji, source, message, type = 'info') {
-  let log;
-  try {
-    log = JSON.parse(fs.readFileSync(PATHS.activityLog, 'utf8'));
-  } catch {
-    log = { entries: [] };
-  }
-  
-  log.entries.unshift({
-    id: crypto.randomUUID(),
-    emoji,
-    source,
-    message,
-    type, // 'info', 'staging', 'review', 'publish', 'error', 'browser'
-    timestamp: new Date().toISOString(),
+export async function logActivity(emoji, source, message, type = 'info') {
+  const entry = await prisma.activityLog.create({
+    data: {
+      id: crypto.randomUUID(),
+      emoji,
+      source,
+      message,
+      type,
+      timestamp: new Date()
+    }
   });
   
-  // Keep last 200 entries
-  log.entries = log.entries.slice(0, 200);
-  
-  const logDir = path.dirname(PATHS.activityLog);
-  if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
-  fs.writeFileSync(PATHS.activityLog, JSON.stringify(log, null, 2));
+  console.log(`   🕒 ACTIVITY [${type}]: ${message}`);
+  return entry;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -384,24 +360,37 @@ export function hasFreshOrders(department) {
 // 📊 DIRECTOR JOURNAL
 // ═══════════════════════════════════════════════════════════════════════
 
-export function loadJournal() {
-  try {
-    return JSON.parse(fs.readFileSync(PATHS.directorJournal, 'utf8'));
-  } catch {
-    return { entries: [], total_cycles: 0 };
-  }
+export async function loadJournal() {
+  const entries = await prisma.journalEntry.findMany({
+    orderBy: { date: 'desc' },
+    take: 50
+  });
+  return { entries, total_cycles: entries.length };
 }
 
-export function appendJournalEntry(entry) {
-  const journal = loadJournal();
-  journal.total_cycles = (journal.total_cycles || 0) + 1;
-  entry.cycle = journal.total_cycles;
-  entry.timestamp = new Date().toISOString();
-  journal.entries.push(entry);
-  // Keep last 50 journal entries
-  journal.entries = journal.entries.slice(-50);
-  fs.writeFileSync(PATHS.directorJournal, JSON.stringify(journal, null, 2));
-  return entry;
+export async function appendJournalEntry(entry) {
+  const count = await prisma.journalEntry.count();
+  const cycle = count + 1;
+  const entryId = crypto.createHash('md5').update(`${cycle}-${new Date().toISOString()}`).digest('hex');
+
+  const result = await prisma.journalEntry.create({
+    data: {
+      id: entryId,
+      date: new Date(),
+      cycle: cycle,
+      sitrepSummary: entry.sitrep_summary || {},
+      decision: entry.decision || 'unknown',
+      reasoning: entry.reasoning || '',
+      confidence: entry.confidence || null,
+      agencyHealth: entry.agency_health || null,
+      scoredRecommendation: entry.scored_recommendation || null,
+      recommendedOrders: entry.recommended_orders || {},
+      crossDeptOrders: entry.cross_dept_orders || null,
+      qualityAudit: entry.quality_audit || {},
+      dispatchSuccess: entry.dispatch_success || false,
+    }
+  });
+  return result;
 }
 
 // ═══════════════════════════════════════════════════════════════════════

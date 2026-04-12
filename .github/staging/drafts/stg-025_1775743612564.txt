@@ -1,0 +1,9 @@
+
+  {
+    slug: 'mock-test-autonomous-design',
+    title: 'Future of Autonomous Web Design',
+    excerpt: 'A zero-cost verification of the FouriqTech agency pipeline.',
+    date: '2026-04-09',
+    category: 'Engineering',
+    content: 'This is a mock article generated to verify the cloud-to-UI sync hub connection. No AI tokens were harmed in this test.',
+  },

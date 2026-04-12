@@ -1,6 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import pkgPrisma from '@prisma/client';
+const { PrismaClient } = pkgPrisma;
+import pkgPg from 'pg';
+const { Pool } = pkgPg;
+import { PrismaPg } from '@prisma/adapter-pg';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🔍 FOURIQTECH GSC ANALYZER — Search Console Intelligence v1.0
@@ -528,12 +539,35 @@ async function main() {
   console.log('\n📝 Generating reports...');
 
   const jsonReport = generateJsonReport(categories, opportunities, actions, queries, dateRanges, currentPages);
+  
+  // ── Write to Database ──
+  try {
+    const su = jsonReport.summary;
+    await prisma.searchPerformance.create({
+      data: {
+        dateRangeStart: dateRanges.current.start,
+        dateRangeEnd: dateRanges.current.end,
+        totalClicks: su.total_clicks,
+        totalImpressions: su.total_impressions,
+        avgPosition: su.avg_position,
+        avgCtr: su.avg_ctr,
+        page1Count: su.pages_on_page_1,
+        fullReport: jsonReport
+      }
+    });
+    console.log('   ✅ GSC Analytics saved to database.');
+  } catch (err) {
+    console.error('   ❌ Failed to save to database:', err.message);
+  }
+
   fs.writeFileSync(LATEST_JSON, JSON.stringify(jsonReport, null, 2));
   console.log(`   ✅ JSON report → ${LATEST_JSON}`);
 
   const mdReport = generateMarkdownReport(jsonReport);
   fs.writeFileSync(WEEKLY_MD, mdReport);
   console.log(`   ✅ Markdown report → ${WEEKLY_MD}`);
+
+  await prisma.$disconnect();
 
   // ── Summary ──
   const su = jsonReport.summary;

@@ -98,55 +98,70 @@ async function directorCall(prompt, jsonMode = true) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 📊 PHASE 1: SITUATION REPORT (SitRep)
+// 📊 PHASE 1: SITUATION REPORT (SitRep) — DB-Native
 // ═══════════════════════════════════════════════════════════════════════
 
-function gatherSitRep() {
+async function gatherSitRep() {
   console.log('\n📊 PHASE 1: Gathering Situation Report...');
   const sitrep = {};
 
-  // Content Team Status
-  const publishLog = readJsonSafe(PUBLISH_LOG);
-  if (publishLog) {
-    const entries = Array.isArray(publishLog) ? publishLog : (publishLog.entries || []);
+  try {
+    // We import locally to keep connections clean
+    const pkgPrisma = await import('@prisma/client');
+    const { PrismaClient } = pkgPrisma.default || pkgPrisma;
+    
+    // Attempt standard connection first, then pg-adapter fallback if needed
+    let prisma;
+    try {
+      prisma = new PrismaClient();
+      await prisma.$connect();
+    } catch {
+      const pkgPg = await import('pg');
+      const { Pool } = pkgPg.default || pkgPg;
+      const { PrismaPg } = await import('@prisma/adapter-pg');
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      const adapter = new PrismaPg(pool);
+      prisma = new PrismaClient({ adapter });
+    }
+
+    // Content Team Status
+    const blogCount = await prisma.blogPost.count({ where: { isLive: true } });
+    const recentBlogs = await prisma.blogPost.findMany({
+      where: { isLive: true },
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+      select: { title: true, date: true }
+    });
+    
     sitrep.content_team = {
-      total_published: entries.length,
-      last_3: entries.slice(-3).map(e => ({
-        title: e.title || e.slug,
-        date: e.published_at || e.date,
-        qa_score: e.qa_score || 'N/A',
-      })),
+      total_published: blogCount,
+      last_3: recentBlogs,
     };
-    console.log(`   ✍️  Content Team: ${entries.length} articles published`);
-  } else {
-    sitrep.content_team = { total_published: 0, last_3: [] };
-    console.log('   ✍️  Content Team: No publish log found');
-  }
+    sitrep.total_blog_posts = blogCount;
+    console.log(`   ✍️  Content Team: ${blogCount} articles published`);
 
-  // Blog count from source
-  try {
-    const blogData = fs.readFileSync(BLOG_DATA, 'utf8');
-    const slugs = [...blogData.matchAll(/slug:\s*'([^']+)'/g)];
-    sitrep.total_blog_posts = slugs.length;
-    console.log(`   📰 Total blog posts in codebase: ${slugs.length}`);
-  } catch {
-    sitrep.total_blog_posts = 0;
-  }
-
-  // Structural Team Status (service pages from App.tsx)
-  try {
-    const appCode = fs.readFileSync(APP_TSX, 'utf8');
-    const serviceRoutes = [...appCode.matchAll(/path="\/services\/([^"]+)"/g)].map(m => m[1]);
+    // Structural Team Status
+    const pageCount = await prisma.servicePage.count({ where: { isLive: true } });
+    const recentPages = await prisma.servicePage.findMany({
+      where: { isLive: true },
+      select: { route: true }
+    });
+    
     sitrep.structural_team = {
-      deployed_service_pages: serviceRoutes.length,
-      routes: serviceRoutes,
+      deployed_service_pages: pageCount,
+      routes: recentPages.map(p => p.route),
     };
-    console.log(`   🏗️  Structural Team: ${serviceRoutes.length} service pages deployed`);
-  } catch {
+    console.log(`   🏗️  Structural Team: ${pageCount} service pages deployed`);
+
+    await prisma.$disconnect();
+  } catch (err) {
+    console.error(`   ⚠️ Failed to query DB for sitrep:`, err.message);
+    sitrep.content_team = { total_published: 0, last_3: [] };
+    sitrep.total_blog_posts = 0;
     sitrep.structural_team = { deployed_service_pages: 0, routes: [] };
   }
 
-  // Technical Team Status
+  // Technical Team Status (Still log based for now)
   const techLog = readJsonSafe(TECH_LOG);
   if (techLog) {
     sitrep.technical_team = {
@@ -159,23 +174,32 @@ function gatherSitRep() {
     console.log('   🛡️  Technical Team: No log found');
   }
 
-  // GSC Rankings (if available)
-  const gscReport = readJsonSafe(GSC_REPORT);
-  if (gscReport?.summary) {
-    sitrep.gsc = {
-      total_clicks: gscReport.summary.total_clicks,
-      total_impressions: gscReport.summary.total_impressions,
-      avg_position: gscReport.summary.avg_position,
-      pages_on_page_1: gscReport.summary.pages_on_page_1,
-    };
-    console.log(`   📈 GSC: ${gscReport.summary.total_clicks} clicks | Avg Position: ${gscReport.summary.avg_position}`);
-  } else {
+  // GSC Rankings (from DB)
+  try {
+    const latestGsc = await prisma.searchPerformance.findFirst({
+      orderBy: { generatedAt: 'desc' }
+    });
+
+    if (latestGsc) {
+      sitrep.gsc = {
+        total_clicks: latestGsc.totalClicks,
+        total_impressions: latestGsc.totalImpressions,
+        avg_position: latestGsc.avgPosition,
+        pages_on_page_1: latestGsc.page1Count,
+        report: latestGsc.fullReport // For detailed analysis
+      };
+      console.log(`   📈 GSC: ${latestGsc.totalClicks} clicks | Avg Position: ${latestGsc.avgPosition}`);
+    } else {
+      sitrep.gsc = null;
+      console.log('   📈 GSC: No report found in database');
+    }
+  } catch (err) {
     sitrep.gsc = null;
-    console.log('   📈 GSC: No report available');
+    console.error('   ⚠️ Failed to read GSC data from DB:', err.message);
   }
 
   try {
-    const opportunitySnapshot = buildOpportunitySnapshot();
+    const opportunitySnapshot = await buildOpportunitySnapshot();
     const playbookScores = buildPlaybookScores();
     sitrep.opportunity_engine = {
       recommended_department: opportunitySnapshot.recommended_department,
@@ -462,7 +486,7 @@ async function chatMode(question) {
   console.log('║  💬 AGENCY DIRECTOR — Chat Mode                         ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
 
-  const sitrep = gatherSitRep();
+  const sitrep = await gatherSitRep();
   const journal = loadJournal();
 
   const raw = await directorCall(`You are the Agency Director of FouriqTech — a brilliant, experienced (20+ years) SEO strategist. You speak directly, with confidence and a touch of humor. You know everything about the agency's current state.
@@ -485,23 +509,40 @@ Respond naturally and conversationally as the Agency Director. Be data-driven, r
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 📋 PHASE 5: AUTO-REVIEW (The Director as QA Boss)
+// 📋 PHASE 5: AUTO-REVIEW (The Director as QA Boss) — DB-Native
 // ═══════════════════════════════════════════════════════════════════════
 
 async function runAutoReview() {
-  const STAGING_PATH = path.join(process.cwd(), '.github/staging/staging.json');
   console.log('\n👀 PHASE 5: Autonomous Review Gate...');
   
   try {
-    const staging = JSON.parse(fs.readFileSync(STAGING_PATH, 'utf8'));
-    const pending = staging.queue.filter(i => i.status === 'pending_review');
+    const pkgPrisma = await import('@prisma/client');
+    const { PrismaClient } = pkgPrisma.default || pkgPrisma;
+    
+    let prisma;
+    try {
+      prisma = new PrismaClient();
+      await prisma.$connect();
+    } catch {
+      const pkgPg = await import('pg');
+      const { Pool } = pkgPg.default || pkgPg;
+      const { PrismaPg } = await import('@prisma/adapter-pg');
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      const adapter = new PrismaPg(pool);
+      prisma = new PrismaClient({ adapter });
+    }
 
-    if (pending.length === 0) {
+    const latest = await prisma.stagingItem.findFirst({
+      where: { status: 'pending_review' },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!latest) {
       console.log('   ✅ No pending items found in staging queue.');
+      await prisma.$disconnect();
       return;
     }
 
-    const latest = pending[0];
     console.log(`   🧠 Reviewing [${latest.id}] "${latest.title}"...`);
 
     // The Director (3.1 Pro) does a quick check of the content
@@ -509,9 +550,9 @@ async function runAutoReview() {
     
     ITEM TITLE: ${latest.title}
     TYPE: ${latest.type}
-    METADATA: ${JSON.stringify(latest.metadata)}
+    METADATA: ${latest.metadata ? JSON.stringify(latest.metadata) : "{}"}
     CONTENT PREVIEW (First 2000 chars):
-    ${latest.content.substring(0, 2000)}
+    ${latest.content ? latest.content.substring(0, 2000) : "No textual content provided."}
     
     DECISION CRITERIA:
     1. If it's a blog post, does it have a clear H1, intros, and high word count?
@@ -529,22 +570,22 @@ async function runAutoReview() {
     
     console.log(`   👔 VERDICT: [${result.verdict.toUpperCase()}] — ${result.feedback}`);
 
-    // DIRECTLY UPDATE STAGING FILE
-    const emoji = result.verdict === 'approved' ? '✅' : '❌';
-    latest.status = result.verdict;
-    latest.manager_review = {
-      verdict: result.verdict,
-      feedback: `[AUTO-DIRECTOR] ${result.feedback}`,
-      reviewed_at: new Date().toISOString()
-    };
-    
-    if (result.verdict === 'approved') {
-        latest.published_at = new Date().toISOString();
-    }
+    await prisma.stagingItem.update({
+      where: { id: latest.id },
+      data: {
+        status: result.verdict,
+        managerReview: {
+          verdict: result.verdict,
+          feedback: `[AUTO-DIRECTOR] ${result.feedback}`,
+          reviewedAt: new Date().toISOString()
+        },
+        ...(result.verdict === 'approved' ? { publishedAt: new Date() } : {})
+      }
+    });
 
-    // Save back to disk
-    fs.writeFileSync(STAGING_PATH, JSON.stringify(staging, null, 2));
     console.log(`   📦 SUCCESS: Item ${latest.id} successfully reviewed and ${result.verdict}.`);
+
+    await prisma.$disconnect();
 
     // IF APPROVED, SPAWN THE PUBLISHER
     if (result.verdict === 'approved') {
@@ -595,7 +636,7 @@ async function main() {
   console.log('╚═══════════════════════════════════════════════════════════╝');
 
   // Phase 1: SitRep
-  const sitrep = gatherSitRep();
+  const sitrep = await gatherSitRep();
 
   // Phase 2: Strategic Decision
   const decision = await makeStrategicDecision(sitrep);

@@ -208,8 +208,28 @@ function buildPlaybookIndex() {
   return Object.fromEntries(scores.map((item) => [item.playbook, item]));
 }
 
-export function buildOpportunitySnapshot() {
-  const report = readJson(GSC_REPORT, {});
+export async function buildOpportunitySnapshot() {
+  const pkgPrisma = await import('@prisma/client');
+  const { PrismaClient } = pkgPrisma.default || pkgPrisma;
+  
+  let prisma;
+  try {
+    prisma = new PrismaClient();
+    await prisma.$connect();
+  } catch {
+    const pkgPg = await import('pg');
+    const { Pool } = pkgPg.default || pkgPg;
+    const { PrismaPg } = await import('@prisma/adapter-pg');
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const adapter = new PrismaPg(pool);
+    prisma = new PrismaClient({ adapter });
+  }
+
+  const latestGsc = await prisma.searchPerformance.findFirst({
+    orderBy: { generatedAt: 'desc' }
+  });
+
+  const report = latestGsc?.fullReport || {};
   const opportunities = buildOpportunities(report);
   const registry = syncTaskRegistry(opportunities);
   const performance = getRecentDepartmentPerformance();
@@ -259,7 +279,7 @@ export function buildOpportunitySnapshot() {
 
   const snapshot = {
     generated_at: new Date().toISOString(),
-    source: 'gsc_and_journal',
+    source: 'postgresql_search_performance',
     top_opportunities: opportunities.slice(0, 10),
     collisions: registry.collisions.slice(0, 10),
     blocked_collisions: registry.collisions.filter((item) => item.blocked).slice(0, 10),
@@ -271,6 +291,8 @@ export function buildOpportunitySnapshot() {
     recommended_department: rankedDepartments[0]?.department || 'content',
     recommended_orders: rankedDepartments[0]?.opportunities?.slice(0, 3).map(item => item.description) || [],
   };
+
+  await prisma.$disconnect();
 
   ensureMemoryDir();
   fs.writeFileSync(SNAPSHOT_PATH, JSON.stringify(snapshot, null, 2));

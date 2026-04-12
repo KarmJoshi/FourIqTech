@@ -2,7 +2,7 @@ import { buildOpportunitySnapshot } from './seo-opportunity-engine.mjs';
 import { buildCompetitorIntelligence } from './seo-competitor-intelligence.mjs';
 
 async function main() {
-  const opportunitySnapshot = buildOpportunitySnapshot();
+  const opportunitySnapshot = await buildOpportunitySnapshot();
   const competitorSnapshot = await buildCompetitorIntelligence();
   console.log(JSON.stringify({
     recommended_department: opportunitySnapshot.recommended_department,

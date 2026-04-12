@@ -1,6 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 import { search } from 'duck-duck-scrape';
+import pkgPrisma from '@prisma/client';
+const { PrismaClient } = pkgPrisma;
+import pkgPg from 'pg';
+const { Pool } = pkgPg;
+import { PrismaPg } from '@prisma/adapter-pg';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 const CWD = process.cwd();
 const GSC_REPORT = path.join(CWD, '.github/gsc-reports/latest.json');
@@ -44,8 +55,12 @@ function overlap(query, title) {
   return [...q].filter((token) => t.has(token)).length / Math.max(q.size, t.size);
 }
 
-function chooseQueries() {
-  const report = readJson(GSC_REPORT, {});
+async function chooseQueries() {
+  const latestGsc = await prisma.searchPerformance.findFirst({
+    orderBy: { generatedAt: 'desc' }
+  });
+
+  const report = latestGsc?.fullReport || {};
   const keywordOps = report?.opportunity_keywords || [];
   const rising = report?.categories?.rising_stars || [];
 
@@ -60,7 +75,7 @@ function chooseQueries() {
 export async function buildCompetitorIntelligence() {
   ensureDir();
   const inventory = blogInventory();
-  const queries = chooseQueries();
+  const queries = await chooseQueries();
   const results = [];
 
   for (const query of queries) {
@@ -99,5 +114,6 @@ export async function buildCompetitorIntelligence() {
   };
 
   fs.writeFileSync(COMPETITOR_REPORT, JSON.stringify(snapshot, null, 2));
+  await prisma.$disconnect();
   return snapshot;
 }
