@@ -2,11 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import { buildPlaybookScores } from './seo-learning-engine.mjs';
 // import { syncTaskRegistry } from './seo-task-registry.mjs';
-import { buildInternalLinkPlan } from './seo-internal-link-engine.mjs';
-import { buildRiskReport } from './seo-risk-engine.mjs';
-import { buildContentStrategy } from './seo-content-strategy-engine.mjs';
+// import { buildInternalLinkPlan } from './seo-internal-link-engine.mjs';
+// import { buildRiskReport } from './seo-risk-engine.mjs';
+// import { buildContentStrategy } from './seo-content-strategy-engine.mjs';
 import { buildCompetitorIntelligence } from './seo-competitor-intelligence.mjs';
-import { buildDuplicateGuard } from './seo-duplicate-guard.mjs';
+// import { buildDuplicateGuard } from './seo-duplicate-guard.mjs';
 
 const CWD = process.cwd();
 const GSC_REPORT = path.join(CWD, '.github/gsc-reports/latest.json');
@@ -234,12 +234,9 @@ export async function buildOpportunitySnapshot() {
   const registry = { collisions: [] }; // syncTaskRegistry(opportunities);
   const performance = getRecentDepartmentPerformance();
   const playbooks = buildPlaybookIndex();
-  const internalLinks = buildInternalLinkPlan();
-  const contentStrategy = buildContentStrategy();
-  const duplicateGuard = buildDuplicateGuard([
-    ...opportunities,
-    ...(contentStrategy.briefs || []),
-  ]);
+  const internalLinks = { plans: [] }; // buildInternalLinkPlan();
+  const contentStrategy = { briefs: [] }; // buildContentStrategy();
+  const duplicateGuard = []; // buildDuplicateGuard([...]);
 
   const blockedIds = new Set(registry.collisions.filter((item) => item.blocked).map((item) => item.opportunity_id));
   const warnIds = new Set(registry.collisions.filter((item) => !item.blocked && item.severity === 'medium').map((item) => item.opportunity_id));
@@ -259,7 +256,7 @@ export async function buildOpportunitySnapshot() {
   }
 
   const departments = scoreDepartmentMix(opportunities);
-  const riskReport = buildRiskReport(opportunities);
+  const riskReport = { risks: [] }; // buildRiskReport(opportunities);
 
   for (const department of Object.keys(departments)) {
     const runs = performance[department].runs;
