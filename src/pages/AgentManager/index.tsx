@@ -68,8 +68,8 @@ export default function AgentManager() {
     lastRunAt: null
   });
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
-
-  // Outreach State
+  const [draftStartTime, setDraftStartTime] = useState<string | null>(null);
+  const [draftFreq, setDraftFreq] = useState<number | null>(null);  // Outreach State
   const [leads, setLeads] = useState<any[]>([]);
   const [emails, setEmails] = useState<any[]>([]);
   const [replies, setReplies] = useState<any[]>([]);
@@ -601,8 +601,8 @@ export default function AgentManager() {
                              </label>
                              <input 
                                 type="time" 
-                                value={scheduleSettings.startTime}
-                                onChange={(e) => updateScheduleSettings({ startTime: e.target.value })}
+                                value={draftStartTime !== null ? draftStartTime : scheduleSettings.startTime}
+                                onChange={(e) => setDraftStartTime(e.target.value)}
                                 className="w-full bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5 text-sm font-bold text-ai-primary focus:border-ai-primary/50 transition-all outline-none"
                              />
                           </div>
@@ -611,8 +611,8 @@ export default function AgentManager() {
                                 <Activity className="h-3 w-3" /> Daily Frequency
                              </label>
                              <select 
-                                value={scheduleSettings.cyclesPerDay}
-                                onChange={(e) => updateScheduleSettings({ cyclesPerDay: parseInt(e.target.value) })}
+                                value={draftFreq !== null ? draftFreq : scheduleSettings.cyclesPerDay}
+                                onChange={(e) => setDraftFreq(parseInt(e.target.value))}
                                 className="w-full bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:border-ai-primary/50 transition-all outline-none appearance-none"
                              >
                                 <option value={1}>1 Cycle / Day</option>
@@ -623,12 +623,29 @@ export default function AgentManager() {
                              </select>
                           </div>
                           <div className="flex flex-col justify-end">
-                             <div className="bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5">
-                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Last Strategic Pulse</p>
-                                <p className="text-xs font-mono text-ai-primary/70">
-                                   {scheduleSettings.lastRunAt ? new Date(scheduleSettings.lastRunAt).toLocaleTimeString() : "Never Executed"}
-                                </p>
-                             </div>
+                             {(draftStartTime !== null || draftFreq !== null) ? (
+                                <button 
+                                   onClick={() => {
+                                      updateScheduleSettings({ 
+                                         startTime: draftStartTime !== null ? draftStartTime : scheduleSettings.startTime, 
+                                         cyclesPerDay: draftFreq !== null ? draftFreq : scheduleSettings.cyclesPerDay 
+                                      });
+                                      setDraftStartTime(null);
+                                      setDraftFreq(null);
+                                   }}
+                                   disabled={isUpdatingSettings}
+                                   className="h-[42px] px-4 rounded-xl bg-ai-primary text-slate-950 font-bold hover:bg-ai-primary/90 transition-all border border-transparent disabled:opacity-50"
+                                >
+                                   Save Settings
+                                </button>
+                             ) : (
+                                <div className="bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5 h-[42px]">
+                                   <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Last Strategic Pulse</p>
+                                   <p className="text-[11px] font-mono text-ai-primary/70">
+                                      {scheduleSettings.lastRunAt ? new Date(scheduleSettings.lastRunAt).toLocaleTimeString() : "Never Executed"}
+                                   </p>
+                                </div>
+                             )}
                           </div>
                        </div>
                     </CardContent>
