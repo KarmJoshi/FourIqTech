@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { buildPlaybookScores } from './seo-learning-engine.mjs';
-import { syncTaskRegistry } from './seo-task-registry.mjs';
+// import { syncTaskRegistry } from './seo-task-registry.mjs';
 import { buildInternalLinkPlan } from './seo-internal-link-engine.mjs';
 import { buildRiskReport } from './seo-risk-engine.mjs';
 import { buildContentStrategy } from './seo-content-strategy-engine.mjs';
@@ -231,7 +231,7 @@ export async function buildOpportunitySnapshot() {
 
   const report = latestGsc?.fullReport || {};
   const opportunities = buildOpportunities(report);
-  const registry = syncTaskRegistry(opportunities);
+  const registry = { collisions: [] }; // syncTaskRegistry(opportunities);
   const performance = getRecentDepartmentPerformance();
   const playbooks = buildPlaybookIndex();
   const internalLinks = buildInternalLinkPlan();
