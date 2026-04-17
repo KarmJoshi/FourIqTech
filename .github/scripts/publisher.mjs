@@ -133,6 +133,7 @@ async function publishApprovedItems() {
         try {
           const inner = JSON.parse(finalCode);
           if (inner.content) finalCode = inner.content;
+          else if (inner.code) finalCode = inner.code;
         } catch { /* not nested */ }
 
         // Save to DB

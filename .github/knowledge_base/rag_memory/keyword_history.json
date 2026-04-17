@@ -592,5 +592,38 @@
       "day28_due": "2026-05-05",
       "last_checked": null
     }
+  },
+  {
+    "article_id": "enterprise-react-virtualization-performance-case-study",
+    "metadata": {
+      "published_date": "2026-04-16",
+      "word_count": 665,
+      "keyword_primary": "react virtualization performance",
+      "keyword_density": 0.3,
+      "internal_links_injected": 0,
+      "qa_score": 85,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise React Design Systems & UI/UX"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-04-17",
+      "day3_due": "2026-04-19",
+      "day7_due": "2026-04-23",
+      "day14_due": "2026-04-30",
+      "day28_due": "2026-05-14",
+      "last_checked": null
+    }
   }
 ]

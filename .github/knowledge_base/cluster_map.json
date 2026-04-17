@@ -32,7 +32,8 @@
       "supporting_articles": [
         "enterprise-react-design-system-implementation",
         "enterprise-design-system-versioning-strategy",
-        "react-tree-shaking-not-working-enterprise-barrel-files"
+        "react-tree-shaking-not-working-enterprise-barrel-files",
+        "enterprise-react-virtualization-performance-case-study"
       ],
       "target_supporting_count": 5,
       "cluster_complete": false

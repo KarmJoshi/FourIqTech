@@ -2633,7 +2633,55 @@
       "cluster": "React Memory Leak Management for Enterprise SaaS Performance",
       "added_date": "2026-04-07",
       "status": "queued"
+    },
+    {
+      "title": "windowing react",
+      "cluster": "Enterprise React Design Systems & UI/UX",
+      "added_date": "2026-04-16",
+      "status": "queued"
+    },
+    {
+      "title": "react data grid",
+      "cluster": "Enterprise React Design Systems & UI/UX",
+      "added_date": "2026-04-16",
+      "status": "queued"
+    },
+    {
+      "title": "long list performance",
+      "cluster": "Enterprise React Design Systems & UI/UX",
+      "added_date": "2026-04-16",
+      "status": "queued"
+    },
+    {
+      "title": "DOM node recycling",
+      "cluster": "Enterprise React Design Systems & UI/UX",
+      "added_date": "2026-04-16",
+      "status": "queued"
+    },
+    {
+      "title": "react-window vs react-virtualized",
+      "cluster": "Enterprise React Design Systems & UI/UX",
+      "added_date": "2026-04-16",
+      "status": "queued"
+    },
+    {
+      "title": "scroll synchronization",
+      "cluster": "Enterprise React Design Systems & UI/UX",
+      "added_date": "2026-04-16",
+      "status": "queued"
+    },
+    {
+      "title": "overscan rendering",
+      "cluster": "Enterprise React Design Systems & UI/UX",
+      "added_date": "2026-04-16",
+      "status": "queued"
+    },
+    {
+      "title": "memoization strategies",
+      "cluster": "Enterprise React Design Systems & UI/UX",
+      "added_date": "2026-04-16",
+      "status": "queued"
     }
   ],
-  "last_updated": "2026-04-07T14:10:32.263Z"
+  "last_updated": "2026-04-16T10:31:58.598Z"
 }

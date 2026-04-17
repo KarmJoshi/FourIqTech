@@ -20,6 +20,9 @@ import AgentManager from "./pages/AgentManager/index";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import EnterpriseReactNextjsConsulting from "./pages/services/EnterpriseReactNextjsConsulting";
+import EnterpriseWebsiteRedesign from "./pages/services/EnterpriseWebsiteRedesign";
+import EnterpriseNextjsDevelopmentAgency from "./pages/services/EnterpriseNextjsDevelopmentAgency";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -45,6 +48,10 @@ const App = () => (
               <Route path="/services/enterprise-headless-commerce-development" element={<EnterpriseHeadlessCommerceDevelopment />} />
               <Route path="/agent-manager" element={<AgentManager />} />
               <Route path="/services/enterprise-ui-ux-design-services" element={<EnterpriseUiUxDesignServices />} />
+              <Route path="/services/enterprise-react-nextjs-consulting" element={<EnterpriseReactNextjsConsulting />} />              <Route path="/services/enterprise-website-redesign" element={<EnterpriseWebsiteRedesign />} />              <Route path="/services/enterprise-nextjs-development-agency" element={<EnterpriseNextjsDevelopmentAgency />} />
+
+
+
 
               <Route path="*" element={<NotFound />} />
             </Routes>

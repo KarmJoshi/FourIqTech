@@ -193,9 +193,7 @@ export function OutreachDepartment({
                 <CardHeader className="pb-4 border-b border-white/5 bg-white/[0.02]">
                   <div className="flex items-center justify-between mb-4">
                     <CardTitle className="text-xs font-bold tracking-widest text-neutral-400 uppercase">Lead Directory</CardTitle>
-                    <Button size="sm" variant="outline" onClick={syncLeads} disabled={isImporting} className="h-8 px-3 text-[10px] font-bold border-ai-primary/20 text-ai-primary hover:bg-ai-primary/10 rounded-xl">
-                      {isImporting ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Zap className="mr-2 h-3.5 w-3.5" />} SYNC HUB
-                    </Button>
+
                   </div>
                   <div className="flex rounded-xl bg-black/40 p-1 border border-white/5 no-border-sections">
                     <button onClick={() => setLeadFilter("collected")} className={`flex-1 rounded-lg text-[10px] font-bold py-2 transition tracking-widest ${leadFilter === "collected" ? "bg-white/10 text-white shadow-sm" : "text-neutral-600 hover:text-neutral-400"}`}>COLLECTED</button>
@@ -222,10 +220,13 @@ export function OutreachDepartment({
                                 <div className="font-bold text-neutral-100 line-clamp-1 text-sm tracking-tight">{lead.businessName}</div>
                                 <div className="mt-1 text-[10px] font-medium text-neutral-600 truncate flex items-center gap-1.5 uppercase">
                                   <Mail className="h-3 w-3" />
-                                  {lead.personalEmail || lead.companyEmail || 'NO CONTACT'}
+                                  {lead.contactEmail || 'NO CONTACT'}
                                 </div>
                               </div>
-                              <Badge variant="outline" className={`h-5 px-2 text-[9px] font-bold uppercase tracking-widest leading-none shrink-0 ${statusColor(lead.status)}`}>{lead.status}</Badge>
+                              <div className="flex items-center gap-2">
+                                {lead.status === "sent" && <CheckCircle2 className="h-3 w-3 text-emerald-400" />}
+                                <Badge variant="outline" className={`h-5 px-2 text-[9px] font-bold uppercase tracking-widest leading-none shrink-0 ${statusColor(lead.status)}`}>{lead.status}</Badge>
+                              </div>
                            </div>
                            <div className="mt-3 text-[10px] font-bold tracking-widest text-neutral-500 line-clamp-1 italic uppercase relative z-10 flex items-center gap-2">
                              <span className="text-ai-primary opacity-50">■</span> {lead.niche} · {lead.location}
@@ -266,10 +267,9 @@ export function OutreachDepartment({
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {[
                           { label: "Unit Status", icon: MapPinned, val: selectedLead.source, color: "text-ai-primary" },
-                          { label: "Personal Comm", icon: Mail, val: isEditing ? <Input value={editForm.personalEmail} onChange={e => setEditForm({...editForm, personalEmail: e.target.value})} className="h-8 bg-black/40 border-white/5 text-[11px]" /> : selectedLead.personalEmail, color: "text-ai-purple" },
-                          { label: "HQ Contact", icon: Building, val: isEditing ? <Input value={editForm.companyEmail} onChange={e => setEditForm({...editForm, companyEmail: e.target.value})} className="h-8 bg-black/40 border-white/5 text-[11px]" /> : selectedLead.companyEmail, color: "text-ai-purple" },
+                          { label: "Direct Contact", icon: Mail, val: isEditing ? <Input value={editForm.contactEmail} onChange={e => setEditForm({...editForm, contactEmail: e.target.value})} className="h-8 bg-black/40 border-white/5 text-[11px]" /> : selectedLead.contactEmail, color: "text-ai-purple" },
                           { label: "Signal Velocity", icon: Zap, val: selectedLead.rating ? `⭐ ${selectedLead.rating} (${selectedLead.reviewCount} signals)` : "NO DATA", color: "text-amber-400" },
-                          { label: "Conversion Lock", icon: Target, val: selectedLead.confidence.toUpperCase(), color: "text-ai-tertiary" },
+                          { label: "Conversion Lock", icon: Target, val: selectedLead.confidence?.toUpperCase() || "PENDING", color: "text-ai-tertiary" },
                           { label: "Comm Frequency", icon: Send, val: `LATENCY: ${selectedLead.collectedAt}`, color: "text-neutral-500" },
                         ].map(f => (
                           <div key={typeof f.label === 'string' ? f.label : 'input'} className="rounded-2xl border border-white/5 bg-black/40 p-4 group hover:border-white/10 transition-colors">
@@ -343,14 +343,36 @@ export function OutreachDepartment({
                    )}
 
                    <div className="grid gap-6 lg:grid-cols-2">
-                      <div className="p-6 rounded-3xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] transition-colors group">
-                        <div className="text-[10px] uppercase tracking-widest text-neutral-600 font-bold mb-4 flex items-center gap-2">
-                          <Target className="h-3.5 w-3.5 text-ai-primary" /> Core Business Conflict
-                        </div>
-                        <div className="text-lg font-bold text-neutral-100 group-hover:text-ai-primary transition-colors">{selectedLead.problemTitle}</div>
-                        <p className="mt-3 text-sm text-neutral-400 leading-relaxed font-medium">{selectedLead.problemDetail}</p>
-                      </div>
-                      <div className="space-y-6">
+                       <div className="p-6 rounded-3xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] transition-colors group">
+                         <div className="text-[10px] uppercase tracking-widest text-neutral-600 font-bold mb-4 flex items-center gap-2">
+                           <Target className="h-3.5 w-3.5 text-ai-primary" /> Core Business Conflict
+                         </div>
+                         <div className="text-lg font-bold text-neutral-100 group-hover:text-ai-primary transition-colors">{selectedLead.problemTitle || "ANALYZING..."}</div>
+                         <p className="mt-3 text-sm text-neutral-400 leading-relaxed font-medium">{selectedLead.problemDetail}</p>
+                       </div>
+                       
+                       <div className="p-6 rounded-3xl border border-ai-purple/20 bg-ai-purple/[0.02] group">
+                         <div className="text-[10px] uppercase tracking-widest text-ai-purple font-bold mb-4 flex items-center gap-2">
+                           <Globe className="h-3.5 w-3.5" /> Competitive Authority Gap
+                         </div>
+                         <div className="flex items-center justify-between mb-4">
+                            <div className="text-xs font-bold text-neutral-300">Vs. <span className="text-ai-purple">{selectedLead.competitorName || "Local Benchmark"}</span></div>
+                            <Badge className="bg-ai-purple/10 text-ai-purple border-ai-purple/20">
+                               {selectedLead.auditScore || 0} vs {selectedLead.competitorScore || 0}
+                            </Badge>
+                         </div>
+                         <div className="space-y-2">
+                            {(selectedLead.competitorGaps || []).slice(0, 3).map((gap: string, i: number) => (
+                               <div key={i} className="text-[11px] text-neutral-400 flex items-start gap-2">
+                                  <div className="h-1 w-1 rounded-full bg-ai-purple mt-1.5" />
+                                  {gap}
+                               </div>
+                            ))}
+                         </div>
+                       </div>
+                    </div>
+
+                    <div className="grid gap-6 lg:grid-cols-2">
                         <div className="p-6 rounded-3xl border border-white/5 bg-white/[0.01]">
                           <div className="text-[10px] uppercase tracking-widest text-neutral-600 font-bold mb-3 flex items-center gap-2">
                             <Zap className="h-3.5 w-3.5 text-amber-400" /> Economic Leakage (Impact)
@@ -363,8 +385,7 @@ export function OutreachDepartment({
                           </div>
                           <p className="text-sm text-ai-tertiary/80 leading-relaxed font-bold italic">{selectedLead.likelyFix}</p>
                         </div>
-                      </div>
-                   </div>
+                    </div>
                 </CardContent>
               </Card>
             ) : <div className="py-20 text-center opacity-30 italic">Select intelligence unit...</div>}
@@ -410,14 +431,25 @@ export function OutreachDepartment({
                     <CardContent className="p-6 space-y-6">
                        <div className="rounded-2xl border border-white/5 bg-black/40 p-5 space-y-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold tracking-widest text-neutral-600 uppercase">Unit Sender Node</label>
-                            <Input 
-                              value={selectedEmail.sentFrom}
-                              onChange={(e) => {}} // Hooked in parent via setEmails
-                              className="h-10 bg-black/40 border-white/10 rounded-xl text-xs font-bold text-ai-primary focus:border-ai-primary/40"
-                              placeholder="e.g. director@fouriq.ai"
-                            />
-                          </div>
+                             <label className="text-[10px] font-bold tracking-widest text-neutral-600 uppercase">Target Recipient Node (To)</label>
+                             <Input 
+                               value={selectedLead.contactEmail}
+                               onChange={(e) => {
+                                 setEditForm({ ...selectedLead, contactEmail: e.target.value });
+                               }}
+                               className="h-10 bg-black/40 border-white/10 rounded-xl text-xs font-bold text-amber-400 focus:border-amber-400/40"
+                               placeholder="e.g. hello@business.com"
+                             />
+                           </div>
+                           <div className="space-y-1">
+                             <label className="text-[10px] font-bold tracking-widest text-neutral-600 uppercase">Unit Sender Node</label>
+                             <Input 
+                               value={selectedEmail.sentFrom}
+                               onChange={(e) => {}} 
+                               className="h-10 bg-black/40 border-white/10 rounded-xl text-xs font-bold text-ai-primary focus:border-ai-primary/40"
+                               placeholder="e.g. director@fouriq.ai"
+                             />
+                           </div>
                           <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
                             <span className="text-[10px] font-bold text-neutral-500 tracking-widest uppercase">Global Latency</span>
                             <Badge variant="outline" className="h-5 px-2 border-white/10 bg-black/40 text-[9px] text-neutral-400 font-bold tracking-widest">{selectedEmail.deliveryStatus}</Badge>
@@ -431,9 +463,9 @@ export function OutreachDepartment({
                           <div className="text-[10px] font-bold tracking-widest text-ai-primary uppercase mb-4">SMTP Deliverability Engine</div>
                           <p className="text-[11px] text-neutral-400 font-medium leading-relaxed mb-6">Verify terminal health before executing the outreach protocol. Test email signature, SPF, and DKIM alignment.</p>
                           <div className="bg-black/60 rounded-2xl border border-white/5 p-4 flex items-center justify-between group/code transition-all hover:border-white/10">
-                             <code className="text-[10px] font-mono text-ai-primary/80 overflow-hidden text-ellipsis whitespace-nowrap mr-4">node scripts/tester.mjs --target={selectedLead.personalEmail || selectedLead.companyEmail}</code>
+                             <code className="text-[10px] font-mono text-ai-primary/80 overflow-hidden text-ellipsis whitespace-nowrap mr-4">node scripts/tester.mjs --target={selectedLead.contactEmail}</code>
                              <Button variant="ghost" size="icon" onClick={() => {
-                                const cmd = `node scripts/email-tester.mjs ${selectedLead.personalEmail || selectedLead.companyEmail}`;
+                                const cmd = `node scripts/email-tester.mjs ${selectedLead.contactEmail}`;
                                 navigator.clipboard.writeText(cmd);
                                 alert("Terminal command copied.");
                              }} className="h-8 w-8 text-neutral-500 hover:text-white hover:bg-white/5 shrink-0 rounded-lg">

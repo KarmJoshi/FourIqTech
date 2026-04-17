@@ -3,7 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
 import crypto from 'crypto';
-import { submitToStaging, logActivity } from './agency-core.mjs';
+import { submitToStaging, logActivity, getModelsForRole } from './agency-core.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🏗️ FOURIQTECH SEO DEV AGENT — Landing Page Task Generator v1.0
@@ -25,16 +25,9 @@ const APP_TSX_PATH      = path.join(process.cwd(), 'src/App.tsx');
 const KNOWLEDGE_DIR     = path.join(process.cwd(), '.github/knowledge_base');
 const QUEUE_PATH        = path.join(process.cwd(), '.github/dev-tasks/queue.json');
 
-// ── AI Models — Prioritize Pro-tier now that billing is on ──
-const SCANNER_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'];
-const ARCHITECT_MODELS = ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'];
-
-function getModels(taskType) {
-  const tasks = {
-    'scanning':     SCANNER_MODELS,
-    'architecting': ARCHITECT_MODELS,
-  };
-  return tasks[taskType] || ARCHITECT_MODELS;
+async function getModels(taskType) {
+  const roleMap = { scanning: 'scanner', architecting: 'architect' };
+  return await getModelsForRole(roleMap[taskType] || taskType);
 }
 
 // ── Multi-API Key Rotation ──
@@ -62,7 +55,7 @@ function rotateKey() {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function smartCall(modelArray, contents, agentName = 'AI') {
+async function smartCall(modelArray, contents, agentName = 'AI', requireJson = true) {
   const models = Array.isArray(modelArray) ? modelArray : [modelArray];
 
   for (const model of models) {
@@ -72,10 +65,13 @@ async function smartCall(modelArray, contents, agentName = 'AI') {
     console.log(`   🚀 [${agentName}] Trying model: ${model}...`);
     while (tries < API_KEYS.length * 2) {
       try {
+        const config = {};
+        if (requireJson) config.responseMimeType = "application/json";
+
         const resp = await aiClient.models.generateContent({
           model, 
           contents: contents, 
-          config: { responseMimeType: "application/json" }
+          config
         });
         await sleep(3000);
         return resp.candidates[0].content.parts[0].text;
@@ -191,7 +187,7 @@ function hasFreshStructuralOrders() {
 // 🔍 MARKET SCANNER — Find high buyer-intent keywords for landing pages
 // ═══════════════════════════════════════════════════════════════════════
 async function marketScannerAgent(config, existingRoutes, existingSlugs, knowledgeCtx) {
-  const models = getModels('scanning');
+  const models = await getModels('scanning');
   console.log(`\n🔍 MARKET SCANNER: Finding commercial-intent keywords for landing pages...`);
   const directorOrders = loadDirectorOrders();
 
@@ -253,7 +249,12 @@ RETURN VALID JSON:
   "reasoning": "Why this keyword deserves a dedicated landing page"
 }`, 'Market Scanner');
 
-    const result = JSON.parse(raw);
+    let cleanRaw = raw.trim();
+    if (cleanRaw.includes('```')) {
+      cleanRaw = cleanRaw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    }
+    console.log(`[DEBUG] Raw AI Output:\n${cleanRaw}\n`);
+    const result = JSON.parse(cleanRaw);
 
     // Validate the route doesn't already exist
     if (existingRoutes.includes(result.proposed_route)) {
@@ -272,7 +273,7 @@ RETURN VALID JSON:
 // 🏛️ PAGE ARCHITECT — Design the component structure & content brief
 // ═══════════════════════════════════════════════════════════════════════
 async function pageArchitectAgent(scanResult, knowledgeCtx, designSystemCtx) {
-  const models = getModels('architecting');
+  const models = await getModels('architecting');
   console.log(`\n🏛️ PAGE ARCHITECT: Designing landing page structure...`);
 
   // Pre-calculate target file name to assist the AI and ensure consistency
@@ -342,9 +343,12 @@ The page MUST follow this exact section structure for maximum conversion:
 
 ═══ CONTENT BRIEF ═══
 For each section, write the ACTUAL content (headlines, descriptions, bullet points).
-Do NOT write placeholders. Write real, polished marketing copy.
+Do NOT write placeholders. Write real, polished, HEAVY, long-form marketing copy.
+This is a premium enterprise service landing page, not a light summary. Each section should have dense, explanatory paragraphs.
 Use the primary keyword naturally 3-5 times across the page.
 Use each secondary keyword at least once.
+
+IMPORTANT INTERLINKING: Do NOT use '#' or generic links for CTAs. You MUST link all CTAs to exactly '/#contact' so users can actually reach us.
 
 ${fix}
 
@@ -443,8 +447,7 @@ RETURN VALID JSON:
 // 🏗️ PAGE BUILDER — Generates Production-Ready React Code
 // ═══════════════════════════════════════════════════════════════════════
 async function pageBuilderAgent(pageDesign, designSystemCtx) {
-  // Use a mix of Pro and Flash models for the builder
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+  const models = await getModelsForRole('builder');
   console.log(`\n🏗️ PAGE BUILDER: Assembling React Component...`);
 
   const componentName = path.basename(pageDesign.target_file, '.tsx');
@@ -469,13 +472,15 @@ import { useScrollLock } from '@/components/SmoothScroll';
 // Import all used icons from 'lucide-react'.
 
 4. Implement all sections exactly as specified in the Architect Blueprint. Write polished, hardcoded text.
+5. ⚠️ CRITICAL: Ensure the page is dense and CONTENT-HEAVY. Do not output a skeletal prototype. Flesh it out with dense, rich paragraphs, ensuring every feature and solution has substantial descriptive text. It should feel like a multi-thousand-dollar service page.
+6. ⚠️ ALL call-to-action buttons MUST link to \`/#contact\` using standard anchor \`<a href="/#contact">\` or Next.js-style routing patterns. Do NOT use dead '#' links.
 
 ═══ DESIGN SYSTEM ═══
 ${designSystemCtx}
 
 ═══ ARCHITECT BLUEPRINT ═══
 ${JSON.stringify(pageDesign, null, 2)}
-${fix}`, 'Page Builder');
+${fix}`, 'Page Builder', false);
 
     let cleanedCode = raw.trim();
     if (cleanedCode.startsWith('\`\`\`tsx')) cleanedCode = cleanedCode.replace(/^\`\`\`tsx\n/, '');

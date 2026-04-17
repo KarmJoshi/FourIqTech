@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import pkgPrisma from '@prisma/client';
 const { PrismaClient } = pkgPrisma;
 import pkgPg from 'pg';
@@ -5,6 +7,7 @@ const { Pool } = pkgPg;
 import { PrismaPg } from '@prisma/adapter-pg';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
+import { GoogleGenAI } from '@google/genai';
 dotenv.config();
 
 const connectionString = process.env.DATABASE_URL;
@@ -78,27 +81,69 @@ export const sleep = ms => new Promise(r => setTimeout(r, ms));
 // Model presets — roles mapped to model arrays
 export const MODELS = {
   // Manager (THE BOSS) — highest reasoning, used sparingly
-  manager:    ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  // Workers — primary PRO options with flash fallback
-  researcher: ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  writer:     ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  architect:  ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  qa:         ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  scanner:    ['gemini-2.5-flash', 'gemini-2.0-flash'],
-  builder:    ['gemini-2.5-flash', 'gemini-2.0-flash'],
-  auditor:    ['gemini-2.5-flash', 'gemini-2.0-flash'],
-  browser:    ['gemini-2.5-flash', 'gemini-2.0-flash'],
+  manager:    ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  content_manager: ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  researcher: ['gemini-3.1-flash-lite-preview', 'gemini-3-flash', 'gemini-1.5-flash'],
+  writer:     ['gemini-1.5-flash', 'gemini-3-flash', 'gemini-3.1-flash-lite-preview'],
+  architect:  ['gemini-1.5-pro', 'gemini-3.1-pro-preview', 'gemini-1.5-flash'],
+  qa:         ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  scanner:    ['gemini-3.1-flash-lite-preview', 'gemini-1.5-flash', 'gemini-2.5-flash'],
+  builder:    ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  auditor:    ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+  browser:    ['gemini-1.5-flash', 'gemini-3-flash', 'gemini-3.1-flash-lite-preview'],
 };
+
+const SETTINGS_PATH = path.join(CWD, '.github/staging/system-settings.json');
+
+function readSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_PATH)) {
+      return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
+    }
+  } catch (e) {}
+  return {};
+}
+
+/**
+ * Fetch dynamic model fallback arrays for a given role based on stored settings.
+ * Priority: JSON settings > Database > Hardcoded MODELS
+ */
+export async function getModelsForRole(role) {
+  // Try JSON file first (set by UI)
+  const settings = readSettings();
+  if (settings.agentModels?.[role]) {
+    const assigned = settings.agentModels[role];
+    return Array.isArray(assigned) ? assigned : [assigned];
+  }
+  
+  // Fallback to database
+  try {
+    const config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
+    if (config?.agentModels?.[role]) {
+      const assigned = config.agentModels[role];
+      return Array.isArray(assigned) ? assigned : [assigned];
+    }
+  } catch (e) {
+    // DB error, fallback silently
+  }
+  
+  return MODELS[role] || ['gemini-3-flash', 'gemini-3.1-flash-lite-preview'];
+}
 
 /**
  * Call AI model with smart fallback and rate-limit handling.
- * @param {string[]|string} modelArray - Model IDs to try in order
+ * @param {string[]|string} modelArrayOrRole - Model IDs to try in order, or a string role to fetch dynamic models
  * @param {string} contents - The prompt text
  * @param {string} agentName - For logging
  * @param {object} options - { json: bool, maxTokens: number }
  */
-export async function smartCall(modelArray, contents, agentName = 'AI', options = {}) {
-  const models = Array.isArray(modelArray) ? modelArray : [modelArray];
+export async function smartCall(modelArrayOrRole, contents, agentName = 'AI', options = {}) {
+  let models = [];
+  if (typeof modelArrayOrRole === 'string' && Object.keys(MODELS).includes(modelArrayOrRole.toLowerCase())) {
+     models = await getModelsForRole(modelArrayOrRole.toLowerCase());
+  } else {
+     models = Array.isArray(modelArrayOrRole) ? modelArrayOrRole : [modelArrayOrRole];
+  }
   const { json = true, maxTokens = 8192 } = options;
 
   for (const model of models) {

@@ -26,6 +26,11 @@ model Lead {
   likelyFix         String?
   confidence        String?
   status            String
+  auditScore        Int?
+  lighthouseScores  Json?
+  seoIssues         Json?
+  competitorScore   Int?
+  competitorGaps    Json?
   collectedAt       DateTime
   lastTouchedAt     DateTime
   draftEmail        DraftEmail?
@@ -125,6 +130,7 @@ model AgencyConfig {
   cyclesPerDay Int       @default(1)
   lastRunAt    DateTime?
   updatedAt    DateTime  @updatedAt
+  agentModels  Json?
 }
 
 model SearchPerformance {

@@ -53,13 +53,7 @@ if (!directorKey) {
 
 const ai = new GoogleGenAI({ apiKey: directorKey });
 
-// Director model hierarchy — prefers Pro, falls back gracefully
-const DIRECTOR_MODELS = [
-  'gemini-3.1-pro-preview', 
-  'gemini-2.5-pro',
-  'gemini-2.5-flash',
-  'gemini-2.0-flash'
-];
+import { getModelsForRole } from './agency-core.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🔧 UTILITIES
@@ -80,7 +74,8 @@ function saveJournal(journal) {
 }
 
 async function directorCall(prompt, jsonMode = true) {
-  for (const model of DIRECTOR_MODELS) {
+  const models = await getModelsForRole('manager');
+  for (const model of models) {
     try {
       console.log(`   🧠 [Director] Thinking with ${model}...`);
       const config = jsonMode ? { responseMimeType: "application/json" } : {};
@@ -483,7 +478,8 @@ function recordLearningSnapshot(sitrep, decision) {
 
 async function chatMode(question) {
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  💬 AGENCY DIRECTOR — Chat Mode                         ║');
+  const models = await getModelsForRole('manager');
+  console.log(`║  🧠 Model: ${models[0]}                             ║`);
   console.log('╚═══════════════════════════════════════════════════════════╝');
 
   const sitrep = await gatherSitRep();
@@ -629,8 +625,9 @@ async function main() {
   console.log('║  👔 FOURIQTECH AGENCY DIRECTOR v1.0                     ║');
   console.log('║  "The 20-Year Expert" — Strategic Brain                 ║');
   console.log('╠═══════════════════════════════════════════════════════════╣');
+  const models = await getModelsForRole('manager');
   console.log(`║  ⏰ ${new Date().toISOString()}`);
-  console.log(`║  🧠 Model: ${DIRECTOR_MODELS[0]}`);
+  console.log(`║  🧠 Model: ${models[0]}`);
   console.log(`║  🔑 Key: ${PRO_KEY ? 'BILLED (Pro)' : 'FREE TIER (Flash)'}`);
   console.log(`║  📊 Opportunity Engine: ${OPPORTUNITY_SNAPSHOT}`);
   console.log('╚═══════════════════════════════════════════════════════════╝');

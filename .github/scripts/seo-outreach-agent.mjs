@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { GoogleGenAI } from '@google/genai';
 import nodemailer from 'nodemailer';
+import { getModelsForRole, smartCall } from './agency-core.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
-// 📩 FOURIQTECH OUTBOUND SALES AGENT — "The Rainmaker V2"
+// 📩 FOURIQTECH OUTBOUND SALES AGENT — "The Rainmaker V3"
 // ═══════════════════════════════════════════════════════════════════════
 // Pipeline:
 //   🎯 Reads from leads_database.csv (No manual approval bottleneck).
@@ -16,19 +16,12 @@ import nodemailer from 'nodemailer';
 const LEADS_CSV_PATH = path.join(process.cwd(), '.github/leads_database.csv');
 const OUTREACH_LOG_PATH = path.join(process.cwd(), '.github/outreach_log.json');
 
-const API_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-  .split(',').map(k => k.trim()).filter(k => k.length > 0);
-
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.hostinger.com';
 const SMTP_PORT = process.env.SMTP_PORT || 465;
 const SMTP_USER = process.env.SMTP_USER || ''; 
 const SMTP_PASS = process.env.SMTP_PASS || '';
 
-let aiClient = API_KEYS.length > 0 ? new GoogleGenAI({ apiKey: API_KEYS[0] }) : null;
-
 async function generatePitch(target) {
-  // We only use the AI to generate a highly human "Icebreaker" to bypass spam filters.
-  // The rest of the email is the verified "Goldilocks" template.
   const prompt = `
     You are Karm Joshi, an expert technical founder.
     Write a 1-sentence "Icebreaker" to open a cold email.
@@ -49,18 +42,7 @@ async function generatePitch(target) {
   `;
 
   try {
-    if (!aiClient) {
-      console.log(`   ⚠️ [LOCAL TEST] No API Key. Simulating Icebreaker...`);
-      return { subject_line: `${target.city.toLowerCase()} salon website`, email_body: "Simulated text." };
-    }
-
-    const resp = await aiClient.models.generateContent({
-      model: 'gemini-3.1-flash-lite-preview',
-      contents: prompt,
-      config: { responseMimeType: "application/json" }
-    });
-    
-    const aiData = JSON.parse(resp.candidates[0].content.parts[0].text);
+    const aiData = await smartCall(prompt, 'writer', { responseMimeType: "application/json" });
     const icebreaker = aiData.icebreaker;
     
     // The Verified Goldilocks Template (100% Inbox Placement Rate)

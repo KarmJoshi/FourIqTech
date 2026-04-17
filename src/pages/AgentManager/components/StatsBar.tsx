@@ -60,34 +60,29 @@ export function StatsBar({ directorStatus, stagingStats, pendingCount, runningTa
 
       <Card className="aether-card bg-slate-950/20 border-slate-800/50 hover:border-slate-700 transition-all group p-5 flex flex-col justify-between">
         <div className="space-y-1">
-          <CardDescription className="text-slate-500 text-[9px] uppercase font-bold tracking-[0.2em]">STRATEGIC_CYCLES</CardDescription>
+          <CardDescription className="text-slate-500 text-[9px] uppercase font-bold tracking-[0.2em]">SEARCH_PENETRATION</CardDescription>
           <div className="flex items-end gap-2 mt-2">
-            <span className="text-3xl font-display font-extrabold text-white">{directorStatus?.director_cycles || 0}</span>
-            <span className="text-[10px] font-bold text-ai-blue uppercase tracking-widest mb-1.5">Complete</span>
+            <span className="text-3xl font-display font-extrabold text-ai-primary">{intelligence?.gsc?.summary?.total_impressions || "0"}</span>
+            <span className="text-[10px] font-bold text-ai-primary/70 uppercase tracking-widest mb-1.5">Impressions</span>
           </div>
         </div>
         <div className="flex items-center gap-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest mt-4">
-          <TrendingUp className="h-3.5 w-3.5 text-slate-600" /> 
-          AUTONOMOUS_FLIGHT
+          <Activity className="h-3.5 w-3.5 text-slate-700" /> 
+          30_DAY_VISIBILITY
         </div>
       </Card>
 
       <Card className="aether-card bg-slate-950/20 border-slate-800/50 hover:border-slate-700 transition-all group p-5 flex flex-col justify-between">
         <div className="space-y-1">
-          <CardDescription className="text-slate-500 text-[9px] uppercase font-bold tracking-[0.2em]">COLLISION_GUARD</CardDescription>
+          <CardDescription className="text-slate-500 text-[9px] uppercase font-bold tracking-[0.2em]">MARKET_CAPTURE</CardDescription>
           <div className="flex items-end gap-2 mt-2">
-            <span className="text-3xl font-display font-extrabold text-white">{collisionCount}</span>
-            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${collisionCount > 0 ? "text-amber-400" : "text-ai-tertiary"}`}>
-               {collisionCount > 0 ? "Watch" : "Clear"}
-            </span>
+            <span className="text-3xl font-display font-extrabold text-ai-tertiary">{intelligence?.gsc?.summary?.total_clicks || "0"}</span>
+            <span className="text-[10px] font-bold text-ai-tertiary/70 uppercase tracking-widest mb-1.5">Clicks</span>
           </div>
         </div>
         <div className="flex items-center gap-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest mt-4">
-          {collisionCount > 0 ? (
-            <><Loader2 className="h-3.5 w-3.5 text-amber-400 animate-spin" /> REVIEW_OVERLAP</>
-          ) : (
-            <><Activity className="h-3.5 w-3.5 text-slate-700" /> LOW_DUPLICATION</>
-          )}
+          <TrendingUp className="h-3.5 w-3.5 text-ai-tertiary/50" /> 
+          DIRECT_TRAFFIC_WINS
         </div>
       </Card>
     </div>

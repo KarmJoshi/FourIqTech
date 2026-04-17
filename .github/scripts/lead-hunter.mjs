@@ -19,10 +19,20 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from 'url';
 
+import pkgPrisma from '@prisma/client';
+const { PrismaClient } = pkgPrisma;
+import pkgPg from 'pg';
+const { Pool } = pkgPg;
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
-const DB_FILE = path.join(PROJECT_ROOT, "public", "collected_leads.json");
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🔑 GEMINI API
@@ -342,10 +352,10 @@ async function main() {
   console.log(`   Target: "${query}" | Quota: ${maxLeads} leads with emails`);
   console.log(`${"═".repeat(60)}`);
 
-  let existingData = [];
-  try { if (fs.existsSync(DB_FILE)) existingData = JSON.parse(fs.readFileSync(DB_FILE, "utf-8")); } catch { /* Fresh */ }
+  // Load existing leads from the database for deduplication
+  const existingData = await prisma.lead.findMany({ select: { businessName: true } });
   const existingNames = new Set(existingData.map(l => l.businessName.trim().toLowerCase()));
-  console.log(`📖 CRM: ${existingData.length} existing leads loaded for deduplication.\n`);
+  console.log(`📖 CRM: ${existingData.length} existing leads loaded from DB for deduplication.\n`);
 
   const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
@@ -577,12 +587,95 @@ async function main() {
 
   // ═══════ SAVE ═══════
   if (collectedData.length > 0) {
-    const updated = [...collectedData, ...existingData];
-    fs.writeFileSync(DB_FILE, JSON.stringify(updated, null, 2), "utf-8");
+    let savedCount = 0;
+    for (const lead of collectedData) {
+      try {
+        const collectedDate = lead.collectedAt ? new Date(lead.collectedAt.replace(' ', 'T')) : new Date();
+        const touchedDate = lead.lastTouchedAt ? new Date(lead.lastTouchedAt.replace(' ', 'T')) : new Date();
+
+        await prisma.lead.upsert({
+          where: { id: lead.id },
+          update: {
+            businessName: lead.businessName,
+            niche: lead.niche,
+            location: lead.location,
+            source: lead.source,
+            website: lead.website,
+            contactEmail: lead.personalEmail || lead.companyEmail || "N/A",
+            competitorName: lead.competitorName,
+            competitorWebsite: lead.competitorWebsite,
+            reviewsSnapshot: lead.reviewsSnapshot,
+            problemTitle: lead.problemTitle,
+            problemDetail: lead.problemDetail,
+            businessImpact: lead.businessImpact,
+            likelyFix: lead.likelyFix,
+            confidence: lead.confidence,
+            status: lead.status,
+            auditScore: lead.auditScore,
+            lighthouseScores: lead.lighthouseScores,
+            seoIssues: lead.seoIssues,
+            competitorScore: lead.competitorScore,
+            competitorGaps: lead.competitorGaps,
+            collectedAt: collectedDate,
+            lastTouchedAt: touchedDate,
+          },
+          create: {
+            id: lead.id,
+            businessName: lead.businessName,
+            niche: lead.niche,
+            location: lead.location,
+            source: lead.source,
+            website: lead.website,
+            contactEmail: lead.personalEmail || lead.companyEmail || "N/A",
+            competitorName: lead.competitorName,
+            competitorWebsite: lead.competitorWebsite,
+            reviewsSnapshot: lead.reviewsSnapshot,
+            problemTitle: lead.problemTitle,
+            problemDetail: lead.problemDetail,
+            businessImpact: lead.businessImpact,
+            likelyFix: lead.likelyFix,
+            confidence: lead.confidence,
+            status: lead.status,
+            auditScore: lead.auditScore,
+            lighthouseScores: lead.lighthouseScores,
+            seoIssues: lead.seoIssues,
+            competitorScore: lead.competitorScore,
+            competitorGaps: lead.competitorGaps,
+            collectedAt: collectedDate,
+            lastTouchedAt: touchedDate,
+          }
+        });
+
+        if (lead.draftEmail) {
+          await prisma.draftEmail.upsert({
+            where: { leadId: lead.id },
+            update: {
+              subject: lead.draftEmail.subject,
+              body: lead.draftEmail.body,
+              angle: lead.draftEmail.angle,
+              sentFrom: lead.draftEmail.sentFrom,
+              deliveryStatus: lead.draftEmail.deliveryStatus
+            },
+            create: {
+              id: lead.draftEmail.id,
+              leadId: lead.id,
+              subject: lead.draftEmail.subject,
+              body: lead.draftEmail.body,
+              angle: lead.draftEmail.angle,
+              sentFrom: lead.draftEmail.sentFrom,
+              deliveryStatus: lead.draftEmail.deliveryStatus
+            }
+          });
+        }
+        savedCount++;
+      } catch (err) {
+        console.error(`[DB Error] Could not save lead ${lead.businessName}:`, err.message);
+      }
+    }
+
     console.log(`\n${"═".repeat(60)}`);
-    console.log(`🎉 SUCCESS: ${collectedData.length} leads saved with competitor intelligence!`);
-    console.log(`   Total leads in database: ${updated.length}`);
-    console.log(`   Sync: Click "Sync Scraper" in the Agent Manager dashboard`);
+    console.log(`🎉 SUCCESS: ${savedCount} leads saved directly to PostgreSQL!`);
+    console.log(`   You can immediately view them on the Agent Manager dashboard.`);
     console.log(`${"═".repeat(60)}\n`);
   } else {
     console.log("\n📉 No new leads found matching criteria.");

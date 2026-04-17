@@ -66,6 +66,7 @@ const COMPETITOR_INTEL = path.join(SEO_MEMORY_DIR, 'competitor-intelligence.json
 const SETTINGS_PATH = path.join(CWD, '.github/staging/system-settings.json');
 const LIVE_POSTS_PATH = path.join(CWD, 'public/live_posts.json');
 const LIVE_ROUTES_PATH = path.join(CWD, 'public/live_routes.json');
+const GSC_REPORT_PATH = path.join(CWD, '.github/gsc-reports/latest.json');
 
 // ── Department Scripts ──
 const DEPARTMENTS = {
@@ -231,9 +232,9 @@ function triggerDirectorCycle(req, res, method = 'API') {
   child.stdout.on('data', (data) => {
     const lines = data.toString().split('\n').filter(l => l.trim());
     for (const line of lines) {
-      if (line.includes('✅') || line.includes('❌') || line.includes('📝') || 
-          line.includes('🎯') || line.includes('📦') || line.includes('👔') ||
-          line.includes('STAGING') || line.includes('Phase') || line.includes('DECISION')) {
+      if (line.includes('✅') || line.includes('❌') || line.includes('📝') ||
+        line.includes('🎯') || line.includes('📦') || line.includes('👔') ||
+        line.includes('STAGING') || line.includes('Phase') || line.includes('DECISION')) {
         logActivity('👔', 'manager', line.replace(/[═╔╗╚╝║╣╠]/g, '').trim(), 'info');
       }
     }
@@ -277,17 +278,17 @@ app.get('/api/staging', async (req, res) => {
     const items = await prisma.stagingItem.findMany({
       orderBy: { createdAt: 'desc' }
     });
-    
+
     const stats = {
       total_submitted: items.length,
       approved: items.filter(i => i.status === 'approved').length,
       rejected: items.filter(i => i.status === 'rejected').length,
       pending: items.filter(i => i.status === 'pending_review').length,
-      approval_rate: items.length > 0 
-        ? Math.round((items.filter(i => i.status === 'approved').length / items.length) * 100) + '%' 
+      approval_rate: items.length > 0
+        ? Math.round((items.filter(i => i.status === 'approved').length / items.length) * 100) + '%'
         : '0%'
     };
-    
+
     res.json({ queue: items, stats });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -417,6 +418,7 @@ app.get('/api/intelligence', (req, res) => {
     playbooks: readJson(PLAYBOOK_SCORES, { scores: [] }),
     outcomes: readJson(OUTCOME_HISTORY, []),
     competitor: readJson(COMPETITOR_INTEL, { queries: [] }),
+    gsc: readJson(GSC_REPORT_PATH, {}),
   });
 });
 
@@ -438,7 +440,7 @@ app.get('/api/status', async (req, res) => {
     try {
       const appCode = fs.readFileSync(APP_TSX, 'utf8');
       staticPages = [...appCode.matchAll(/path="\/services\/([^"]+)"/g)].length;
-    } catch {}
+    } catch { }
     status.service_pages = Math.max(dbPages, staticPages);
   } catch { status.service_pages = 0; }
 
@@ -466,7 +468,7 @@ app.get('/api/status', async (req, res) => {
       rejected: q.filter(i => i.status === 'rejected').length,
       pending: q.filter(i => i.status === 'pending_review').length,
       published: q.filter(i => i.status === 'published').length,
-      approval_rate: q.length > 0 ? Math.round((q.filter(i => ['approved','published'].includes(i.status)).length / q.length) * 100) + '%' : '0%'
+      approval_rate: q.length > 0 ? Math.round((q.filter(i => ['approved', 'published'].includes(i.status)).length / q.length) * 100) + '%' : '0%'
     };
   } catch { status.staging = {}; }
 
@@ -510,7 +512,7 @@ app.post('/api/run-task', (req, res) => {
 
 app.post('/api/send-email', async (req, res) => {
   try {
-    const { to, subject, body: emailBody, fromName } = req.body;
+    const { to, subject, body: emailBody, fromName, leadId } = req.body;
     console.log(`[Unified API] SENDING EMAIL TO: ${to}`);
 
     const transporter = nodemailer.createTransport({
@@ -527,6 +529,22 @@ app.post('/api/send-email', async (req, res) => {
       text: emailBody
     });
 
+    // Persistent Status Update in Database
+    if (leadId) {
+      await prisma.lead.update({
+        where: { id: leadId },
+        data: { 
+          status: 'sent', 
+          lastTouchedAt: new Date(),
+          contactEmail: to // Preserve the corrected email
+        }
+      });
+      await prisma.draftEmail.update({
+        where: { leadId: leadId },
+        data: { deliveryStatus: 'sent', sentAt: new Date() }
+      });
+    }
+
     logActivity('📧', 'outreach', `Email successfully sent to ${to}`, 'info');
     res.json({ success: true, messageId: info.messageId });
   } catch (e) {
@@ -535,6 +553,7 @@ app.post('/api/send-email', async (req, res) => {
     res.status(500).json({ success: false, error: e.message });
   }
 });
+
 
 // ═══════════════════════════════════════════════════════════════════════
 // GET /api/journal — Director decision history
@@ -578,6 +597,13 @@ app.get('/api/staging/:id/content', async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════
 app.get('/api/settings', async (req, res) => {
   try {
+    // Try JSON file first
+    const settingsPath = path.join(CWD, '.github/staging/system-settings.json');
+    if (fs.existsSync(settingsPath)) {
+      const jsonSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      return res.json(jsonSettings);
+    }
+    // Fallback to database
     let config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
     if (!config) {
       config = await prisma.agencyConfig.create({ data: { id: 'default' } });
@@ -590,16 +616,26 @@ app.get('/api/settings', async (req, res) => {
 
 app.post('/api/settings', async (req, res) => {
   try {
-    const { isAutoPilot, startTime, cyclesPerDay } = req.body;
+    const { isAutoPilot, startTime, cyclesPerDay, agentModels } = req.body;
+    
+    // Upsert to database
     const config = await prisma.agencyConfig.upsert({
       where: { id: 'default' },
       update: {
         ...(isAutoPilot !== undefined && { isAutoPilot }),
         ...(startTime && { startTime }),
         ...(cyclesPerDay && { cyclesPerDay }),
+        ...(agentModels && { agentModels }),
       },
       create: { id: 'default' }
     });
+    
+    // Also save to JSON file for scripts to read
+    const settingsPath = path.join(CWD, '.github/staging/system-settings.json');
+    const existing = fs.existsSync(settingsPath) ? JSON.parse(fs.readFileSync(settingsPath, 'utf8')) : {};
+    const updated = { ...existing, isAutoPilot, startTime, cyclesPerDay, agentModels };
+    fs.writeFileSync(settingsPath, JSON.stringify(updated, null, 2));
+    
     await logActivity('⚙️', 'system', 'Strategic Auto-Pilot settings updated', 'info');
     res.json({ success: true, settings: config });
   } catch (e) {
@@ -621,6 +657,143 @@ app.get('/api/leads', async (req, res) => {
     res.status(500).json({ error: "Failed to read leads database." });
   }
 });
+
+app.patch('/api/leads/:id', async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  
+  if (!id || id === 'undefined' || id === 'null') {
+    return res.status(400).json({ success: false, error: "Invalid Lead ID" });
+  }
+
+  console.log(`[Unified API] PATCH /api/leads/${id}`, data);
+  
+  try {
+    const existing = await prisma.lead.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: `Lead ${id} not found in database.` });
+    }
+
+    const updatedLead = await prisma.lead.update({
+      where: { id },
+      data: {
+        businessName: data.businessName,
+        contactEmail: data.contactEmail,
+        website: data.website,
+        niche: data.niche,
+        status: data.status,
+        problemTitle: data.problemTitle,
+        problemDetail: data.problemDetail,
+        location: data.location,
+        lastTouchedAt: new Date()
+      }
+    });
+
+    await logActivity('✏️', 'outreach', `Lead updated: ${data.businessName || id}`, 'info');
+    res.json({ success: true, lead: updatedLead });
+  } catch (e) {
+    console.error(`[Unified API] Lead Update Error:`, e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+
+
+
+app.post('/api/leads/sync-scraper', async (req, res) => {
+  const GATHERED_LEADS = path.join(CWD, 'public', 'collected_leads.json');
+  try {
+    if (!fs.existsSync(GATHERED_LEADS)) {
+      return res.json({ success: true, count: 0, message: "No scraper data found." });
+    }
+
+    const raw = fs.readFileSync(GATHERED_LEADS, 'utf8');
+    const leads = JSON.parse(raw);
+    let count = 0;
+
+    for (const l of leads) {
+      try {
+        const collectedDate = l.collectedAt ? new Date(l.collectedAt.replace(' ', 'T')) : new Date();
+        const touchedDate = l.lastTouchedAt ? new Date(l.lastTouchedAt.replace(' ', 'T')) : new Date();
+
+        await prisma.lead.upsert({
+          where: { id: l.id },
+          update: {
+            businessName: l.businessName,
+            niche: l.niche,
+            location: l.location,
+            source: l.source,
+            website: l.website,
+            contactEmail: l.personalEmail || l.companyEmail || "N/A",
+            competitorName: l.competitorName,
+            competitorWebsite: l.competitorWebsite,
+            reviewsSnapshot: l.reviewsSnapshot,
+            problemTitle: l.problemTitle,
+            problemDetail: l.problemDetail,
+            businessImpact: l.businessImpact,
+            likelyFix: l.likelyFix,
+            confidence: l.confidence,
+            status: l.status,
+            collectedAt: collectedDate,
+            lastTouchedAt: touchedDate,
+          },
+          create: {
+            id: l.id,
+            businessName: l.businessName,
+            niche: l.niche,
+            location: l.location,
+            source: l.source,
+            website: l.website,
+            contactEmail: l.personalEmail || l.companyEmail || "N/A",
+            competitorName: l.competitorName,
+            competitorWebsite: l.competitorWebsite,
+            reviewsSnapshot: l.reviewsSnapshot,
+            problemTitle: l.problemTitle,
+            problemDetail: l.problemDetail,
+            businessImpact: l.businessImpact,
+            likelyFix: l.likelyFix,
+            confidence: l.confidence,
+            status: l.status,
+            collectedAt: collectedDate,
+            lastTouchedAt: touchedDate,
+          }
+        });
+
+        if (l.draftEmail) {
+          await prisma.draftEmail.upsert({
+            where: { id: l.draftEmail.id || `email-${l.id}` },
+            update: {
+              subject: l.draftEmail.subject,
+              angle: l.draftEmail.angle,
+              sentFrom: l.draftEmail.sentFrom,
+              body: l.draftEmail.body,
+              deliveryStatus: l.draftEmail.deliveryStatus,
+            },
+            create: {
+              id: l.draftEmail.id || `email-${l.id}`,
+              leadId: l.id,
+              subject: l.draftEmail.subject,
+              angle: l.draftEmail.angle,
+              sentFrom: l.draftEmail.sentFrom,
+              body: l.draftEmail.body,
+              deliveryStatus: l.draftEmail.deliveryStatus,
+            }
+          });
+        }
+        count++;
+      } catch (err) {
+        console.error(`[Sync] Failed to upsert lead ${l.id}:`, err.message);
+      }
+    }
+
+    await logActivity('🔄', 'outreach', `Synchronized ${count} leads from scraper output`, 'info');
+    res.json({ success: true, count });
+  } catch (e) {
+    console.error(`[Sync] Global error:`, e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 
 // ═══════════════════════════════════════════════════════════════════════
 // STRATEGIC SCHEDULER — DB-Driven Heartbeat
@@ -649,11 +822,11 @@ function startScheduler() {
     const currentTotalMinutes = (istTime.getHours() * 60) + istTime.getMinutes();
 
     let shouldTrigger = false;
-    
+
     for (let i = 0; i < config.cyclesPerDay; i++) {
       const targetHour = (startHour + (i * intervalHours)) % 24;
       const targetTotalMinutes = (Math.floor(targetHour) * 60) + startMin;
-      
+
       let diffMinutes = currentTotalMinutes - targetTotalMinutes;
       if (diffMinutes < 0) diffMinutes += (24 * 60);
 
@@ -804,7 +977,7 @@ app.get('/api/services/:slug', async (req, res) => {
 // ⚙️ AGENCY CONFIG API — DB-driven settings (replaces JSON file)
 // ═══════════════════════════════════════════════════════════════════════
 
-app.get('/api/config', async (req, res) => {
+app.get(['/api/config', '/api/settings'], async (req, res) => {
   try {
     let config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
     if (!config) {
@@ -812,26 +985,32 @@ app.get('/api/config', async (req, res) => {
         data: { id: 'default' }
       });
     }
+    // Ensure agentModels is an object if null
+    if (!config.agentModels) config.agentModels = {};
     res.json(config);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/config', async (req, res) => {
+app.post(['/api/config', '/api/settings'], async (req, res) => {
   try {
-    const { isAutoPilot, startTime, cyclesPerDay } = req.body;
+    const { isAutoPilot, startTime, cyclesPerDay, agentModels } = req.body;
     const config = await prisma.agencyConfig.upsert({
       where: { id: 'default' },
       update: {
         ...(isAutoPilot !== undefined && { isAutoPilot }),
         ...(startTime && { startTime }),
         ...(cyclesPerDay && { cyclesPerDay }),
+        ...(agentModels !== undefined && { agentModels }),
       },
-      create: { id: 'default' }
+      create: { 
+        id: 'default',
+        ...(agentModels !== undefined && { agentModels })
+      }
     });
     await logActivity('⚙️', 'system', 'Agency config updated via API', 'info');
-    res.json({ success: true, config });
+    res.json({ success: true, settings: config, config });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

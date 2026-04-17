@@ -2,74 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
-import { submitToStaging, logActivity } from './agency-core.mjs';
+import { submitToStaging, logActivity, getModelsForRole, smartCall } from './agency-core.mjs';
 
-// ═══════════════════════════════════════════════════════════════════════
-// ⚙️ FOURIQTECH TECHNICAL SEO & PERFORMANCE AGENT — V1.0
-// ═══════════════════════════════════════════════════════════════════════
-// This agent is a separate "Technical Team" responsible for:
-//   🚀 PERFORMANCE  → Core Web Vitals (LCP, CLS, FID), asset optimization
-//   🛠️ ON-PAGE SEO  → Meta tags, Canonical URLs, H1-H6 hierarchy, Image Alt tags
-//   📦 STRUCTURE    → JSON-LD, Robots.txt, Sitemap health
-//
-// Architecture:
-//   🔍 SITE AUDITOR     → Scans code for technical debt, performance bottlenecks
-//   🧠 TECHNICAL MANAGER → 15-year SEO Architect; decides on high-ROI/low-risk fixes
-//   🛠️ EXECUTION AGENT   → Applies changes to index.html, components, or config
-// ═══════════════════════════════════════════════════════════════════════
-
-// ── Paths ──
 const INDEX_HTML_PATH = path.join(process.cwd(), 'index.html');
 const SEO_COMPONENT_PATH = path.join(process.cwd(), 'src/components/SEO.tsx');
-const CONFIG_PATH = path.join(process.cwd(), 'fouriqtech-seo-config.yaml');
 const TECHNICAL_LOG_PATH = path.join(process.cwd(), '.github/technical_seo_log.json');
-
-// ── API Setup (Prioritize Pro-tier now that billing is on) ──
-const PRO_KEY = process.env.GEMINI_PRO_API_KEY || '';
-const OTHER_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-  .replace(/["']/g, '')
-  .split(',').map(k => k.trim()).filter(k => k.length > 0);
-
-// Prioritize Pro Key (Billed) and deduplicate with others
-const API_KEYS = [...new Set([PRO_KEY, ...OTHER_KEYS])].filter(k => k.length > 0);
-
-let aiClient = API_KEYS.length > 0 ? new GoogleGenAI({ apiKey: API_KEYS[0] }) : null;
-
-async function smartCall(models, contents, agentName = 'AI') {
-  // Add Pro models to the fallback chain if not present
-  const proModels = ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'];
-  const fullModels = [...new Set([...proModels, ...models])];
-  
-  for (const model of fullModels) {
-    try {
-      const resp = await aiClient.models.generateContent({
-        model, contents, config: { responseMimeType: "application/json" }
-      });
-      return resp.candidates[0].content.parts[0].text;
-    } catch (err) {
-      console.error(`   ⚠️ [${agentName}] Model ${model} failed, falling back...`);
-    }
-  }
-  throw new Error('All models exhausted.');
-}
-
-// ── Special String Call for the Execution Agent (Not JSON) ──
-async function executionCall(models, contents) {
-  const proModels = ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'];
-  const fullModels = [...new Set([...proModels, ...models])];
-
-  for (const model of fullModels) {
-    try {
-      const resp = await aiClient.models.generateContent({
-        model, contents
-      });
-      return resp.candidates[0].content.parts[0].text;
-    } catch (err) {
-      console.error(`   ⚠️ [Execution] Model ${model} failed, falling back...`);
-    }
-  }
-  throw new Error('All models exhausted.');
-}
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🔍 SITE AUDITOR
@@ -78,7 +15,8 @@ async function getAuditReport() {
   const indexHtml = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
   const seoComponent = fs.readFileSync(SEO_COMPONENT_PATH, 'utf8');
   
-  const raw = await smartCall(['gemini-2.5-flash', 'gemini-2.0-flash'], `
+  const models = await getModelsForRole('qa');
+  const raw = await smartCall(models, `
     You are a Senior Technical SEO Auditor with 15 years of experience. Audit the following files for:
     1. Performance/Speed: Render-blocking resources, preconnects, asset loading.
     2. On-Page SEO: Missing/duplicate meta tags, canonicals, schema issues.
@@ -100,7 +38,8 @@ async function getAuditReport() {
 // 🧠 TECHNICAL MANAGER
 // ═══════════════════════════════════════════════════════════════════════
 async function getManagerDecision(audit) {
-  const raw = await smartCall(['gemini-3.1-flash-lite-preview', 'gemini-3-flash-preview'], `
+  const models = await getModelsForRole('manager');
+  const raw = await smartCall(models, `
     You are the Technical SEO Director. This is an autonomous sandbox. Only approve HIGH-ROI and LOW-RISK fixes.
     DO NOT touch the blog logic — that is handled by a separate team.
     
@@ -144,7 +83,8 @@ async function applyFixes(decisions) {
 
       console.log(`   🧠 [Execution Agent] Rewriting \${targetBaseName}...`);
       
-      const rawRes = await executionCall(['gemini-3.1-flash-lite-preview', 'gemini-3-flash-preview'], `
+      const models = await getModelsForRole('builder');
+      const rawRes = await smartCall(models, `
         You are an elite Senior Staff UI/UX Engineer and Performance Architect.
         Your task is to implement a specific technical SEO / performance fix.
         
@@ -158,7 +98,7 @@ async function applyFixes(decisions) {
         \`\`\`
         
         Return ONLY the raw updated file content. Do not include markdown code block formatting like \`\`\`html or \`\`\`tsx. Do not include any explanation. Just return the raw code that will replace the entire file exactly as it should be written.
-      `);
+      `, 'Execution Agent', { json: false });
       
       // Clean up markdown block if the model included it despite instructions
       let cleanCode = rawRes.trim();
@@ -201,10 +141,7 @@ async function main() {
   console.log('║  🛠️ FOURIQTECH TECHNICAL SEO AGENT — Autonomous Site Health ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   
-  if (API_KEYS.length === 0) {
-     console.error('❌ No API keys found.');
-     process.exit(1);
-  }
+  console.log('╚═══════════════════════════════════════════════════════════╝');
 
   const audit = await getAuditReport();
   const decision = await getManagerDecision(audit);

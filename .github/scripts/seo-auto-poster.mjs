@@ -4,7 +4,7 @@ import puppeteer from 'puppeteer';
 import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
 import crypto from 'crypto';
-import { submitToStaging, logActivity } from './agency-core.mjs';
+import { submitToStaging, logActivity, getModelsForRole } from './agency-core.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🏢 FOURIQTECH AI SEO ENGINE — V8.0 "Autonomous Agency"
@@ -56,13 +56,6 @@ const OTHER_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY ||
   .replace(/["']/g, '')
   .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
-const MODEL_PRESETS = {
-  'research': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  'manager': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  'writing': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-  'qa': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-};
-
 // Prioritize Pro Key (Billed) and deduplicate with others
 const API_KEYS = [...new Set([PRO_KEY, ...OTHER_KEYS])].filter(k => k.length > 0);
 
@@ -80,14 +73,16 @@ function rotateKey() {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function getModels(taskType) {
-  const tasks = {
-    'research': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-    'manager': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-    'writing': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-    'qa': ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash']
+async function getModels(taskType) {
+  // Map local task names to the global roles defined in the Matrix UI
+  const roleMap = { 
+    writing: 'writer', 
+    research: 'researcher', 
+    manager: 'content_manager', // Now uses the granular content strategist role
+    qa: 'qa' 
   };
-  return tasks[taskType] || ['gemini-3.1-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'];
+  const targetRole = roleMap[taskType] || taskType;
+  return await getModelsForRole(targetRole);
 }
 
 async function smartCall(modelArray, contents, agentName = 'AI') {
@@ -628,7 +623,7 @@ function hasFreshDirectorOrders() {
 // 🔬 RESEARCHER — Keyword Discovery + SERP Analysis + Semantic Clusters
 // ═══════════════════════════════════════════════════════════════════════
 async function researcherAgent(existingSlugs, knowledgeCtx, ragCtx) {
-  const models = getModels('research');
+  const models = await getModels('research');
   console.log(`\n🔬 RESEARCHER: Deep keyword + SERP analysis...`);
   const directorOrders = loadDirectorOrders();
 
@@ -722,24 +717,34 @@ async function scrapeSerp(keyword) {
     await page.goto(`https://www.google.com/search?q=${encodeURIComponent(keyword)}&hl=en`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await new Promise(r => setTimeout(r, 2000));
 
-    let results = await page.evaluate(() => {
-      if (document.body.innerText.includes('unusual traffic') || document.querySelector('#captcha-form')) return [];
+    let serpData = await page.evaluate(() => {
+      if (document.body.innerText.includes('unusual traffic') || document.querySelector('#captcha-form')) return null;
+      
+      const results = [];
       const items = document.querySelectorAll('div.tF2Cxc, div.g');
-      const data = [];
       items.forEach((item, index) => {
         if (index >= 10) return;
         const titleEl = item.querySelector('h3');
         const snippetEl = item.querySelector('.VwiC3b, .yXK7lf, .MUxGbd, .yDYNvb');
         if (titleEl) {
-          data.push({
+          results.push({
             position: index + 1,
             title: titleEl.innerText || '',
             snippet: snippetEl ? snippetEl.innerText : ''
           });
         }
       });
-      return data;
+
+      // --- EXTRACT SERP FEATURES ---
+      const paa = Array.from(document.querySelectorAll('.iD87jt, .dn799b, .s67bU')).map(el => el.innerText).filter(t => t.includes('?'));
+      const featured = document.querySelector('.LGOv1b, .hp00ve, .XnoxBy, .DI6Ybe')?.innerText || null;
+      
+      return { results, paa, featured_snippet: featured };
     });
+
+    let results = serpData?.results || [];
+    const paa = serpData?.paa || [];
+    const featured = serpData?.featured_snippet;
 
     // --- FALLBACK TO DUCKDUCKGO IF BLOCKED ---
     if (!results || results.length === 0) {
@@ -767,10 +772,15 @@ async function scrapeSerp(keyword) {
     }
 
     console.log(`   ✅ Extracted ${results.length} live organic results.`);
-    return results;
-  } catch (e) {
-    console.log(`   ⚠️ SERP Scrape Failed: ${e.message}`);
-    return null;
+    return { 
+      results, 
+      paa: paa || [], 
+      featured_snippet: featured || null,
+      source: results.length > 0 ? 'Google' : 'Fallback' 
+    };
+  } catch (err) {
+    console.error(`   ❌ Scraper failed: ${err.message}`);
+    return { results: [], paa: [], featured_snippet: null, source: 'Error' };
   } finally {
     if (browser) await browser.close();
   }
@@ -780,7 +790,7 @@ async function scrapeSerp(keyword) {
 // 🧠 AI MANAGER — The Strategic Brain (Replaces Strategist + Lead Scorer + Meta-Manager)
 // ═══════════════════════════════════════════════════════════════════════
 async function aiManagerAgent(research, gscInsights, ragCtx, orphanPages, existingSlugs, existingTitles, knowledgeCtx, liveSerpData) {
-  const models = getModels('manager');
+  const models = await getModels('manager');
   console.log(`\n🧠 AI MANAGER: Creating strategy brief...`);
 
   return await healedCall('AI Manager', async (prevErr) => {
@@ -880,7 +890,7 @@ RETURN VALID JSON:
 // ✍️ WRITER — Creative Content Engine (No Rigid Rules)
 // ═══════════════════════════════════════════════════════════════════════
 async function writerAgent(brief, knowledgeCtx, rewriteFeedback = null) {
-  const models = getModels('writing');
+  const models = await getModels('writing');
   console.log(`\n✍️ WRITER: Producing content...${rewriteFeedback ? ' (REWRITE ATTEMPT)' : ''}`);
 
   return await healedCall('Writer', async (prevErr) => {
@@ -924,6 +934,15 @@ If any section lacks metrics, scale, or technical depth → You MUST rewrite it 
 
 ---
 ## 🧠 MANDATORY OUTPUT STRUCTURE
+
+### 0. THE SNIPPET TRAP (MANDATORY FOR GOOGLE)
+Check the SERP STRATEGY in the brief:
+${JSON.stringify(brief.serp_strategy || {})}
+
+One of your H2 or H3 sections MUST explicitly answer the 'target_snippet_question'.
+* IF format is 'definition': Write a 40-60 word authoritative answer immediately after the heading. **Use bolding for the primary answer.**
+* IF format is 'list': Provide a high-quality bulleted list of 5-8 items.
+* Also, naturally integrate answers to these PAA questions: ${JSON.stringify(brief.serp_strategy?.paa_integration || [])}
 
 ### 1. INCIDENT REPORT (START HERE)
 Describe a real production issue:
@@ -1035,7 +1054,7 @@ RETURN VALID JSON:
 // ✅ QA INSPECTOR — 3 Simple Checks, No Rewrite Loop
 // ═══════════════════════════════════════════════════════════════════════
 async function qaAgent(draft, brief) {
-  const models = getModels('qa');
+  const models = await getModels('qa');
   console.log(`\n✅ QA INSPECTOR: Validating article...`);
 
   return await healedCall('QA Inspector', async (prevErr) => {
