@@ -1011,6 +1011,16 @@ app.post(['/api/config', '/api/settings'], async (req, res) => {
         ...(agentModels !== undefined && { agentModels })
       }
     });
+
+    // Mirror to JSON to ensure agency-core.mjs (and agents) can read it cleanly
+    const settingsPath = path.join(CWD, '.github/staging/system-settings.json');
+    let currentSettings = {};
+    try {
+      if (fs.existsSync(settingsPath)) currentSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    } catch(e) {}
+    
+    fs.writeFileSync(settingsPath, JSON.stringify({ ...currentSettings, ...config }, null, 2));
+
     await logActivity('⚙️', 'system', 'Agency config updated via API', 'info');
     res.json({ success: true, settings: config, config });
   } catch (err) {

@@ -1,31 +1,27 @@
 {
-  "isAutoPilot": false,
   "isAutoCommit": true,
-  "startTime": "10:00",
-
-  "cyclesPerDay": 1,
   "lastRunAt": "2026-04-07T10:45:02.234Z",
   "agentModels": {
     "manager": [
-      "gemini-3.1-flash-lite-preview",
-      "gemini-3.1-flash-lite-preview",
-      "gemini-3-flash",
-      "gemini-2.5-flash"
-    ],
-    "content_manager": [
       "gemini-3.1-pro-preview",
       "gemini-3.1-flash-lite-preview",
       "gemini-3-flash",
       "gemini-2.5-flash"
     ],
-    "researcher": [
+    "content_manager": [
+      "gemini-3-flash",
       "gemini-3.1-flash-lite-preview",
+      "gemini-3-flash",
+      "gemini-2.5-flash"
+    ],
+    "researcher": [
+      "gemini-3.1-pro-preview",
       "gemini-3.1-flash-lite-preview",
       "gemini-3-flash",
       "gemini-2.5-flash"
     ],
     "writer": [
-      "gemini-3-flash",
+      "gemini-3.1-pro-preview",
       "gemini-3.1-flash-lite-preview",
       "gemini-3-flash",
       "gemini-2.5-flash"
@@ -37,31 +33,31 @@
       "gemini-2.5-flash"
     ],
     "scanner": [
-      "gemini-3.1-flash-lite-preview",
+      "gemini-1.5-pro",
       "gemini-3.1-flash-lite-preview",
       "gemini-3-flash",
       "gemini-2.5-flash"
     ],
     "architect": [
-      "gemini-3-flash",
+      "gemini-3.1-pro-preview",
       "gemini-3.1-flash-lite-preview",
       "gemini-3-flash",
       "gemini-2.5-flash"
     ],
     "builder": [
-      "gemini-3-flash",
+      "gemini-3.1-pro-preview",
       "gemini-3.1-flash-lite-preview",
       "gemini-3-flash",
       "gemini-2.5-flash"
     ],
     "auditor": [
-      "gemini-3-flash",
+      "gemini-3.1-pro-preview",
       "gemini-3.1-flash-lite-preview",
       "gemini-3-flash",
       "gemini-2.5-flash"
     ],
     "browser": [
-      "gemini-3.1-flash-lite-preview",
+      "gemini-3.1-pro-preview",
       "gemini-3.1-flash-lite-preview",
       "gemini-3-flash",
       "gemini-2.5-flash"
