@@ -367,10 +367,6 @@ app.post('/api/staging/:id/review', async (req, res) => {
       data: updateData
     });
 
-    if (verdict === 'approved') {
-      await publishApprovedItem(item);
-    }
-
     const emoji = verdict === 'approved' ? '✅' : '❌';
     await logActivity(emoji, 'manager', `${verdict.toUpperCase()}: "${item.title}" — ${feedback || 'No comment'}`, 'review');
 

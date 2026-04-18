@@ -213,9 +213,17 @@ async function publishApprovedItems() {
   // Load settings to check for auto-commit
   let isAutoCommit = process.env.GITHUB_ACTIONS === 'true';
   try {
-    const settings = JSON.parse(fs.readFileSync(path.join(process.cwd(), '.github/staging/system-settings.json'), 'utf8'));
-    if (settings.isAutoCommit) isAutoCommit = true;
-  } catch (e) {}
+    const dbSettings = await prisma.agencyConfig.findUnique({ where: { id: 'default' }});
+    if (dbSettings && dbSettings.isAutoCommit) {
+      isAutoCommit = true;
+    } else {
+      // Fallback
+      const settings = JSON.parse(fs.readFileSync(path.join(process.cwd(), '.github/staging/system-settings.json'), 'utf8'));
+      if (settings.isAutoCommit) isAutoCommit = true;
+    }
+  } catch (e) {
+    console.error('   ⚠️ Could not load settings:', e.message);
+  }
 
   if (publishedCount > 0 && isAutoCommit) {
     try {
