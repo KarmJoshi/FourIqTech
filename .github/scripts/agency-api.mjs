@@ -581,12 +581,22 @@ app.get('/api/staging/:id/content', async (req, res) => {
 
     if (!item) return res.status(404).json({ error: 'Item not found' });
 
+    // Prioritize content stored directly in the database (Reliable for Render/Production)
+    if (item.content) {
+      return res.json({ content: item.content, source: 'database' });
+    }
+
+    // Fallback to file reading if database content is empty
     const contentPath = item.draftPath || item.codePath || item.diffPath;
-    if (!contentPath) return res.json({ content: 'No content file associated.' });
+    if (!contentPath) return res.status(404).json({ error: 'No content for this item.' });
 
     const fullPath = path.join(CWD, contentPath);
+    if (!fs.existsSync(fullPath)) {
+       return res.status(404).json({ error: `Associated file not found: ${contentPath}` });
+    }
+    
     const content = fs.readFileSync(fullPath, 'utf8');
-    res.json({ content, path: contentPath });
+    res.json({ content, path: contentPath, source: 'filesystem' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
