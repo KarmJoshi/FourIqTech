@@ -588,17 +588,32 @@ export default function AgentManager() {
                       </div>
                       <CardTitle className="text-xl sm:text-2xl font-display font-bold">Strategic Auto-Pilot</CardTitle>
                     </div>
-                    <div className="flex items-center gap-4 bg-slate-950/40 p-2 rounded-2xl border border-white/5 self-start">
-                      <span className={`text-[10px] font-bold tracking-widest uppercase ${scheduleSettings.isAutoPilot ? "text-ai-tertiary" : "text-slate-500"}`}>
-                        {scheduleSettings.isAutoPilot ? "ACTIVE" : "STANDBY"}
-                      </span>
-                      <button
-                        onClick={() => updateScheduleSettings({ isAutoPilot: !scheduleSettings.isAutoPilot })}
-                        disabled={isUpdatingSettings}
-                        className={`h-8 w-14 rounded-full transition-all relative ${scheduleSettings.isAutoPilot ? "bg-ai-tertiary shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-slate-800"}`}
-                      >
-                        <div className={`absolute top-1 bottom-1 w-6 rounded-full bg-white transition-all ${scheduleSettings.isAutoPilot ? "right-1" : "left-1"}`} />
-                      </button>
+                    <div className="flex items-center gap-6 bg-slate-950/40 p-2 rounded-2xl border border-white/5 self-start">
+                      <div className="flex items-center gap-3 pr-4 border-r border-white/10">
+                        <span className={`text-[10px] font-bold tracking-widest uppercase ${scheduleSettings.isAutoPilot ? "text-ai-tertiary" : "text-slate-500"}`}>
+                          {scheduleSettings.isAutoPilot ? "AUTO-PILOT ACTIVE" : "AUTO-PILOT STANDBY"}
+                        </span>
+                        <button
+                          onClick={() => updateScheduleSettings({ isAutoPilot: !scheduleSettings.isAutoPilot })}
+                          disabled={isUpdatingSettings}
+                          className={`h-7 w-12 rounded-full transition-all relative ${scheduleSettings.isAutoPilot ? "bg-ai-tertiary" : "bg-slate-800"}`}
+                        >
+                          <div className={`absolute top-1 bottom-1 w-5 rounded-full bg-white transition-all ${scheduleSettings.isAutoPilot ? "right-1" : "left-1"}`} />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className={`text-[10px] font-bold tracking-widest uppercase ${(scheduleSettings as any).isAutoCommit ? "text-ai-primary" : "text-slate-500"}`}>
+                          {(scheduleSettings as any).isAutoCommit ? "GIT PUSH ENABLED" : "GIT PUSH DISABLED"}
+                        </span>
+                        <button
+                          onClick={() => updateScheduleSettings({ isAutoCommit: !(scheduleSettings as any).isAutoCommit })}
+                          disabled={isUpdatingSettings}
+                          className={`h-7 w-12 rounded-full transition-all relative ${(scheduleSettings as any).isAutoCommit ? "bg-ai-primary shadow-[0_0_15px_rgba(56,189,248,0.3)]" : "bg-slate-800"}`}
+                        >
+                          <div className={`absolute top-1 bottom-1 w-5 rounded-full bg-white transition-all ${(scheduleSettings as any).isAutoCommit ? "right-1" : "left-1"}`} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

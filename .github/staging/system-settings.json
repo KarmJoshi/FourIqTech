@@ -1,6 +1,8 @@
 {
   "isAutoPilot": false,
+  "isAutoCommit": true,
   "startTime": "10:00",
+
   "cyclesPerDay": 1,
   "lastRunAt": "2026-04-07T10:45:02.234Z",
   "agentModels": {

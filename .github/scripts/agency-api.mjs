@@ -995,17 +995,19 @@ app.get(['/api/config', '/api/settings'], async (req, res) => {
 
 app.post(['/api/config', '/api/settings'], async (req, res) => {
   try {
-    const { isAutoPilot, startTime, cyclesPerDay, agentModels } = req.body;
+    const { isAutoPilot, isAutoCommit, startTime, cyclesPerDay, agentModels } = req.body;
     const config = await prisma.agencyConfig.upsert({
       where: { id: 'default' },
       update: {
         ...(isAutoPilot !== undefined && { isAutoPilot }),
+        ...(isAutoCommit !== undefined && { isAutoCommit }),
         ...(startTime && { startTime }),
         ...(cyclesPerDay && { cyclesPerDay }),
         ...(agentModels !== undefined && { agentModels }),
       },
       create: { 
         id: 'default',
+        isAutoCommit: isAutoCommit !== undefined ? isAutoCommit : false,
         ...(agentModels !== undefined && { agentModels })
       }
     });

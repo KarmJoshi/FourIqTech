@@ -126,6 +126,7 @@ model ServicePage {
 model AgencyConfig {
   id           String    @id @default("default")
   isAutoPilot  Boolean   @default(false)
+  isAutoCommit Boolean   @default(false)
   startTime    String    @default("10:00")
   cyclesPerDay Int       @default(1)
   lastRunAt    DateTime?

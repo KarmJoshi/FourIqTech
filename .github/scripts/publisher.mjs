@@ -198,23 +198,51 @@ async function publishApprovedItems() {
 
   console.log(`\n🎉 PUBLISHER: Deployed ${publishedCount}/${approvedItems.length} items.`);
 
-  // ── Auto-Commit (only for code changes) ──
-  if (codeChanged && process.env.GITHUB_ACTIONS === 'true') {
+  // ── Auto-Commit & Sync ──
+  // To ensure Git has something to track even for DB-only changes (like blogs), we sync to JSON
+  try {
+    const allBlogs = await prisma.blogPost.findMany({ where: { isLive: true } });
+    fs.writeFileSync(path.join(process.cwd(), 'public/live_posts.json'), JSON.stringify({ posts: allBlogs }, null, 2));
+    
+    const allServices = await prisma.servicePage.findMany({ where: { isLive: true } });
+    fs.writeFileSync(path.join(process.cwd(), 'public/live_pages.json'), JSON.stringify({ pages: allServices }, null, 2));
+  } catch (syncErr) {
+    console.error('   ⚠️ Sync to JSON failed:', syncErr.message);
+  }
+
+  // Load settings to check for auto-commit
+  let isAutoCommit = process.env.GITHUB_ACTIONS === 'true';
+  try {
+    const settings = JSON.parse(fs.readFileSync(path.join(process.cwd(), '.github/staging/system-settings.json'), 'utf8'));
+    if (settings.isAutoCommit) isAutoCommit = true;
+  } catch (e) {}
+
+  if (publishedCount > 0 && isAutoCommit) {
     try {
-      console.log(`\n👔 CI: Committing code changes...`);
-      execSync('git config --global user.name "FouriqTech AI Agent"');
-      execSync('git config --global user.email "ai-agent@fouriqtech.com"');
+      console.log(`\n👔 CI/AUTO-COMMIT: Stage, Commit & Push...`);
+      // Ensure we don't commit build artifacts or logs unnecessarily, but we need current changes
+      execSync('git config --global user.name "FourIqTech AI Publisher"');
+      execSync('git config --global user.email "ai-publisher@fouriqtech.com"');
       execSync('git add .');
-      execSync(`git commit -m "[AI-AGENCY] Published ${publishedCount} items [skip ci]"`);
-      execSync('git push');
-      console.log('   ✅ Git push successful.');
+      // Only commit if there are changes
+      const status = execSync('git status --porcelain').toString();
+      if (status) {
+        execSync(`git commit -m "[AI-PUBLISH] Automatic deployment of ${publishedCount} items [skip ci]"`);
+        execSync('git push origin main');
+        console.log('   ✅ Git push successful.');
+        await logActivity('🐙', 'publisher', `Automatically pushed ${publishedCount} changes to GitHub`, 'info');
+      } else {
+        console.log('   ℹ️ No file changes detected. Skipping commit.');
+      }
     } catch (gitErr) {
-      console.error('   ❌ Git push failed:', gitErr.message);
+      console.error('   ❌ Git operation failed:', gitErr.message);
+      await logActivity('⚠️', 'publisher', `Auto-commit failed: ${gitErr.message}`, 'error');
     }
-  } else if (codeChanged) {
-    console.log(`\n💡 LOCAL: Code changed but skipping auto-commit. (CI only)`);
+  } else if (publishedCount > 0) {
+    console.log(`\n💡 LOCAL: Published ${publishedCount} items. (Auto-commit disabled in settings)`);
   }
 }
+
 
 publishApprovedItems()
   .catch(e => console.error('Publisher fatal:', e))
