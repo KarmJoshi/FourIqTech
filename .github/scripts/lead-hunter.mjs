@@ -357,12 +357,34 @@ async function main() {
   const existingNames = new Set(existingData.map(l => l.businessName.trim().toLowerCase()));
   console.log(`📖 CRM: ${existingData.length} existing leads loaded from DB for deduplication.\n`);
 
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  let browser;
+  try {
+    browser = await puppeteer.launch({ 
+      headless: 'new', 
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920,1080'
+      ],
+      ignoreHTTPSErrors: true,
+      protocolTimeout: 30000
+    });
+  } catch (err) {
+    console.error(`❌ FAILED TO LAUNCH BROWSER: ${err.message}`);
+    process.exit(1);
+  }
+
   const page = await browser.newPage();
   const auditPage = await browser.newPage();
   const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
+  
   await page.setUserAgent(userAgent);
   await auditPage.setUserAgent(userAgent);
+  await page.setViewport({ width: 1280, height: 800 });
+  await auditPage.setViewport({ width: 1280, height: 800 });
 
   // ═══════ PHASE 1: HARVEST MAP URLS + EXTRACT DATA ═══════
   console.log("🗺️  PHASE 1: Harvesting Google Maps listings...");
@@ -432,9 +454,13 @@ async function main() {
     let siteTextForAi = "";
     if (biz.website) {
       console.log(`   🌐 Scanning website for contact info & owner details: ${biz.website}`);
-      const extraction = await findEmailsAndAboutText(auditPage, biz.website);
-      emails = { personalEmail: extraction.emails.personalEmail || emails.personalEmail, companyEmail: extraction.emails.companyEmail };
-      siteTextForAi = extraction.aboutText;
+      try {
+        const extraction = await findEmailsAndAboutText(auditPage, biz.website);
+        emails = { personalEmail: extraction.emails.personalEmail || emails.personalEmail, companyEmail: extraction.emails.companyEmail };
+        siteTextForAi = extraction.aboutText;
+      } catch (e) {
+        console.warn(`   ⚠️  Failed to scan ${biz.website}: ${e.message}`);
+      }
     }
 
     if (!emails.personalEmail && !emails.companyEmail) {
@@ -447,7 +473,13 @@ async function main() {
     let leadAudit = null;
     if (biz.website) {
       console.log(`   🔬 Running 25-point deep audit...`);
-      leadAudit = await deepSeoAudit(auditPage, biz.website);
+      try {
+        leadAudit = await deepSeoAudit(auditPage, biz.website);
+      } catch (e) {
+        console.warn(`   ⚠️  SEO Audit failed for ${biz.website}: ${e.message}`);
+      }
+    }
+    if (leadAudit) {
       console.log(`   📊 Overall Score: ${leadAudit.overallScore}/100`);
       console.log(`      Structure: ${leadAudit.scores.structure}/100 | Speed: ${leadAudit.scores.speed}/100 | Mobile: ${leadAudit.scores.mobile}/100`);
       console.log(`      Trust: ${leadAudit.scores.trust}/100 | Content: ${leadAudit.scores.content}/100`);

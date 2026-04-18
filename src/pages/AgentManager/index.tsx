@@ -206,6 +206,9 @@ export default function AgentManager() {
 
   const updateScheduleSettings = async (updates: any) => {
     setIsUpdatingSettings(true);
+    // Optimistic Update: Set values immediately to prevent "flicker" during polling
+    setScheduleSettings(prev => ({ ...prev, ...updates }));
+    
     const newSettings = { ...scheduleSettings, ...updates };
     try {
       const res = await fetch(`${API_BASE_URL}/api/settings`, {
@@ -219,6 +222,12 @@ export default function AgentManager() {
       }
     } catch (e) {
       console.error("Settings Update Error", e);
+      // Rollback on error
+      const fetchSettings = async () => {
+         const res = await fetch(`${API_BASE_URL}/api/settings`);
+         if(res.ok) setScheduleSettings(await res.json());
+      };
+      fetchSettings();
     } finally {
       setIsUpdatingSettings(false);
     }
@@ -324,7 +333,7 @@ export default function AgentManager() {
         body: JSON.stringify({
           to: editForm?.id === selectedLeadId ? editForm.contactEmail : lead.contactEmail,
           subject: email.subject,
-          body: email.body,
+          body: (editForm?.id === selectedLeadId && editForm.emailBody) ? editForm.emailBody : email.body,
           fromName: "Karm Joshi (FourIqTech)",
           leadId: lead.id
         })
@@ -335,6 +344,8 @@ export default function AgentManager() {
         setLeads(c => c.map(l => l.id === lead.id ? { ...l, status: "sent" } : l));
         setLeadFilter("sent");
         setOutreachTab("replies");
+        // Clear edit form
+        setEditForm({ contactEmail: "", emailBody: "", id: null });
       }
     } catch (e) {
       alert("Mail dispatch failed.");

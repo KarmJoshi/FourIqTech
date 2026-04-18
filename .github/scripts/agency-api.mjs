@@ -689,6 +689,14 @@ app.patch('/api/leads/:id', async (req, res) => {
       }
     });
 
+    // Also update any existing draft email with the new contact email if relevant
+    if (data.contactEmail) {
+       await prisma.draftEmail.updateMany({
+         where: { leadId: id },
+         data: { sentFrom: data.contactEmail } // Or whichever field holds the recipient normally
+       }).catch(() => {});
+    }
+
     await logActivity('✏️', 'outreach', `Lead updated: ${data.businessName || id}`, 'info');
     res.json({ success: true, lead: updatedLead });
   } catch (e) {
@@ -716,6 +724,12 @@ app.post('/api/leads/sync-scraper', async (req, res) => {
         const collectedDate = l.collectedAt ? new Date(l.collectedAt.replace(' ', 'T')) : new Date();
         const touchedDate = l.lastTouchedAt ? new Date(l.lastTouchedAt.replace(' ', 'T')) : new Date();
 
+        const existing = await prisma.lead.findUnique({ where: { id: l.id } });
+        
+        // Preserve "sent" status and manual email edits
+        const finalStatus = (existing?.status === 'sent' || existing?.status === 'replied') ? existing.status : l.status;
+        const finalEmail = (existing?.contactEmail && existing.contactEmail !== 'N/A' && existing.contactEmail !== l.personalEmail) ? existing.contactEmail : (l.personalEmail || l.companyEmail || "N/A");
+
         await prisma.lead.upsert({
           where: { id: l.id },
           update: {
@@ -724,7 +738,7 @@ app.post('/api/leads/sync-scraper', async (req, res) => {
             location: l.location,
             source: l.source,
             website: l.website,
-            contactEmail: l.personalEmail || l.companyEmail || "N/A",
+            contactEmail: finalEmail,
             competitorName: l.competitorName,
             competitorWebsite: l.competitorWebsite,
             reviewsSnapshot: l.reviewsSnapshot,
@@ -733,7 +747,7 @@ app.post('/api/leads/sync-scraper', async (req, res) => {
             businessImpact: l.businessImpact,
             likelyFix: l.likelyFix,
             confidence: l.confidence,
-            status: l.status,
+            status: finalStatus,
             collectedAt: collectedDate,
             lastTouchedAt: touchedDate,
           },

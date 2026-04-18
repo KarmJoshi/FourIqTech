@@ -413,9 +413,11 @@ export function OutreachDepartment({
                        </div>
                        <div className="relative group flex-1 flex flex-col min-h-[400px]">
                           <Textarea 
-                            readOnly 
-                            value={selectedEmail.body} 
-                            className="flex-1 rounded-2xl border-white/5 bg-black/20 p-6 text-sm text-neutral-300 font-medium leading-relaxed custom-scrollbar selection:bg-amber-400/20" 
+                            value={(editForm?.id === selectedLead.id && editForm.emailBody !== undefined) ? editForm.emailBody : selectedEmail.body} 
+                            onChange={(e) => {
+                               setEditForm({ ...selectedLead, ...editForm, emailBody: e.target.value, id: selectedLead.id }); 
+                            }}
+                            className="flex-1 rounded-2xl border-white/5 bg-black/20 p-6 text-sm text-neutral-300 font-medium leading-relaxed custom-scrollbar selection:bg-amber-400/20 focus:border-amber-400/40 outline-none" 
                           />
                           <div className="absolute top-4 right-4 animate-pulse">
                             <div className="h-2 w-2 rounded-full bg-amber-400" />
@@ -433,9 +435,9 @@ export function OutreachDepartment({
                           <div className="space-y-1">
                              <label className="text-[10px] font-bold tracking-widest text-neutral-600 uppercase">Target Recipient Node (To)</label>
                              <Input 
-                               value={selectedLead.contactEmail}
+                               value={editForm?.id === selectedLead.id ? editForm.contactEmail : selectedLead.contactEmail}
                                onChange={(e) => {
-                                 setEditForm({ ...selectedLead, contactEmail: e.target.value });
+                                 setEditForm({ ...selectedLead, ...editForm, contactEmail: e.target.value, id: selectedLead.id });
                                }}
                                className="h-10 bg-black/40 border-white/10 rounded-xl text-xs font-bold text-amber-400 focus:border-amber-400/40"
                                placeholder="e.g. hello@business.com"

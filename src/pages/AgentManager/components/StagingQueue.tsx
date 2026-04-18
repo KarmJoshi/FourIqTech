@@ -10,12 +10,12 @@ interface StagingItem {
   type: string;
   department: string;
   status: string;
-  created_at: string;
+  createdAt: string;
   title: string;
   summary: any;
-  manager_review: { verdict: string; feedback: string; reviewed_at: string } | null;
-  published_at?: string;
-  revision_count?: number;
+  managerReview: { verdict: string; feedback: string; reviewedAt: string } | null;
+  publishedAt?: string;
+  revisionCount?: number;
 }
 
 interface StagingQueueProps {
@@ -118,7 +118,7 @@ export function StagingQueue({
                       <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
                         <span className="text-ai-primary/70">{item.department.toUpperCase()}_UNIT</span>
                         <div className="w-1 h-1 rounded-full bg-slate-800" />
-                        <span>{new Date(item.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                        <span>{new Date(item.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
                         {item.summary?.word_count && (
                           <><div className="w-1 h-1 rounded-full bg-slate-800" /><span>{item.summary.word_count} WORDS</span></>
                         )}
@@ -128,14 +128,14 @@ export function StagingQueue({
                       </div>
                     </div>
 
-                    {item.manager_review && (
+                    {item.managerReview && (
                       <div className={`flex items-start gap-4 p-5 rounded-[20px] border ${
-                        item.manager_review.verdict === "approved" ? "bg-ai-tertiary/5 border-ai-tertiary/10 text-ai-tertiary/80" : "bg-red-500/5 border-red-500/10 text-red-400/80"
+                        item.managerReview.verdict === "approved" ? "bg-ai-tertiary/5 border-ai-tertiary/10 text-ai-tertiary/80" : "bg-red-500/5 border-red-500/10 text-red-400/80"
                       }`}>
                         <Crown className="h-4 w-4 mt-0.5 shrink-0" />
                         <div className="text-[11px] leading-relaxed font-bold uppercase tracking-wide">
                           <span className="text-slate-500 mr-3">DIRECTOR_FEEDBACK:</span>
-                          "{item.manager_review.feedback}"
+                          "{item.managerReview.feedback}"
                         </div>
                       </div>
                     )}
