@@ -76,7 +76,10 @@ function scoreOpportunity(item) {
 
   const impact = clamp((Math.log10(impressions + 10) * 2.8) + (position <= 15 ? 2 : 0), 1, 10);
   const confidence = clamp((position <= 15 ? 4 : 2) + (impressions >= 50 ? 2 : 0) + (ctr < 2 ? 1 : 0), 1, 10);
-  const businessValue = clamp(priority === 'P0' ? 9 : priority === 'P1' ? 7 : 5, 1, 10);
+  const businessValueBase = priority === 'P0' ? 9 : priority === 'P1' ? 7 : 5;
+  const serviceBonus = (item.target?.includes('/services/') || item.description?.toLowerCase().includes('service')) ? 2 : 0;
+  const businessValue = clamp(businessValueBase + serviceBonus, 1, 10);
+  
   const effort = clamp(
     (item.type === 'technical_fix' ? 6 : 0) +
     (item.type === 'supporting_content' ? 5 : 0) +

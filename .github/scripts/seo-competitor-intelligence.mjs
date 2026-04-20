@@ -78,16 +78,23 @@ export async function buildCompetitorIntelligence() {
   const queries = await chooseQueries();
   const results = [];
 
+  const MY_DOMAIN = 'fouriqtech.com';
+
   for (const query of queries) {
     try {
-      const serp = await search(query, { locale: 'en-us', safeSearch: 1 });
-      const top = (serp.results || []).slice(0, 5).map((item) => ({
-        title: item.title,
-        url: item.url,
-        hostname: item.hostname,
-        description: item.description,
-        overlap: Number(overlap(query, item.title).toFixed(2)),
-      }));
+      // safeSearch: 0 (Strict), 1 (Moderate), 2 (Off) - some versions use strings
+      const serp = await search(query, { locale: 'en-us' }); 
+      
+      const top = (serp.results || [])
+        .filter(item => !item.hostname.includes(MY_DOMAIN))
+        .slice(0, 5)
+        .map((item) => ({
+          title: item.title,
+          url: item.url,
+          hostname: item.hostname,
+          description: item.description,
+          overlap: Number(overlap(query, item.title).toFixed(2)),
+        }));
 
       const exactInventoryMatches = inventory.filter((slug) => overlap(query, slug) >= 0.45);
 

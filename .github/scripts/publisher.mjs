@@ -232,17 +232,28 @@ async function publishApprovedItems() {
       const REPO_URL = 'https://github.com/KarmJoshi/FourIqTech.git';
       const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
       
-      // Self-heal: Check if origin exists
-      try {
-        execSync('git remote get-url origin', { stdio: 'ignore' });
-      } catch (e) {
-        console.log('   🔄 Origin missing. Re-linking to GitHub...');
-        execSync(`git remote add origin ${REPO_URL}`);
+      // 🛡️ PRO-ACTIVE GIT HEALING
+      // Ensure we are in a git repo
+      if (!fs.existsSync(path.join(process.cwd(), '.git'))) {
+        console.log('   ⚠️ No .git folder found. Initializing repository...');
+        execSync('git init');
       }
 
+      // Force-refresh origin to ensure it is always valid and authenticated
+      try {
+        execSync('git remote remove origin', { stdio: 'ignore' });
+      } catch (e) { /* ignore if not exists */ }
+      
+      const authenticatedUrl = GITHUB_TOKEN 
+        ? REPO_URL.replace('https://', `https://${GITHUB_TOKEN}@`)
+        : REPO_URL;
+
+      console.log('   🔄 Synchronizing remote origin...');
+      execSync(`git remote add origin ${authenticatedUrl}`);
+
       // Configure identity
-      execSync('git config --global user.name "FourIqTech AI Publisher"');
-      execSync('git config --global user.email "ai-publisher@fouriqtech.com"');
+      execSync('git config user.name "FourIqTech AI Publisher"');
+      execSync('git config user.email "ai-publisher@fouriqtech.com"');
       
       // Stage changes
       execSync('git add .');
@@ -251,13 +262,8 @@ async function publishApprovedItems() {
       if (status) {
         execSync(`git commit -m "[AI-PUBLISH] Automatic deployment of ${publishedCount} items [skip ci]"`);
         
-        // Use token if available for authenticated push
-        if (GITHUB_TOKEN) {
-          const authUrl = REPO_URL.replace('https://', `https://${GITHUB_TOKEN}@`);
-          execSync(`git push ${authUrl} main`);
-        } else {
-          execSync('git push origin main');
-        }
+        console.log('   📤 Pushing changes to GitHub main branch...');
+        execSync('git push -u origin main');
         
         console.log('   ✅ Git push successful.');
         await logActivity('🐙', 'publisher', `Automatically pushed ${publishedCount} changes to GitHub`, 'info');
