@@ -122,8 +122,9 @@ export function OutreachDepartment({
                     <span className="text-sm font-bold text-ai-tertiary font-display">{leadCount} TARGETS</span>
                   </div>
                   <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400" onClick={() => setLeadCount(Math.max(1, leadCount - 1))}> - </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400" onClick={() => setLeadCount(Math.min(10, leadCount + 1))}> + </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400" onClick={() => setLeadCount(Math.max(1, leadCount - (leadCount > 50 ? 10 : 1)))}> - </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400" onClick={() => setLeadCount(Math.min(500, leadCount + (leadCount >= 50 ? 10 : 1)))}> + </Button>
+
                   </div>
                 </div>
              </div>

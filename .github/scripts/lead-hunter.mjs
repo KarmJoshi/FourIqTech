@@ -395,7 +395,8 @@ async function main() {
   let maxLeads = 10;
   let query = "";
   if (args.length > 1 && !isNaN(args[args.length - 1])) {
-    maxLeads = Math.min(10, parseInt(args.pop()));
+    maxLeads = Math.min(100, parseInt(args.pop()));
+
     query = args.join(" ");
   } else {
     query = args.join(" ");
