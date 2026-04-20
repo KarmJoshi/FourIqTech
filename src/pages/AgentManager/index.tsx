@@ -300,8 +300,65 @@ export default function AgentManager() {
     try {
       let finalNiche = chosen;
       if (!finalNiche) {
-        // AI Logic for Picking Niche (Simplified for brevity)
-        finalNiche = "Roofers in Miami"; 
+        // 🤖 Real AI Niche Picker — Gemini picks the best high-ticket niche
+        setAiNiche("AI scanning for best niche...");
+        const HIGH_VALUE_NICHES = [
+          "dental clinics", "law firms", "real estate agencies", "med spas",
+          "private gyms", "auto repair shops", "wedding photographers",
+          "accounting firms", "chiropractors", "interior designers",
+          "plumbing companies", "HVAC companies", "landscaping companies",
+          "cosmetic surgeons", "physical therapists"
+        ];
+        const existingLeadNiches = leads.map((l: any) => l.niche).filter(Boolean);
+        
+        const apiKey = API_KEYS[apiKeyIndex];
+        if (apiKey) {
+          const prompt = `You are a lead generation strategist picking the best niche to target for cold email outreach.
+
+HIGH-VALUE NICHES TO CHOOSE FROM:
+${HIGH_VALUE_NICHES.join(", ")}
+
+NICHES ALREADY HUNTED (avoid these):
+${existingLeadNiches.slice(-5).join(", ") || "None yet"}
+
+Pick the SINGLE BEST niche right now based on:
+1. High monthly revenue (so they can afford a website fix)
+2. High probability of having an email address on their website
+3. Good digital marketing gaps (outdated websites, slow loading)
+4. Respond with ONLY the niche name + "in [major US city]". Example: "dental clinics in Houston"
+No extra words. Just the niche string.`;
+
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { maxOutputTokens: 50, temperature: 0.8 }
+              })
+            }
+          );
+          const data = await res.json();
+          const aiPick = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          if (aiPick && aiPick.length > 3 && aiPick.length < 80) {
+            finalNiche = aiPick;
+          }
+        }
+
+        // Safe fallback if Gemini fails
+        if (!finalNiche) {
+          const unused = HIGH_VALUE_NICHES.filter(n => 
+            !existingLeadNiches.some((e: string) => e?.toLowerCase().includes(n.toLowerCase()))
+          );
+          const cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Dallas", "Miami"];
+          const randomNiche = unused[Math.floor(Math.random() * unused.length)] || HIGH_VALUE_NICHES[0];
+          const randomCity = cities[Math.floor(Math.random() * cities.length)];
+          finalNiche = `${randomNiche} in ${randomCity}`;
+        }
+
+        setAiNiche(`${finalNiche} (Hunting...)`);
+        setApiKeyIndex((prev) => (prev + 1) % API_KEYS.length);
       }
       
       const res = await fetch(`${API_BASE_URL}/api/run-task`, {
@@ -310,8 +367,8 @@ export default function AgentManager() {
         body: JSON.stringify({ task: "lead_hunter", args: [finalNiche, String(leadCount)] })
       });
       if ((await res.json()).success) {
-        setAiNiche(`${finalNiche} (Campaign Finished)`);
-        alert("Hunt protocol completed. Sync leads to review.");
+        setAiNiche(`${finalNiche} ✅ Campaign Finished`);
+        alert(`Hunt complete: "${finalNiche}". Click Sync Leads to review.`);
       }
     } catch (e) {
       setAiNiche("Signal interference error.");
