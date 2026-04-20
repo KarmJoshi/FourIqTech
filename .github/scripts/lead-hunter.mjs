@@ -47,34 +47,69 @@ function getNextApiKey() {
   return key;
 }
 
-async function callGemini(prompt, systemInstruction) {
+async function callGemini(prompt, systemInstruction, useGrounding = true) {
   const apiKey = getNextApiKey();
   if (!apiKey) return null;
   const payload = {
     system_instruction: { parts: [{ text: systemInstruction }] },
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-    tools: [{ googleSearch: {} }],
-    generationConfig: { maxOutputTokens: 4096, temperature: 0.7 }
+    generationConfig: { maxOutputTokens: 4096, temperature: 0.1 } // Lower temp for more structured data
   };
-  const models = ["gemini-2.5-flash", "gemini-2.0-flash"];
+  
+  if (useGrounding) {
+    payload.tools = [{ google_search_retrieval: {} }];
+  }
+
+  const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"];
   for (const model of models) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      if (res.ok) { const d = await res.json(); const t = d?.candidates?.[0]?.content?.parts?.[0]?.text; if (t) return t; }
+      if (res.ok) { 
+        const d = await res.json(); 
+        const t = d?.candidates?.[0]?.content?.parts?.[0]?.text; 
+        if (t) return t; 
+      }
     } catch { continue; }
-  }
-  // Try backup key
-  const bk = getNextApiKey();
-  if (bk && bk !== apiKey) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${bk}`;
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      if (res.ok) { const d = await res.json(); return d?.candidates?.[0]?.content?.parts?.[0]?.text; }
-    } catch { /* fall through */ }
   }
   return null;
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🔍 GEMINI GROUNDING LEAD DISCOVERY
+// ═══════════════════════════════════════════════════════════════════════
+async function discoverLeadsWithGemini(niche, count) {
+  console.log(`🤖 [Gemini Grounding] Searching for ${count} leads in niche: ${niche}...`);
+  const prompt = `Find exactly ${count} businesses for the niche: "${niche}". 
+For each business, I MUST have:
+1. "name": Business Title
+2. "website": Official Website URL
+3. "phone": Phone Number
+4. "address": Physical Address
+5. "rating": Google Star Rating (e.g. "4.5")
+6. "reviewCount": Number of reviews (e.g. "120")
+7. "email": An official email address if you can find one via search.
+
+Return the data ONLY as a valid JSON array of objects. Do not include any markdown or commentary.`;
+
+
+  const systemPrompt = "You are a lead generation expert. Use Google Search and Maps data to find high-quality local businesses. Ensure websites are valid and active.";
+  
+  const response = await callGemini(prompt, systemPrompt, true);
+  if (!response) return [];
+
+  try {
+    // Clean potential markdown code blocks
+    const cleanJson = response.replace(/```json|```/g, "").trim();
+    const leads = JSON.parse(cleanJson);
+    return Array.isArray(leads) ? leads : [];
+  } catch (e) {
+    console.error("   ❌ Failed to parse Gemini lead list:", e.message);
+    return [];
+  }
+}
+
+
 
 // ═══════════════════════════════════════════════════════════════════════
 // 📧 EMAIL & ABOUT DISCOVERY
@@ -392,53 +427,21 @@ async function main() {
   await page.setViewport({ width: 1280, height: 800 });
   await auditPage.setViewport({ width: 1280, height: 800 });
 
-  // ═══════ PHASE 1: HARVEST MAP URLS + EXTRACT DATA ═══════
-  console.log("🗺️  PHASE 1: Harvesting Google Maps listings...");
-  await page.goto(`https://www.google.com/maps/search/${encodeURIComponent(query)}`, { waitUntil: 'networkidle2', timeout: 60000 });
+  // ═══════ PHASE 1: DISCOVER LEADS (GEMINI GROUNDING) ═══════
+  console.log(`🤖 PHASE 1: Discovering leads via Gemini 1.5 Grounding...`);
+  const placeCandidates = await discoverLeadsWithGemini(query, maxLeads + 5);
   
-  const feed = await page.$('div[role="feed"]');
-  if (feed) {
-    for (let s = 0; s < 8; s++) {
-      await page.evaluate(el => el.scrollBy(0, 1200), feed);
-      await new Promise(r => setTimeout(r, 1000));
-    }
+  if (placeCandidates.length === 0) {
+    console.log("   ⚠️ Gemini grounding returned no leads. Falling back to legacy Maps scraping...");
+    // [Legacy Fallback Logic would go here if needed, but per user request we skip browser maps]
+    console.log("   ❌ Error: Grounding failed and browser-based maps is disabled by policy.");
+    await browser.close();
+    process.exit(1);
   }
 
-  // Extract all candidates with their URLs
-  const placeCandidates = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll('a[href*="/maps/place/"]')).map(a => ({
-      name: a.getAttribute('aria-label'),
-      url: a.href
-    })).filter(p => p.name && p.url);
-  });
+  console.log(`   ✅ Gemini found ${placeCandidates.length} high-quality businesses.`);
+  const allBusinessData = placeCandidates;
 
-  console.log(`   Found ${placeCandidates.length} businesses on Maps.\n`);
-
-  // First pass: extract basic data from ALL candidates (for competitor comparison)
-  console.log("📊 PHASE 1.5: Extracting data from all candidates for comparison...");
-  const allBusinessData = [];
-  for (const candidate of placeCandidates.slice(0, 20)) { // Cap at 20 for speed
-    try {
-      await auditPage.goto(candidate.url, { waitUntil: 'networkidle2', timeout: 15000 });
-      const data = await auditPage.evaluate(() => {
-        const getT = s => document.querySelector(s)?.textContent?.trim() || null;
-        let website = null;
-        document.querySelectorAll('a[href^="http"]').forEach(a => {
-          const url = a.href.toLowerCase();
-          if (!url.includes('google.') && !url.includes('gstatic.') && !url.includes('facebook.com') && !url.includes('twitter.com') && !url.includes('instagram.com') && !url.includes('yelp.com')) {
-            website = a.href;
-          }
-        });
-        const mapEmail = document.body.innerText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0] || null;
-        const rating = getT('div[role="img"][aria-label*="star"]');
-        return { phone: getT('button[data-item-id^="phone"]'), address: getT('button[data-item-id="address"]'), rating, website, mapEmail };
-      });
-      allBusinessData.push({ ...candidate, ...data });
-    } catch {
-      allBusinessData.push({ ...candidate, website: null, mapEmail: null, phone: null, address: null, rating: null });
-    }
-  }
-  console.log(`   Extracted data from ${allBusinessData.length} businesses.\n`);
 
   // ═══════ PHASE 2: DEEP AUDIT + COMPETITOR GAP + EMAIL ═══════
   console.log(`🔬 PHASE 2: Deep Audit + Competitor Gap Analysis + Email Drafting...`);
@@ -456,7 +459,8 @@ async function main() {
     console.log(`${"─".repeat(55)}`);
 
     // Find emails and Owner details
-    let emails = { personalEmail: biz.mapEmail, companyEmail: null };
+    let emails = { personalEmail: biz.email || null, companyEmail: null };
+
     let siteTextForAi = "";
     if (biz.website) {
       console.log(`   🌐 Scanning website for contact info & owner details: ${biz.website}`);
