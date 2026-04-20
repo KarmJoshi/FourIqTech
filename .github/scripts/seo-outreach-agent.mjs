@@ -169,7 +169,7 @@ async function main() {
   // 🛡 SPAM PROTECTION: Daily Limit Check
   const today = new Date().toISOString().split('T')[0];
   const sentToday = log.filter(l => l.date.startsWith(today) && l.status === 'sent').length;
-  const DAILY_LIMIT = 40; 
+  const DAILY_LIMIT = 50; 
 
   if (sentToday >= DAILY_LIMIT) {
     console.log(`   🛑 DAILY LIMIT REACHED (${sentToday}/${DAILY_LIMIT}). Stopping to protect @fouriqtech.com health.`);
