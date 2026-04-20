@@ -228,15 +228,37 @@ async function publishApprovedItems() {
   if (publishedCount > 0 && isAutoCommit) {
     try {
       console.log(`\n👔 CI/AUTO-COMMIT: Stage, Commit & Push...`);
-      // Ensure we don't commit build artifacts or logs unnecessarily, but we need current changes
+      
+      const REPO_URL = 'https://github.com/KarmJoshi/FourIqTech.git';
+      const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+      
+      // Self-heal: Check if origin exists
+      try {
+        execSync('git remote get-url origin', { stdio: 'ignore' });
+      } catch (e) {
+        console.log('   🔄 Origin missing. Re-linking to GitHub...');
+        execSync(`git remote add origin ${REPO_URL}`);
+      }
+
+      // Configure identity
       execSync('git config --global user.name "FourIqTech AI Publisher"');
       execSync('git config --global user.email "ai-publisher@fouriqtech.com"');
+      
+      // Stage changes
       execSync('git add .');
-      // Only commit if there are changes
+      
       const status = execSync('git status --porcelain').toString();
       if (status) {
         execSync(`git commit -m "[AI-PUBLISH] Automatic deployment of ${publishedCount} items [skip ci]"`);
-        execSync('git push origin main');
+        
+        // Use token if available for authenticated push
+        if (GITHUB_TOKEN) {
+          const authUrl = REPO_URL.replace('https://', `https://${GITHUB_TOKEN}@`);
+          execSync(`git push ${authUrl} main`);
+        } else {
+          execSync('git push origin main');
+        }
+        
         console.log('   ✅ Git push successful.');
         await logActivity('🐙', 'publisher', `Automatically pushed ${publishedCount} changes to GitHub`, 'info');
       } else {
