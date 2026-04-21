@@ -146,3 +146,32 @@ model SearchPerformance {
   fullReport      Json?
   generatedAt     DateTime @default(now())
 }
+
+model SocialPost {
+  id              String   @id @default(uuid())
+  type            String   // "post" | "reel" | "carousel" | "infographic"
+  topicPillar     String   // "SEO" | "Web Dev" | "AI" | "Marketing"
+  status          String   @default("draft") // "draft" | "staged" | "approved" | "published" | "rejected"
+  
+  // AI Generated Brainstorming
+  caption         String?
+  hashtags        String?
+  visualPrompt    String?  // The instruction sent to Imagen
+  reelScript      Json?    // Array of scenes with text overlays and timings
+  quizData        Json?    // Infographic template data (Question, Options, Answer)
+  
+  // Final Assets
+  imageUrl        String?
+  videoUrl        String?
+  
+  // Real-world stats
+  externalPostId  String?  // IG Post ID for tracking
+  engagementStats Json?
+  
+  // Budget smart
+  estimatedCost   Float?   @default(0.0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  publishedAt     DateTime?
+}

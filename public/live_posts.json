@@ -169,6 +169,23 @@
       "isLive": true,
       "createdAt": "2026-04-16T10:32:35.743Z",
       "updatedAt": "2026-04-16T10:32:38.055Z"
+    },
+    {
+      "id": "3b73dd07-8785-4058-aba8-5583a2898dab",
+      "slug": "test-publish",
+      "title": "Test Publish Post",
+      "excerpt": "Testing GitHub Push",
+      "date": "2026-04-21",
+      "readTime": "1 min read",
+      "category": "Engineering",
+      "author": "FouriqTech Engineering",
+      "content": "This is a test post to trigger the publisher and test GitHub push access.",
+      "metaTitle": null,
+      "metaDesc": null,
+      "schemaJson": null,
+      "isLive": true,
+      "createdAt": "2026-04-21T13:41:53.012Z",
+      "updatedAt": "2026-04-21T13:41:53.012Z"
     }
   ]
 }

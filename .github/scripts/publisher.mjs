@@ -232,47 +232,56 @@ async function publishApprovedItems() {
       const REPO_URL = 'https://github.com/KarmJoshi/FourIqTech.git';
       const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
       
-      // 🛡️ PRO-ACTIVE GIT HEALING
-      // Ensure we are in a git repo
-      if (!fs.existsSync(path.join(process.cwd(), '.git'))) {
-        console.log('   ⚠️ No .git folder found. Initializing repository...');
-        execSync('git init');
+      if (!GITHUB_TOKEN) {
+        console.warn('   ⚠️ No GITHUB_TOKEN found in environment. Pushing via local credentials...');
+      } else {
+        console.log(`   🔑 Token detected (Length: ${GITHUB_TOKEN.length}). Forcing authenticated push...`);
       }
 
-      // Force-refresh origin to ensure it is always valid and authenticated
+      // 🛡️ PRO-ACTIVE GIT HEALING
+      // Detect correct branch
+      let branch = 'main';
       try {
-        execSync('git remote remove origin', { stdio: 'ignore' });
-      } catch (e) { /* ignore if not exists */ }
-      
+        branch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+      } catch (e) {
+        console.log('   ⚠️ Could not detect branch, defaulting to main.');
+      }
+
       const authenticatedUrl = GITHUB_TOKEN 
         ? REPO_URL.replace('https://', `https://${GITHUB_TOKEN}@`)
         : REPO_URL;
 
-      console.log('   🔄 Synchronizing remote origin...');
+      console.log(`   🔄 Syncing to branch: ${branch}...`);
+      
+      try {
+        execSync('git remote remove origin', { stdio: 'ignore' });
+      } catch (e) {}
+      
+      // Inject authenticated URL
       execSync(`git remote add origin ${authenticatedUrl}`);
 
-      // Configure identity
       execSync('git config user.name "FourIqTech AI Publisher"');
       execSync('git config user.email "ai-publisher@fouriqtech.com"');
       
-      // Stage changes
       execSync('git add .');
-      
       const status = execSync('git status --porcelain').toString();
+      
       if (status) {
-        execSync(`git commit -m "[AI-PUBLISH] Automatic deployment of ${publishedCount} items [skip ci]"`);
+        execSync(`git commit -m "[AI-PUBLISH] Deployed ${publishedCount} improvements [skip ci]"`);
+        console.log(`   📤 Pushing changes to ${branch}...`);
         
-        console.log('   📤 Pushing changes to GitHub main branch...');
-        execSync('git push -u origin main');
+        // STRICT PUSH
+        execSync(`git push -u origin ${branch}`);
         
         console.log('   ✅ Git push successful.');
-        await logActivity('🐙', 'publisher', `Automatically pushed ${publishedCount} changes to GitHub`, 'info');
+        await logActivity('🐙', 'publisher', `Successfully pushed ${publishedCount} changes to ${branch}`, 'info');
       } else {
-        console.log('   ℹ️ No file changes detected. Skipping commit.');
+        console.log('   ℹ️ No changes to commit.');
       }
     } catch (gitErr) {
-      console.error('   ❌ Git operation failed:', gitErr.message);
-      await logActivity('⚠️', 'publisher', `Auto-commit failed: ${gitErr.message}`, 'error');
+      const errorMsg = gitErr.stderr?.toString() || gitErr.message;
+      console.error('   ❌ Git operation failed:', errorMsg);
+      await logActivity('⚠️', 'publisher', `Auto-commit failed: ${errorMsg.substring(0, 100)}`, 'error');
     }
   } else if (publishedCount > 0) {
     console.log(`\n💡 LOCAL: Published ${publishedCount} items. (Auto-commit disabled in settings)`);

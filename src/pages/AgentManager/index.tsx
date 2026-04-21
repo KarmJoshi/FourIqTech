@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
   Crown, PenTool, Wrench, MessageCircle,
   Activity, Layers, Zap, Clock, Globe,
-  CheckCircle2, FileText, Layout, Mail, Shield, Link2, TrendingUp, Code2, BarChart3, Sparkles, ShieldAlert
+  CheckCircle2, FileText, Layout, Mail, Shield, Link2, TrendingUp, Code2, BarChart3, Sparkles, ShieldAlert,
+  Instagram
 } from "lucide-react";
+
+
 
 // Modular Components
 import { StatsBar } from "./components/StatsBar";
@@ -21,6 +24,8 @@ import { OutreachDepartment } from "./components/OutreachDepartment";
 import { ContentHubDepartment } from "./components/ContentHubDepartment";
 import { TechSeoDepartment } from "./components/TechSeoDepartment";
 import { LandingPagesDepartment } from "./components/LandingPagesDepartment";
+import { InstagramDepartment } from "./components/InstagramDepartment";
+
 
 // Constants & Types
 const STORAGE_KEYS = {
@@ -42,7 +47,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
     ? "https://fouriqtech.onrender.com"
     : "http://localhost:3848");
 
-type DeptId = "director" | "content" | "techseo" | "landing" | "outreach";
+type DeptId = "director" | "content" | "techseo" | "landing" | "outreach" | "instagram";
+
 
 export default function AgentManager() {
   // Navigation State
@@ -329,7 +335,8 @@ Pick the SINGLE BEST niche right now based on:
 No extra words. Just the niche string.`;
 
           const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
+
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -370,9 +377,11 @@ No extra words. Just the niche string.`;
         setAiNiche(`${finalNiche} ✅ Campaign Finished`);
         alert(`Hunt complete: "${finalNiche}". Click Sync Leads to review.`);
       }
-    } catch (e) {
-      setAiNiche("Signal interference error.");
+    } catch (e: any) {
+      console.error("Hunt error:", e);
+      setAiNiche(`Error: ${e.message || "Signal interference"}`);
     } finally {
+
       setIsGeneratingNiche(false);
     }
   };
@@ -480,8 +489,10 @@ No extra words. Just the niche string.`;
     { id: "content", label: "Content Hub", icon: PenTool, color: "text-ai-purple", desc: "Blog & Articles" },
     { id: "techseo", label: "Tech SEO", icon: Wrench, color: "text-ai-tertiary", desc: "Site Integrity" },
     { id: "landing", label: "Landing Pages", icon: Globe, color: "text-ai-blue", desc: "Service Pages" },
+    { id: "instagram", label: "Social Hub", icon: Instagram, color: "text-pink-500", desc: "Insta Brand" },
     { id: "outreach", label: "Outreach Agent", icon: Mail, color: "text-amber-400", desc: "Market Acquisition" },
   ];
+
 
   const outreachStats = useMemo(() => {
     return {
@@ -811,6 +822,12 @@ No extra words. Just the niche string.`;
               stagingQueue={stagingQueue}
             />
           )}
+
+          {/* ── INSTAGRAM HUB ── */}
+          {activeDept === "instagram" && (
+            <InstagramDepartment />
+          )}
+
 
           {/* ── OUTREACH ── */}
           {activeDept === "outreach" && (

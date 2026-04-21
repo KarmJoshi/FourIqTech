@@ -1049,6 +1049,42 @@ app.post(['/api/config', '/api/settings'], async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// 📸 SOCIAL MEDIA API — Instagram Hub
+// ═══════════════════════════════════════════════════════════════════════
+
+app.get('/api/social/posts', async (req, res) => {
+  try {
+    const posts = await prisma.socialPost.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
+    res.json({ posts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/social/posts/draft', (req, res) => {
+  const script = '.github/scripts/instagram-agent.mjs';
+  console.log(`[Unified API] DISPATCH: Instagram Social Brain triggered`);
+  logActivity('🧠', 'social', 'Instagram Content Brain dispatched', 'info');
+
+  const child = spawn('node', [script], { stdio: 'inherit' });
+  res.json({ success: true, message: "Social Brain dispatched. Check activity feed." });
+});
+
+app.post('/api/social/posts/:id/generate', async (req, res) => {
+  const { id } = req.params;
+  console.log(`[Unified API] 🎨 VISUALIZER: Generating graphic for post ${id}`);
+  logActivity('🎨', 'social', `Visual generation started for post ${id}`, 'info');
+
+  const script = '.github/scripts/social-visualizer.mjs';
+  const child = spawn('node', [script, id], { stdio: 'inherit' });
+  
+  res.json({ success: true, message: "Visual generation dispatched. View progress in logs." });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════════════════════════
 app.listen(PORT, () => {

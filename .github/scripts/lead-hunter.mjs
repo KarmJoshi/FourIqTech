@@ -57,21 +57,36 @@ async function callGemini(prompt, systemInstruction, useGrounding = true) {
   };
   
   if (useGrounding) {
-    payload.tools = [{ google_search_retrieval: {} }];
+    payload.tools = [{ google_search: {} }];
+
   }
 
-  const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"];
+  const models = ["gemini-3.1-flash-lite-preview", "gemini-1.5-flash-latest"]; 
   for (const model of models) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const res = await fetch(url, { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify(payload) 
+      });
+      
+      const d = await res.json();
       if (res.ok) { 
-        const d = await res.json(); 
         const t = d?.candidates?.[0]?.content?.parts?.[0]?.text; 
         if (t) return t; 
+      } else {
+        console.error(`   ❌ Gemini error (${model}): ${d.error?.message || "Unknown error"}`);
+        if (d.error?.message?.includes("not found")) continue; // Try next alias
+        return null;
       }
-    } catch { continue; }
+    } catch (e) { 
+      console.error(`   ❌ Connection to ${model} failed: ${e.message}`);
+      continue; 
+    }
   }
+
+
   return null;
 }
 
@@ -129,8 +144,13 @@ async function findEmailsAndAboutText(page, url) {
         const matches = content.match(emailRegex);
         if (matches) {
           matches.forEach(e => {
-            const email = e.toLowerCase();
-            if (/\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|woff|ttf|pdf)$/i.test(email)) return;
+            const email = e.toLowerCase().trim();
+            // Strict validation — reject image/asset filenames masquerading as emails
+            if (email.length < 6 || email.length > 100) return;
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return;
+            if (/\.(png|jpg|jpeg|gif|svg|webp|avif|ico|css|js|woff|ttf|pdf|mp4|zip|min)/.test(email)) return;
+            if (/\d+x/.test(email.split('@')[0])) return; // rejects things like 1.2x
+            if (/^[0-9]/.test(email.split('@')[0])) return; // rejects emails starting with numbers
             if (companyPrefixes.some(p => email.split('@')[0].startsWith(p))) {
               if (!emails.companyEmail) emails.companyEmail = email;
             } else if (!emails.personalEmail) emails.personalEmail = email;
@@ -217,26 +237,28 @@ async function deepSeoAudit(page, url) {
     // Score calculation (each out of 100)
     // STRUCTURE (title, meta, h1, h2, canonical, schema, og)
     let structure = 100;
-    if (!result.title || result.title.length < 10) { structure -= 20; audit.issues.push("Page title is missing or too short"); }
-    if (result.title && result.title.length > 60) { structure -= 5; audit.issues.push("Page title is over 60 characters"); }
-    if (!result.metaDesc) { structure -= 20; audit.issues.push("No meta description — Google will auto-generate one"); }
-    if (result.metaDesc && result.metaDesc.length < 50) { structure -= 5; audit.issues.push("Meta description too short"); }
-    if (result.h1s === 0) { structure -= 20; audit.issues.push("Missing H1 heading — hurts keyword relevance"); }
-    if (result.h1s > 1) { structure -= 10; audit.issues.push("Multiple H1 tags — confuses Google's understanding"); }
-    if (result.h2s === 0) { structure -= 5; audit.issues.push("No H2 headings — reduces content hierarchy"); }
-    if (!result.canonical) { structure -= 10; audit.issues.push("No canonical URL — risks duplicate content"); }
-    if (result.schemaScripts === 0) { structure -= 10; audit.issues.push("No schema markup — missing rich snippets in search results"); }
-    if (!result.ogTitle) { structure -= 5; audit.issues.push("No Open Graph tags — social shares look plain"); }
+    if (!result.title || result.title.length < 10) { structure -= 20; audit.issues.push("Your homepage title is missing or way too short for Google to care about"); }
+    if (result.title && result.title.length > 60) { structure -= 5; audit.issues.push("Your site title is too long and gets cut off in Google search results"); }
+    if (!result.metaDesc) { structure -= 20; audit.issues.push("There's no description for your site — Google is just guessing what to show people"); }
+    if (result.metaDesc && result.metaDesc.length < 50) { structure -= 5; audit.issues.push("Your site description is too short to explain why customers should pick you"); }
+    if (result.h1s === 0) { structure -= 20; audit.issues.push("Your homepage is missing a main heading — Google is confused about what you actually do"); }
+    if (result.h1s > 1) { structure -= 10; audit.issues.push("Too many main headlines — it's confusing Google's ranking system"); }
+    if (result.h2s === 0) { structure -= 5; audit.issues.push("Your content isn't organized with sub-headings, making it hard to read"); }
+    if (!result.canonical) { structure -= 10; audit.issues.push("Google sees multiple versions of your site, which can hurt your ranking"); }
+    if (result.schemaScripts === 0) { structure -= 10; audit.issues.push("You're missing 'rich info' (like star ratings) that makes your business stand out on Google"); }
+    if (!result.ogTitle) { structure -= 5; audit.issues.push("Your site looks plain and unprofessional when shared on social media or text"); }
+
     audit.scores.structure = Math.max(0, structure);
 
     // SPEED (load time, images, scripts, stylesheets)
     let speed = 100;
-    if (audit.loadTimeMs > 5000) { speed -= 30; audit.issues.push(`Page loads in ${(audit.loadTimeMs / 1000).toFixed(1)}s — should be under 3s`); }
-    else if (audit.loadTimeMs > 3000) { speed -= 15; audit.issues.push(`Page loads in ${(audit.loadTimeMs / 1000).toFixed(1)}s — a bit slow`); }
-    if (result.unoptimizedImages > 3) { speed -= 15; audit.issues.push(`${result.unoptimizedImages} images are not lazy-loaded`); }
-    if (result.totalScripts > 10) { speed -= 15; audit.issues.push(`${result.totalScripts} JavaScript files — too many, slows loading`); }
-    if (result.totalStylesheets > 5) { speed -= 10; audit.issues.push(`${result.totalStylesheets} CSS files — consider combining`); }
-    if (result.inlineStyles > 20) { speed -= 10; audit.issues.push(`${result.inlineStyles} inline styles — needs cleanup`); }
+    if (audit.loadTimeMs > 5000) { speed -= 30; audit.issues.push(`Your site takes ${(audit.loadTimeMs / 1000).toFixed(1)}s to open — most customers close the tab if it's over 3s`); }
+    else if (audit.loadTimeMs > 3000) { speed -= 15; audit.issues.push(`Your site takes ${(audit.loadTimeMs / 1000).toFixed(1)}s to load — it's a bit slow for modern phones`); }
+    if (result.unoptimizedImages > 3) { speed -= 15; audit.issues.push(`${result.unoptimizedImages} large images are loading all at once and slowing down your visitors`); }
+    if (result.totalScripts > 10) { speed -= 15; audit.issues.push("Too much 'heavy code' running in the background, making it feel sluggish"); }
+    if (result.totalStylesheets > 5) { speed -= 10; audit.issues.push("Your site layout files are unorganized, which delays the initial load"); }
+    if (result.inlineStyles > 20) { speed -= 10; audit.issues.push("The way your site is styled is inefficient and adds unnecessary bulk"); }
+
     audit.scores.speed = Math.max(0, speed);
 
     // MOBILE
@@ -256,10 +278,11 @@ async function deepSeoAudit(page, url) {
 
     // CONTENT
     let content = 100;
-    if (result.wordCount < 200) { content -= 30; audit.issues.push(`Only ${result.wordCount} words on homepage — Google prefers 500+`); }
-    else if (result.wordCount < 500) { content -= 10; audit.issues.push(`${result.wordCount} words — could use more content for ranking`); }
-    if (result.imgNoAlt > 2) { content -= 15; audit.issues.push(`${result.imgNoAlt} images missing alt text — hurts image search`); }
-    if (result.internalLinks < 3) { content -= 15; audit.issues.push("Very few internal links — weakens site architecture"); }
+    if (result.wordCount < 200) { content -= 30; audit.issues.push(`You only have ${result.wordCount} words on your homepage — Google prefers sites with more helpful content`); }
+    else if (result.wordCount < 500) { content -= 10; audit.issues.push(`A bit light on content (${result.wordCount} words) — adding more would help you show up for more searches`); }
+    if (result.imgNoAlt > 2) { content -= 15; audit.issues.push(`${result.imgNoAlt} of your images are 'blind' to Google — it can't tell what those pictures are`); }
+    if (result.internalLinks < 3) { content -= 15; audit.issues.push("There aren't enough internal links to help people (and Google) navigate your services"); }
+
     audit.scores.content = Math.max(0, content);
 
     // Overall score
@@ -342,48 +365,47 @@ function generateGapAnalysis(leadAudit, competitorAudit, competitorName) {
 // ═══════════════════════════════════════════════════════════════════════
 // ✉️ KILLER EMAIL PROMPT — Uses real data + competitor gaps
 // ═══════════════════════════════════════════════════════════════════════
-const EMAIL_SYSTEM_PROMPT = `You are Karm Joshi, founder of FourIqTech. You are writing a SHORT, PERSONAL cold email to a local business owner.
+const EMAIL_SYSTEM_PROMPT = `You are an advanced website audit and outreach intelligence agent.
 
-THE GOLDEN RULE: The business owner should read your email and think "this person gets me — they just described exactly what I've been frustrated about."
-Do NOT write a pitch. Write a MIRROR. Reflect their problem back at them in a way that feels personal.
+Your task is to analyze a target business website and one direct competitor, identify REAL performance and SEO gaps, and generate a highly credible, non-generic outreach message.
 
-YOUR WRITING RULES (CRITICAL — break these = bad email):
-1. Open with THEIR frustration, not your observation. Instead of "I noticed your site is slow," say "Your site is probably losing you customers every single day — and the worst part is, it's completely invisible to you."
-2. NEVER use "I" in the first sentence. Start with "You", "Your", or a direct observation about their business pain.
-3. ZERO technical jargon. No: LCP, TTFB, Next.js, CSR, rendering, metadata, schema, canonical. Translate everything:
-   - "Your TTFB is 3s" → "Your site takes 3 full seconds just to START loading on a phone"
-   - "No meta description" → "Google is writing your own website description for you — and it's probably wrong"
-   - "Missing H1" → "Google can't figure out what your business actually does from your homepage"
-4. Use the PAS framework but write it from THEIR point of view:
-   - PAIN: What is frustrating them RIGHT NOW (even if they can't name it)
-   - AGITATE: The cost. Frame as "every day this is happening, you're losing customers to [Competitor Name]"
-   - SOLUTION: ONE sentence. Keep it humble. "I can fix this specific thing for you."
-5. Mention their COMPETITOR BY NAME if available. Say something like "Meanwhile, [Competitor] shows up first on Google for the same search."
-6. Subject line: make it feel like you discovered something specific about THEM. Under 7 words. No exclamation marks.
-7. Email body: under 110 words. Every word must earn its place.
-8. End: One question. "Would 10 minutes this week work?" Nothing else.
-9. Signature: "Karm / FourIqTech" — short and personal, not corporate.
+STRICT RULES:
+- DO NOT fabricate data (no fake numbers like "you are losing 3 leads/day")
+- DO NOT make unverifiable claims about revenue or rankings
+- ONLY use observable or logically inferable insights. Use phrases like "this can lead to", "this typically affects", "this may reduce"
+- Avoid generic marketing language, buzzwords ("skyrocket", "boost"), fake urgency, or fluff
+- Output must feel like a human expert, not mass outreach spam
+- Tone: Direct, Observational, Non-salesy, Confident but not exaggerated.
+- NO "hope you are doing well"
 
-EXAMPLE of PERFECT email body:
-"Your website is probably costing you 3-4 enquiries every week — and you'd never know it.
+YOUR ANALYSIS MUST COVER:
+1. Performance (load behavior, JS/CSS limits, mobile drops)
+2. SEO / Structure (Title/meta, Headings, internal links)
+3. UX Signals (visual stability, layout shifts)
 
-When someone searches for [their niche] on their phone, your site takes 9 seconds to load. Most people leave after 3. Meanwhile, [Competitor Name] loads in under 2 seconds and shows up first.
+COMPETITOR DIFFERENCE:
+Identify 2-3 REAL differences where the competitor implemented something better. Explain it in simple terms that impact user experience or search visibility.
 
-I can fix this. One change, measurable result.
+BUSINESS IMPACT (CRITICAL):
+Translate technical issues into REALISTIC business implications. Focus on user drop-off, slower perceived speed, reduced engagement, and lower conversion likelihood. DO NOT claim exact revenue or exact lead losses.
 
-Would 10 minutes this week work?
-
-Karm / FourIqTech"
+EMAIL GENERATION:
+1. Personalized observation (not generic intro)
+2. Specific issue found
+3. Competitor comparison (real, not forced)
+4. Business impact (realistic, not inflated)
+5. Soft CTA: "Would 10 minutes this week work for a quick walkthrough?"
+6. Sign off as 'Karm / FourIqTech'
 
 FORMAT: Respond ONLY with valid JSON exactly matching this structure:
 {
-  "subject": "Short subject line under 7 words",
-  "body": "Email body with \\n for line breaks. Under 110 words.",
-  "problemTitle": "3-5 words, plain English (e.g. Slow Phone Loading)",
-  "problemDetail": "1-2 sentences. Write from the client's perspective — what they feel, not what we found.",
-  "businessImpact": "1-2 sentences. Frame as lost customers or lost money happening RIGHT NOW.",
-  "likelyFix": "1-2 sentences. Simple fix description, no tech terms.",
-  "ownerName": "Extract from site text if possible, else use 'there'"
+  "subject": "Under 8 words, observational and specific",
+  "body": "Email body (max 120-150 words) with \\n for line breaks.",
+  "problemTitle": "3-5 plain-English words describing the main issue",
+  "problemDetail": "1-2 sentences summarizing key findings and competitor advantage",
+  "businessImpact": "1-2 sentences with realistic, inferable business implication (no exact numbers)",
+  "likelyFix": "Outcome-focused fix without buzzwords",
+  "ownerName": "Extract owner first name from site text if visible, else use 'there'"
 }`;
 
 
@@ -469,9 +491,11 @@ async function main() {
       continue;
     }
 
-    console.log(`\n${"─".repeat(55)}`);
-    console.log(`🔎 [Quota: ${collectedData.length}/${maxLeads}] ${biz.name}`);
     console.log(`${"─".repeat(55)}`);
+
+    // ⚡ 3s Throttle to avoid Gemini Rate Limits
+    await new Promise(r => setTimeout(r, 3000));
+
 
     // Find emails and Owner details
     let emails = { personalEmail: biz.email || null, companyEmail: null };
