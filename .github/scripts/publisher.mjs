@@ -270,6 +270,14 @@ async function publishApprovedItems() {
         execSync(`git commit -m "[AI-PUBLISH] Deployed ${publishedCount} improvements [skip ci]"`);
         console.log(`   📤 Pushing changes to ${branch}...`);
         
+        console.log(`   📥 Pulling latest changes from remote to avoid conflicts...`);
+        try {
+           execSync(`git pull --rebase origin ${branch}`);
+        } catch (pullErr) {
+           console.log(`   ⚠️ Rebase failed, attempting standard merge-pull...`);
+           execSync(`git pull origin ${branch}`);
+        }
+
         // STRICT PUSH
         execSync(`git push -u origin ${branch}`);
         
