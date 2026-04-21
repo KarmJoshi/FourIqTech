@@ -242,7 +242,10 @@ async function publishApprovedItems() {
       // Detect correct branch
       let branch = 'main';
       try {
-        branch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+        const detected = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+        if (detected && detected !== 'HEAD') {
+            branch = detected;
+        }
       } catch (e) {
         console.log('   ⚠️ Could not detect branch, defaulting to main.');
       }
