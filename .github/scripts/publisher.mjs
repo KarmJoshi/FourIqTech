@@ -233,74 +233,110 @@ async function publishApprovedItems() {
       const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
       
       if (!GITHUB_TOKEN) {
-        console.warn('   ⚠️ No GITHUB_TOKEN found in environment. Pushing via local credentials...');
+        console.warn('   ⚠️ No GITHUB_TOKEN found in environment. Skipping push.');
       } else {
-        console.log(`   🔑 Token detected (Length: ${GITHUB_TOKEN.length}). Forcing authenticated push...`);
+        console.log(`   🔑 Token detected (Length: ${GITHUB_TOKEN.length}).`);
       }
 
-      // 🛡️ PRO-ACTIVE GIT HEALING
-      // Detect correct branch
-      let branch = 'main';
-      try {
-        const detected = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
-        if (detected && detected !== 'HEAD') {
-            branch = detected;
-        }
-      } catch (e) {
-        console.log('   ⚠️ Could not detect branch, defaulting to main.');
-      }
-
-      const authenticatedUrl = GITHUB_TOKEN 
-        ? REPO_URL.replace('https://', `https://${GITHUB_TOKEN}@`)
-        : REPO_URL;
-
-      console.log(`   🔄 Syncing to branch: ${branch}...`);
-      
-      try {
-        execSync('git remote remove origin', { stdio: 'ignore' });
-      } catch (e) {}
-      
-      // Inject authenticated URL
-      execSync(`git remote add origin ${authenticatedUrl}`);
-
-      execSync('git config user.name "FourIqTech AI Publisher"');
-      execSync('git config user.email "ai-publisher@fouriqtech.com"');
-      
-      execSync('git add .');
-      const status = execSync('git status --porcelain').toString();
-      
-      if (status) {
-        execSync(`git commit -m "[AI-PUBLISH] Deployed ${publishedCount} improvements"`);
-        console.log(`   📤 Pushing changes to ${branch}...`);
+      if (!GITHUB_TOKEN) {
+        console.log(`\n💡 LOCAL: Published ${publishedCount} items locally. No token for push.`);
+      } else {
+        // ═══════════════════════════════════════════════════════
+        // STEP 0: HEAL — Clean up any previous broken git state
+        // ═══════════════════════════════════════════════════════
+        console.log(`   🩹 Step 0: Healing any previous broken git state...`);
+        try { execSync('git rebase --abort', { stdio: 'ignore' }); } catch(e) {}
+        try { execSync('git merge --abort', { stdio: 'ignore' }); } catch(e) {}
+        try { execSync('git cherry-pick --abort', { stdio: 'ignore' }); } catch(e) {}
+        // Reset any unmerged/conflicted index entries back to HEAD
+        try { execSync('git reset HEAD', { stdio: 'ignore' }); } catch(e) {}
+        // Discard any leftover conflict markers in working tree
+        try { execSync('git checkout -- .', { stdio: 'ignore' }); } catch(e) {}
+        console.log(`   ✅ Git state is clean.`);
         
-        console.log(`   📥 Pulling latest changes from remote to avoid conflicts...`);
+        // ═══════════════════════════════════════════════════════
+        // STEP 1: CONFIGURE — Set up remote and identity
+        // ═══════════════════════════════════════════════════════
+        let branch = 'main';
         try {
-           execSync(`git pull --rebase origin ${branch}`);
-        } catch (pullErr) {
-           console.log(`   ⚠️ Rebase failed due to conflicts. Aborting rebase and attempting merge...`);
-           try { execSync(`git rebase --abort`); } catch(e) {}
-           
-           try {
-             execSync(`git pull origin ${branch} --no-edit --strategy-option=ours`);
-           } catch (mergeErr) {
-             console.log(`   ⚠️ Standard merge also failed. Aborting merge to prevent repository lock...`);
-             try { execSync(`git merge --abort`); } catch(e) {}
-             throw new Error('Merge conflict resolution failed. Manual intervention required.');
-           }
+          const detected = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+          if (detected && detected !== 'HEAD') branch = detected;
+        } catch (e) {}
+
+        const authenticatedUrl = REPO_URL.replace('https://', `https://${GITHUB_TOKEN}@`);
+        
+        try { execSync('git remote remove origin', { stdio: 'ignore' }); } catch (e) {}
+        execSync(`git remote add origin ${authenticatedUrl}`);
+        execSync('git config user.name "FourIqTech AI Publisher"');
+        execSync('git config user.email "ai-publisher@fouriqtech.com"');
+        console.log(`   🔄 Remote configured for branch: ${branch}`);
+
+        // ═══════════════════════════════════════════════════════
+        // STEP 2: PULL FIRST — Get remote changes BEFORE staging
+        // ═══════════════════════════════════════════════════════
+        console.log(`   📥 Step 2: Pulling latest from remote BEFORE committing...`);
+        try {
+          // Stash our local changes so pull doesn't conflict
+          execSync('git stash --include-untracked', { stdio: 'ignore' });
+          
+          try {
+            execSync(`git pull origin ${branch} --no-edit`, { stdio: 'pipe' });
+          } catch (pullErr) {
+            // If pull fails, force-reset to remote to guarantee clean state
+            console.log(`   ⚠️ Pull failed. Force-resetting to remote state...`);
+            try { execSync(`git fetch origin ${branch}`, { stdio: 'ignore' }); } catch(e) {}
+            try { execSync(`git reset --hard origin/${branch}`, { stdio: 'ignore' }); } catch(e) {}
+          }
+          
+          // Pop our stashed changes back
+          try { execSync('git stash pop', { stdio: 'ignore' }); } catch(e) {
+            // If stash pop fails (conflict), just drop stash and re-generate files
+            try { execSync('git stash drop', { stdio: 'ignore' }); } catch(e) {}
+            console.log(`   ⚠️ Stash pop had conflicts. Re-syncing JSON files...`);
+            // Re-sync the JSON files since stash pop failed
+            try {
+              const allBlogs = await prisma.blogPost.findMany({ where: { isLive: true } });
+              fs.writeFileSync(path.join(process.cwd(), 'public/live_posts.json'), JSON.stringify({ posts: allBlogs }, null, 2));
+              const allServices = await prisma.servicePage.findMany({ where: { isLive: true } });
+              fs.writeFileSync(path.join(process.cwd(), 'public/live_pages.json'), JSON.stringify({ pages: allServices }, null, 2));
+            } catch(e) {}
+          }
+        } catch (e) {
+          console.log(`   ⚠️ Stash/pull cycle had issues, continuing anyway...`);
         }
 
-        // STRICT PUSH
-        execSync(`git push -u origin ${branch}`);
+        // ═══════════════════════════════════════════════════════
+        // STEP 3: STAGE & COMMIT — Now commit on top of latest
+        // ═══════════════════════════════════════════════════════
+        execSync('git add .');
+        const status = execSync('git status --porcelain').toString();
         
-        console.log('   ✅ Git push successful.');
-        await logActivity('🐙', 'publisher', `Successfully pushed ${publishedCount} changes to ${branch}`, 'info');
-      } else {
-        console.log('   ℹ️ No changes to commit.');
+        if (status) {
+          console.log(`   📝 Step 3: Committing ${status.split('\\n').filter(Boolean).length} changed files...`);
+          execSync(`git commit -m "[AI-PUBLISH] Deployed ${publishedCount} improvements"`);
+          
+          // ═══════════════════════════════════════════════════════
+          // STEP 4: PUSH — Send to GitHub
+          // ═══════════════════════════════════════════════════════
+          console.log(`   📤 Step 4: Pushing to ${branch}...`);
+          execSync(`git push origin ${branch}`, { stdio: 'pipe' });
+          
+          console.log('   ✅ Git push successful.');
+          await logActivity('🐙', 'publisher', `Successfully pushed ${publishedCount} changes to ${branch}`, 'info');
+        } else {
+          console.log('   ℹ️ No file changes to commit (DB-only updates applied).');
+        }
       }
     } catch (gitErr) {
       const errorMsg = gitErr.stderr?.toString() || gitErr.message;
-      console.error('   ❌ Git operation failed:', errorMsg);
+      console.error('   ❌ Git operation failed:', errorMsg.substring(0, 200));
       await logActivity('⚠️', 'publisher', `Auto-commit failed: ${errorMsg.substring(0, 100)}`, 'error');
+      
+      // FINAL SAFETY NET: Always leave repo in a clean state for next run
+      try { execSync('git rebase --abort', { stdio: 'ignore' }); } catch(e) {}
+      try { execSync('git merge --abort', { stdio: 'ignore' }); } catch(e) {}
+      try { execSync('git reset HEAD', { stdio: 'ignore' }); } catch(e) {}
+      try { execSync('git checkout -- .', { stdio: 'ignore' }); } catch(e) {}
     }
   } else if (publishedCount > 0) {
     console.log(`\n💡 LOCAL: Published ${publishedCount} items. (Auto-commit disabled in settings)`);
