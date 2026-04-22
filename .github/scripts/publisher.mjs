@@ -270,7 +270,7 @@ async function publishApprovedItems() {
       const status = execSync('git status --porcelain').toString();
       
       if (status) {
-        execSync(`git commit -m "[AI-PUBLISH] Deployed ${publishedCount} improvements [skip ci]"`);
+        execSync(`git commit -m "[AI-PUBLISH] Deployed ${publishedCount} improvements"`);
         console.log(`   📤 Pushing changes to ${branch}...`);
         
         console.log(`   📥 Pulling latest changes from remote to avoid conflicts...`);

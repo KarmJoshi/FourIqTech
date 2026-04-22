@@ -1,0 +1,1 @@
+{"target_file":"src/pages/services/TriggerLiveDeploy.tsx","route":"/services/trigger-live-deploy","code":"\nimport React from 'react';\n\nconst TriggerLiveDeploy = () => {\n  return (\n    <div className=\"pt-24 pb-12 px-6\">\n      <h1>Deployment Verification Page</h1>\n    </div>\n  );\n};\nexport default TriggerLiveDeploy;\n  "}
