@@ -277,8 +277,16 @@ async function publishApprovedItems() {
         try {
            execSync(`git pull --rebase origin ${branch}`);
         } catch (pullErr) {
-           console.log(`   ⚠️ Rebase failed, attempting standard merge-pull...`);
-           execSync(`git pull origin ${branch}`);
+           console.log(`   ⚠️ Rebase failed due to conflicts. Aborting rebase and attempting merge...`);
+           try { execSync(`git rebase --abort`); } catch(e) {}
+           
+           try {
+             execSync(`git pull origin ${branch} --no-edit --strategy-option=ours`);
+           } catch (mergeErr) {
+             console.log(`   ⚠️ Standard merge also failed. Aborting merge to prevent repository lock...`);
+             try { execSync(`git merge --abort`); } catch(e) {}
+             throw new Error('Merge conflict resolution failed. Manual intervention required.');
+           }
         }
 
         // STRICT PUSH
