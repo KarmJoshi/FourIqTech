@@ -198,17 +198,7 @@ async function publishApprovedItems() {
 
   console.log(`\n🎉 PUBLISHER: Deployed ${publishedCount}/${approvedItems.length} items.`);
 
-  // ── Auto-Commit & Sync ──
-  // To ensure Git has something to track even for DB-only changes (like blogs), we sync to JSON
-  try {
-    const allBlogs = await prisma.blogPost.findMany({ where: { isLive: true } });
-    fs.writeFileSync(path.join(process.cwd(), 'public/live_posts.json'), JSON.stringify({ posts: allBlogs }, null, 2));
-    
-    const allServices = await prisma.servicePage.findMany({ where: { isLive: true } });
-    fs.writeFileSync(path.join(process.cwd(), 'public/live_pages.json'), JSON.stringify({ pages: allServices }, null, 2));
-  } catch (syncErr) {
-    console.error('   ⚠️ Sync to JSON failed:', syncErr.message);
-  }
+
 
   // Load settings to check for auto-commit
   let isAutoCommit = process.env.GITHUB_ACTIONS === 'true';
@@ -306,8 +296,18 @@ async function publishApprovedItems() {
         }
 
         // ═══════════════════════════════════════════════════════
-        // STEP 3: STAGE & COMMIT — Now commit on top of latest
+        // STEP 3: SYNC & STAGE — Write UI files and stage
         // ═══════════════════════════════════════════════════════
+        console.log(`   📝 Step 3: Refreshing UI JSON indices...`);
+        try {
+          const allBlogs = await prisma.blogPost.findMany({ where: { isLive: true } });
+          fs.writeFileSync(path.join(process.cwd(), 'public/live_posts.json'), JSON.stringify({ posts: allBlogs }, null, 2));
+          const allServices = await prisma.servicePage.findMany({ where: { isLive: true } });
+          fs.writeFileSync(path.join(process.cwd(), 'public/live_pages.json'), JSON.stringify({ pages: allServices }, null, 2));
+        } catch (e) {
+          console.error('   ⚠️ UI Sync failed:', e.message);
+        }
+
         execSync('git add .');
         const status = execSync('git status --porcelain').toString();
         
