@@ -5,6 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
 import crypto from 'crypto';
 import { submitToStaging, logActivity, getModelsForRole } from './agency-core.mjs';
+import { spawn } from 'child_process';
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🏢 FOURIQTECH AI SEO ENGINE — V8.0 "Autonomous Agency"
@@ -1416,6 +1417,26 @@ async function engine() {
   }
 
   console.log('\n🧠 ENGINE V8: Signing off. ✅');
+
+  // TRIGGER PUBLISHER IF AUTO-COMMIT IS ON
+  try {
+    const settingsPath = path.join(process.cwd(), '.github/staging/system-settings.json');
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      if (settings.isAutoCommit === true) {
+        console.log('🚀 AUTO-COMMIT: Triggering Publisher script...');
+        const pub = spawn('node', ['--env-file=.env', '.github/scripts/publisher.mjs'], {
+          cwd: process.cwd(),
+          stdio: 'inherit'
+        });
+        pub.on('close', (code) => {
+          console.log(`🚀 PUBLISHER exited with code ${code}`);
+        });
+      }
+    }
+  } catch (e) {
+    console.error('⚠️ Could not trigger auto-publisher:', e.message);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════

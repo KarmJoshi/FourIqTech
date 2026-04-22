@@ -251,12 +251,15 @@ export async function submitToStaging(item) {
     draftPath = relativePath;
   }
 
+  const settings = readSettings();
+  const isAutoCommit = settings.isAutoCommit === true;
+
   const entry = await prisma.stagingItem.create({
     data: {
       id,
       type: item.type || 'other',
       department: item.department || 'Unknown',
-      status: 'pending_review',
+      status: isAutoCommit ? 'approved' : 'pending_review',
       createdAt: new Date(),
       title: item.title || 'Untitled',
       content: item.content || null,
@@ -265,11 +268,17 @@ export async function submitToStaging(item) {
       codePath: item.code_path || null,
       diffPath: item.diff_path || null,
       metadata: item.metadata || {},
+      publishedAt: isAutoCommit ? new Date() : null,
     }
   });
   
-  await logActivity('📝', item.department, `Submitted "${item.title}" to staging (${id})`, 'staging');
-  console.log(`   📝 STAGING: "${item.title}" → ${id} (pending_review)`);
+  if (isAutoCommit) {
+    await logActivity('🚀', item.department, `AUTO-COMMIT: "${item.title}" approved and marked for publication`, 'publish');
+    console.log(`   🚀 AUTO-COMMIT enabled. Item ${id} marked as APPROVED.`);
+  } else {
+    await logActivity('📝', item.department, `Submitted "${item.title}" to staging (${id})`, 'staging');
+    console.log(`   📝 STAGING: "${item.title}" → ${id} (pending_review)`);
+  }
   
   return id;
 }

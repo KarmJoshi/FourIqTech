@@ -373,9 +373,12 @@ No extra words. Just the niche string.`;
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task: "lead_hunter", args: [finalNiche, String(leadCount)] })
       });
-      if ((await res.json()).success) {
+      const data = await res.json();
+      if (data.success) {
         setAiNiche(`${finalNiche} ✅ Campaign Finished`);
-        alert(`Hunt complete: "${finalNiche}". Click Sync Leads to review.`);
+        const leadsRes = await fetch(`${API_BASE_URL}/api/leads`);
+        if (leadsRes.ok) setLeads((await leadsRes.json()).leads || []);
+        alert(`Hunt complete: "${finalNiche}". Directory updated.`);
       }
     } catch (e: any) {
       console.error("Hunt error:", e);
