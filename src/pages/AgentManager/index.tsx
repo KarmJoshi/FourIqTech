@@ -531,7 +531,7 @@ No extra words. Just the niche string.`;
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="w-[360px] max-w-[90vw]">
           <div className="flex items-center justify-center gap-3 mb-10">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-white to-white/80 flex items-center justify-center">
               <Zap className="h-4 w-4 text-white" />
             </div>
             <span className="text-lg font-semibold text-white">SEO Agency</span>
@@ -548,7 +548,7 @@ No extra words. Just the niche string.`;
                   type="text"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-3 py-2.5 text-[13px] text-white outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all placeholder:text-slate-600"
+                  className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-3 py-2.5 text-[13px] text-white outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-all placeholder:text-slate-600"
                   placeholder="Enter username"
                   autoFocus
                 />
@@ -559,7 +559,7 @@ No extra words. Just the niche string.`;
                   type="password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-3 py-2.5 text-[13px] text-white outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all placeholder:text-slate-600"
+                  className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-3 py-2.5 text-[13px] text-white outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 transition-all placeholder:text-slate-600"
                   placeholder="••••••••"
                 />
               </div>
@@ -659,7 +659,7 @@ No extra words. Just the niche string.`;
                     <button
                       onClick={() => updateScheduleSettings({ isAutoCommit: !(scheduleSettings as any).isAutoCommit })}
                       disabled={isUpdatingSettings}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border transition-all ${(scheduleSettings as any).isAutoCommit ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-400" : "bg-white/[0.03] border-white/[0.08] text-slate-500"}`}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border transition-all ${(scheduleSettings as any).isAutoCommit ? "bg-white/[0.08] border-white/[0.12] text-white/80" : "bg-white/[0.03] border-white/[0.08] text-slate-500"}`}
                     >
                       Git Push {(scheduleSettings as any).isAutoCommit ? "ON" : "OFF"}
                     </button>
@@ -672,7 +672,7 @@ No extra words. Just the niche string.`;
                       type="time"
                       value={draftStartTime ?? (scheduleSettings as any).startTime ?? "10:00"}
                       onChange={(e) => setDraftStartTime(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-cyan-500/40"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-white/20"
                     />
                   </div>
                   <div>
@@ -680,7 +680,7 @@ No extra words. Just the niche string.`;
                     <select
                       value={draftFreq ?? (scheduleSettings as any).cyclesPerDay ?? 1}
                       onChange={(e) => setDraftFreq(parseInt(e.target.value))}
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-cyan-500/40 appearance-none"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-white/20 appearance-none"
                     >
                       <option value={1}>1×/day</option>
                       <option value={2}>2×/day</option>

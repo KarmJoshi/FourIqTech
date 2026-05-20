@@ -12,7 +12,7 @@ interface SidebarProps {
   isAutoPilot: boolean;
 }
 
-const NAV_ITEMS: { id: DeptId; label: string; icon: any; badge?: string }[] = [
+const NAV_ITEMS: { id: DeptId; label: string; icon: any }[] = [
   { id: "director", label: "Command Center", icon: Crown },
   { id: "content", label: "Content Studio", icon: PenTool },
   { id: "techseo", label: "Technical SEO", icon: Wrench },
@@ -25,52 +25,46 @@ export function Sidebar({ activeDept, setActiveDept, onChatOpen, onLogout, apiOn
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside className={`fixed left-0 top-0 bottom-0 ${collapsed ? "w-[68px]" : "w-[260px]"} bg-[#09090b] border-r border-white/[0.06] flex flex-col z-50 transition-all duration-300`}>
+    <aside className={`fixed left-0 top-0 bottom-0 ${collapsed ? "w-[60px]" : "w-[240px]"} bg-[#0c0c0e] border-r border-[#1c1c1f] flex flex-col z-50 transition-all duration-200`}>
       
-      {/* Header */}
-      <div className="h-[60px] flex items-center justify-between px-4 border-b border-white/[0.06]">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-            <Zap className="h-4 w-4 text-white" />
+      {/* Logo */}
+      <div className="h-14 flex items-center justify-between px-4 border-b border-[#1c1c1f]">
+        <div className="flex items-center gap-2.5 overflow-hidden">
+          <div className="h-7 w-7 rounded-md bg-white flex items-center justify-center shrink-0">
+            <Zap className="h-3.5 w-3.5 text-black" />
           </div>
           {!collapsed && (
-            <div className="flex flex-col">
-              <span className="text-[13px] font-semibold text-white leading-tight">SEO Agency</span>
-              <span className="text-[10px] text-slate-500 leading-tight">Autonomous Platform</span>
-            </div>
+            <span className="text-[13px] font-semibold text-white/90 truncate">SEO Agency</span>
           )}
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="h-6 w-6 rounded-md flex items-center justify-center text-slate-600 hover:text-slate-400 hover:bg-white/[0.05] transition-colors shrink-0"
+          className="h-5 w-5 rounded flex items-center justify-center text-white/30 hover:text-white/60 transition-colors shrink-0"
         >
-          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </button>
       </div>
 
-      {/* System Status */}
-      <div className="px-3 py-3">
-        <div className={`flex items-center gap-2.5 ${collapsed ? "justify-center" : "px-2"} py-2 rounded-lg ${apiOnline ? "bg-emerald-500/[0.08]" : "bg-red-500/[0.08]"}`}>
-          <span className={`h-2 w-2 rounded-full shrink-0 ${apiOnline ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" : "bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]"}`} />
+      {/* Status */}
+      <div className="px-3 py-2.5">
+        <div className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-2"} py-1.5`}>
+          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${apiOnline ? "bg-emerald-400" : "bg-red-400"}`} />
           {!collapsed && (
-            <span className={`text-[11px] font-medium ${apiOnline ? "text-emerald-400" : "text-red-400"}`}>
-              {apiOnline ? "System Online" : "System Offline"}
+            <span className="text-[11px] text-white/40 font-medium">
+              {apiOnline ? "Online" : "Offline"}
             </span>
           )}
         </div>
         {isAutoPilot && !collapsed && (
-          <div className="flex items-center gap-2 px-2 py-1.5 mt-2 rounded-lg bg-violet-500/[0.08] border border-violet-500/[0.12]">
-            <Activity className="h-3 w-3 text-violet-400 animate-pulse shrink-0" />
-            <span className="text-[10px] font-semibold text-violet-400 uppercase tracking-wider">Auto-Pilot Active</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 mt-1">
+            <Activity className="h-3 w-3 text-emerald-400 animate-pulse shrink-0" />
+            <span className="text-[10px] font-medium text-emerald-400/80">Auto-Pilot</span>
           </div>
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-2 py-1 space-y-0.5 overflow-y-auto">
-        {!collapsed && (
-          <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-[0.12em] px-3 mb-2 mt-1">Workspace</p>
-        )}
+      {/* Nav */}
+      <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const isActive = activeDept === item.id;
           return (
@@ -78,18 +72,15 @@ export function Sidebar({ activeDept, setActiveDept, onChatOpen, onLogout, apiOn
               key={item.id}
               onClick={() => setActiveDept(item.id)}
               title={collapsed ? item.label : undefined}
-              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-150 group relative ${
+              className={`w-full flex items-center gap-2.5 rounded-md px-2.5 py-[7px] transition-all duration-100 group ${
                 isActive
                   ? "bg-white/[0.08] text-white"
-                  : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.04]"
+                  : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
               }`}
             >
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-r-full" />
-              )}
-              <item.icon className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-400"}`} />
+              <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : ""}`} />
               {!collapsed && (
-                <span className={`text-[13px] font-medium truncate ${isActive ? "text-white" : ""}`}>{item.label}</span>
+                <span className="text-[13px] font-medium truncate">{item.label}</span>
               )}
             </button>
           );
@@ -97,19 +88,17 @@ export function Sidebar({ activeDept, setActiveDept, onChatOpen, onLogout, apiOn
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-white/[0.06] p-2 space-y-0.5">
+      <div className="border-t border-[#1c1c1f] p-2 space-y-0.5">
         <button
           onClick={onChatOpen}
-          title={collapsed ? "AI Chat" : undefined}
-          className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/[0.06] transition-all"
+          className="w-full flex items-center gap-2.5 rounded-md px-2.5 py-[7px] text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all"
         >
           <MessageCircle className="h-4 w-4 shrink-0" />
-          {!collapsed && <span className="text-[13px] font-medium">AI Assistant</span>}
+          {!collapsed && <span className="text-[13px] font-medium">AI Chat</span>}
         </button>
         <button
           onClick={onLogout}
-          title={collapsed ? "Logout" : undefined}
-          className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 hover:text-red-400 hover:bg-red-500/[0.06] transition-all"
+          className="w-full flex items-center gap-2.5 rounded-md px-2.5 py-[7px] text-white/40 hover:text-red-400/80 hover:bg-red-500/[0.05] transition-all"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           {!collapsed && <span className="text-[13px] font-medium">Sign Out</span>}
