@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Crown, PenTool, Layers, Wrench, Zap } from "lucide-react";
+import { Loader2, Crown, PenTool, Layers, Wrench } from "lucide-react";
 
 interface ControlHubProps {
   dispatchDepartment: (dept: string) => Promise<void>;
@@ -9,79 +7,50 @@ interface ControlHubProps {
   runningTasks: Record<string, any>;
 }
 
-export function ControlHub({ 
-  dispatchDepartment, 
-  dispatchDirectorCycle, 
-  isDispatching, 
-  runningTasks 
-}: ControlHubProps) {
+export function ControlHub({ dispatchDepartment, dispatchDirectorCycle, isDispatching, runningTasks }: ControlHubProps) {
   const departments = [
-    { 
-      dept: "content", 
-      label: "CONTENT STUDIO", 
-      icon: PenTool, 
-      colors: "bg-slate-900 border-slate-800 text-slate-400 hover:border-ai-purple/50 hover:text-ai-purple" 
-    },
-    { 
-      dept: "structural", 
-      label: "LAYOUT ENGINE", 
-      icon: Layers, 
-      colors: "bg-slate-900 border-slate-800 text-slate-400 hover:border-ai-blue/50 hover:text-ai-blue" 
-    },
-    { 
-      dept: "technical", 
-      label: "TECHNICAL LAB", 
-      icon: Wrench, 
-      colors: "bg-slate-900 border-slate-800 text-slate-400 hover:border-ai-tertiary/50 hover:text-ai-tertiary" 
-    },
+    { dept: "content", label: "Content", icon: PenTool },
+    { dept: "structural", label: "Pages", icon: Layers },
+    { dept: "technical", label: "Technical", icon: Wrench },
   ];
 
   return (
-    <Card className="aether-card bg-slate-900/40 border-slate-800/60 shadow-xl rounded-[24px] overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex flex-wrap items-center gap-6">
-          <div className="flex flex-col gap-1.5 mr-6 pr-6 border-r border-slate-800/50">
-            <span className="text-[9px] font-bold tracking-[0.3em] text-slate-500 uppercase">COMMAND_NEXUS</span>
-            <div className="flex items-center gap-2">
-              <Zap className="h-3.5 w-3.5 text-ai-primary" />
-              <span className="text-[10px] font-extrabold text-white tracking-widest uppercase">DISPATCH UNIT</span>
-            </div>
-          </div>
+    <div className="rounded-lg border border-[#1c1c1f] bg-[#111113] p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] text-white/40 font-medium">Dispatch</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {/* Director Cycle */}
+        <button
+          onClick={dispatchDirectorCycle}
+          disabled={isDispatching === "director" || !!runningTasks["director"]}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-white text-black text-[12px] font-semibold hover:bg-white/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {(isDispatching === "director" || runningTasks["director"]) ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Crown className="h-3.5 w-3.5" />
+          )}
+          Full Cycle
+        </button>
 
-          <Button
-            size="lg" 
-            onClick={dispatchDirectorCycle} 
-            disabled={isDispatching === "director" || !!runningTasks["director"]}
-            className="h-14 px-8 rounded-xl bg-ai-primary/10 border border-ai-primary/30 hover:bg-ai-primary/20 hover:border-ai-primary text-ai-primary font-bold tracking-widest text-[11px] transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.1)] group relative overflow-hidden"
+        {/* Department buttons */}
+        {departments.map(d => (
+          <button
+            key={d.dept}
+            onClick={() => dispatchDepartment(d.dept)}
+            disabled={isDispatching === d.dept || !!runningTasks[d.dept]}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-white/[0.06] border border-[#1c1c1f] text-white/70 text-[12px] font-medium hover:bg-white/[0.1] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            {(isDispatching === "director" || runningTasks["director"]) ? (
-              <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+            {(isDispatching === d.dept || runningTasks[d.dept]) ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Crown className="mr-3 h-4 w-4" />
+              <d.icon className="h-3.5 w-3.5" />
             )}
-            FULL STRATEGIC CYCLE
-          </Button>
-
-          {departments.map(d => (
-            <Button
-              key={d.dept} 
-              size="lg" 
-              onClick={() => dispatchDepartment(d.dept)}
-              disabled={isDispatching === d.dept || !!runningTasks[d.dept]}
-              className={`h-14 px-6 rounded-xl border transition-all duration-300 group relative overflow-hidden font-bold tracking-widest text-[10px] ${d.colors}`}
-            >
-              {(isDispatching === d.dept || runningTasks[d.dept]) ? (
-                <Loader2 className="mr-3 h-4 w-4 animate-spin text-ai-primary" />
-              ) : (
-                <d.icon className="mr-3 h-4 w-4 transition-transform group-hover:scale-110" />
-              )}
-              {d.label}
-              <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-white/20 transition-all group-hover:w-full" />
-            </Button>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            {d.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

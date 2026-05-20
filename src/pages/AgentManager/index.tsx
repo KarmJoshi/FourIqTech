@@ -537,7 +537,7 @@ No extra words. Just the niche string.`;
             <span className="text-lg font-semibold text-white">SEO Agency</span>
           </div>
 
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-7">
+          <div className="rounded-lg border border-[#1c1c1f] bg-[#111113] p-7">
             <h2 className="text-base font-semibold text-white mb-1">Sign in</h2>
             <p className="text-[13px] text-slate-500 mb-6">Access your autonomous SEO command center</p>
             
@@ -627,7 +627,7 @@ No extra words. Just the niche string.`;
               />
 
               {/* Auto-Pilot Card */}
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+              <div className="rounded-lg border border-[#1c1c1f] bg-[#111113] p-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-[14px] font-semibold text-white flex items-center gap-2">
@@ -672,7 +672,7 @@ No extra words. Just the niche string.`;
                       type="time"
                       value={draftStartTime ?? (scheduleSettings as any).startTime ?? "10:00"}
                       onChange={(e) => setDraftStartTime(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-white/20"
+                      className="w-full bg-[#0c0c0e] border border-[#1c1c1f] rounded-md px-3 py-2 text-[12px] text-white outline-none focus:border-white/20"
                     />
                   </div>
                   <div>
@@ -680,7 +680,7 @@ No extra words. Just the niche string.`;
                     <select
                       value={draftFreq ?? (scheduleSettings as any).cyclesPerDay ?? 1}
                       onChange={(e) => setDraftFreq(parseInt(e.target.value))}
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-white/20 appearance-none"
+                      className="w-full bg-[#0c0c0e] border border-[#1c1c1f] rounded-md px-3 py-2 text-[12px] text-white outline-none focus:border-white/20 appearance-none"
                     >
                       <option value={1}>1×/day</option>
                       <option value={2}>2×/day</option>
@@ -697,7 +697,7 @@ No extra words. Just the niche string.`;
                         Save
                       </button>
                     ) : (
-                      <div className="w-full py-2 px-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                      <div className="w-full py-2 px-3 rounded-lg bg-[#0c0c0e] border border-[#1c1c1f]">
                         <p className="text-[10px] text-slate-500">Last run</p>
                         <p className="text-[11px] text-slate-400 font-mono">{(scheduleSettings as any).lastRunAt ? new Date((scheduleSettings as any).lastRunAt).toLocaleTimeString() : "Never"}</p>
                       </div>
