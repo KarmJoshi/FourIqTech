@@ -27,6 +27,8 @@ import EnterpriseFramerMotionDevelopment from "./pages/services/EnterpriseFramer
 import AutomatedTestService from "./pages/services/AutomatedTestService";
 import TriggerLiveDeploy from "./pages/services/TriggerLiveDeploy";
 import EnterpriseWebApplicationDevelopment from "./pages/services/EnterpriseWebApplicationDevelopment";
+import NextjsSeoServices from "./pages/services/NextjsSeoServices";
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -52,7 +54,8 @@ const App = () => (
               <Route path="/services/enterprise-headless-commerce-development" element={<EnterpriseHeadlessCommerceDevelopment />} />
               <Route path="/agent-manager" element={<AgentManager />} />
               <Route path="/services/enterprise-ui-ux-design-services" element={<EnterpriseUiUxDesignServices />} />
-              <Route path="/services/enterprise-react-nextjs-consulting" element={<EnterpriseReactNextjsConsulting />} />              <Route path="/services/enterprise-website-redesign" element={<EnterpriseWebsiteRedesign />} />              <Route path="/services/enterprise-nextjs-development-agency" element={<EnterpriseNextjsDevelopmentAgency />} />              <Route path="/services/enterprise-framer-motion-development" element={<EnterpriseFramerMotionDevelopment />} />              <Route path="/services/automated-test-verification" element={<AutomatedTestService />} />              <Route path="/services/trigger-live-deploy" element={<TriggerLiveDeploy />} />              <Route path="/services/enterprise-web-application-development" element={<EnterpriseWebApplicationDevelopment />} />
+              <Route path="/services/enterprise-react-nextjs-consulting" element={<EnterpriseReactNextjsConsulting />} />              <Route path="/services/enterprise-website-redesign" element={<EnterpriseWebsiteRedesign />} />              <Route path="/services/enterprise-nextjs-development-agency" element={<EnterpriseNextjsDevelopmentAgency />} />              <Route path="/services/enterprise-framer-motion-development" element={<EnterpriseFramerMotionDevelopment />} />              <Route path="/services/automated-test-verification" element={<AutomatedTestService />} />              <Route path="/services/trigger-live-deploy" element={<TriggerLiveDeploy />} />              <Route path="/services/enterprise-web-application-development" element={<EnterpriseWebApplicationDevelopment />} />              <Route path="/services/nextjs-seo-services" element={<NextjsSeoServices />} />
+
 
 
 
