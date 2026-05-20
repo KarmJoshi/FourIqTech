@@ -9,12 +9,12 @@ interface ModelSelectionMatrixProps {
 }
 
 const AVAILABLE_MODELS = [
-  { id: "gemini-3.1-pro-preview", label: "3.1 Pro", tier: "pro" },
-  { id: "gemini-3-pro-preview", label: "3 Pro", tier: "pro" },
-  { id: "gemini-3.1-flash-lite-preview", label: "3.1 Flash Lite", tier: "flash" },
-  { id: "gemini-3-flash-preview", label: "3 Flash", tier: "flash" },
-  { id: "gemini-2.5-flash", label: "2.5 Flash", tier: "flash" },
-  { id: "gemini-2.0-flash", label: "2.0 Flash", tier: "flash" }
+  { id: "gemini-3.5-flash-preview", label: "Gemini 3.5 Flash", tier: "flash" },
+  { id: "gemini-3-flash-preview", label: "Gemini 3 Flash", tier: "flash" },
+  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", tier: "flash" },
+  { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro", tier: "pro" },
+  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash", tier: "flash" },
+  { id: "gemini-2.0-flash-lite", label: "Gemini 2.0 Flash Lite", tier: "flash" },
 ];
 
 const PRICING_INR = {
@@ -195,13 +195,11 @@ export function ModelSelectionMatrix({ currentModels, onUpdate, isUpdating }: Mo
                             <select
                                 value={localModels[role.id] || AVAILABLE_MODELS[0].id}
                                 onChange={(e) => handleChange(role.id, e.target.value)}
-                                className={`w-full bg-[#0c0c0e]"border-orange-500 text-orange-400 ring-1 ring-orange-500/20"
-                                    : "border-white/10 text-white/40 focus:border-emerald-500/20"
-                                }`}
+                                className="w-full bg-[#0c0c0e] border border-[#1c1c1f] rounded-md px-3 py-2 text-[12px] text-white/80 outline-none focus:border-white/30 appearance-none cursor-pointer"
                             >
                                 {AVAILABLE_MODELS.map(m => (
                                   <option key={m.id} value={m.id}>
-                                     {m.label} {role.recommended === m.id ? '(Recommended)' : ''} — {m.tier === 'pro' ? '₹10.5' : '₹0.25'}
+                                     {m.label} {role.recommended === m.id ? '✓' : ''} — {m.tier === 'pro' ? '₹10.5' : '₹0.25'}
                                   </option>
                                 ))}
                             </select>
