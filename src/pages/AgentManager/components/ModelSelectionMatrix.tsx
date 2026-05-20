@@ -121,26 +121,26 @@ export function ModelSelectionMatrix({ currentModels, onUpdate, isUpdating }: Mo
   };
 
   return (
-    <Card className="aether-card border-ai-tertiary/20 bg-ai-tertiary/[0.02] rounded-[24px] overflow-hidden">
+    <Card className="rounded-lg border-emerald-500/20">
       <CardHeader className="pb-2">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <BrainCircuit className="h-4 w-4 text-ai-tertiary" />
-              <span className="text-[9px] font-bold tracking-[0.2em] text-slate-500 uppercase">INTELLIGENCE MATRIX</span>
+              <BrainCircuit className="h-4 w-4 text-emerald-400/80" />
+              <span className="text-[9px] font-bold tracking-[0.2em] text-white/30 uppercase">INTELLIGENCE MATRIX</span>
             </div>
             <CardTitle className="text-xl sm:text-2xl font-display font-bold text-white">Agent Model Matrix</CardTitle>
           </div>
-          <div className="flex flex-wrap items-center gap-4 bg-slate-950/40 p-2 rounded-2xl border border-white/5 self-start">
+          <div className="flex flex-wrap items-center gap-4 bg-[#0c0c0e]">
              <div className="flex flex-col items-end px-3 border-r border-white/10 mr-1">
-                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Est. Cycle Cost (INR)</span>
-                <span className="text-sm font-mono font-bold text-ai-tertiary flex items-center gap-1.5">
+                <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Est. Cycle Cost (INR)</span>
+                <span className="text-sm font-mono font-bold text-emerald-400/80">
                    <Coins className="w-3.5 h-3.5" /> ₹{totalCost.toFixed(2)}
                 </span>
              </div>
              {hasChanges && (
                 <div className="flex items-center gap-2">
-                   <button onClick={handleReset} className="text-[9px] font-bold text-slate-500 hover:text-white transition-colors flex items-center gap-1">
+                   <button onClick={handleReset} className="text-[9px] font-bold text-white/30 hover:text-white transition-colors flex items-center gap-1">
                       <RefreshCcw className="w-2.5 h-2.5" /> RESET
                    </button>
                    <span className="text-[9px] font-bold tracking-widest text-orange-400 uppercase flex items-center gap-1 animate-pulse">
@@ -153,8 +153,8 @@ export function ModelSelectionMatrix({ currentModels, onUpdate, isUpdating }: Mo
               disabled={isUpdating || !hasChanges}
               className={`h-9 px-5 rounded-xl transition-all font-bold text-xs flex items-center gap-2 ${
                 hasChanges 
-                  ? "bg-ai-tertiary text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:bg-ai-tertiary/90" 
-                  : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                  ? "bg-emerald-500/10" 
+                  : "bg-slate-800 text-white/30 cursor-not-allowed"
               }`}
             >
               <Server className="w-3 h-3" /> APPLY MATRIX
@@ -175,30 +175,28 @@ export function ModelSelectionMatrix({ currentModels, onUpdate, isUpdating }: Mo
               <div key={dept.id} className="space-y-4">
                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
                     <h3 className="text-xs font-bold text-white uppercase tracking-wider">{dept.label}</h3>
-                    <div className="flex items-center gap-2 bg-slate-900/50 px-2 py-1 rounded w-fit border border-white/5">
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Est. Dept Cost</span>
-                        <span className="text-xs font-mono font-bold text-ai-tertiary">₹{deptCost.toFixed(2)}</span>
+                    <div className="flex items-center gap-2 bg-[#111113]">
+                        <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Est. Dept Cost</span>
+                        <span className="text-xs font-mono font-bold text-emerald-400/80">₹{deptCost.toFixed(2)}</span>
                     </div>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {deptRoles.map(role => (
-                      <div key={role.id} className="bg-slate-950/40 border border-white/5 p-4 rounded-2xl space-y-3 flex flex-col justify-between group hover:border-ai-tertiary/20 transition-all duration-300">
+                      <div key={role.id} className="bg-[#0c0c0e]">
                          <div className="space-y-1">
                             <h4 className="text-sm font-bold text-white flex items-center justify-between">
                                {role.label}
                                <span className="text-[8px] text-slate-600 font-mono tracking-tighter">ID: {role.id.toUpperCase()}</span>
                             </h4>
-                            <p className="text-[10px] text-slate-500 leading-relaxed min-h-[30px]">{role.desc}</p>
+                            <p className="text-[10px] text-white/30 leading-relaxed min-h-[30px]">{role.desc}</p>
                          </div>
                          
                          <div className="pt-2 relative">
                             <select
                                 value={localModels[role.id] || AVAILABLE_MODELS[0].id}
                                 onChange={(e) => handleChange(role.id, e.target.value)}
-                                className={`w-full bg-slate-950 border appearance-none py-2.5 px-3 rounded-xl text-[11px] font-mono transition-all outline-none ${
-                                    hasChanges && localModels[role.id] !== (Array.isArray(currentModels?.[role.id]) ? currentModels[role.id][0] : (typeof currentModels?.[role.id] === 'string' ? currentModels[role.id] : AVAILABLE_MODELS[0].id))
-                                    ? "border-orange-500 text-orange-400 ring-1 ring-orange-500/20"
-                                    : "border-white/10 text-slate-400 focus:border-ai-tertiary/50 focus:text-white"
+                                className={`w-full bg-[#0c0c0e]"border-orange-500 text-orange-400 ring-1 ring-orange-500/20"
+                                    : "border-white/10 text-white/40 focus:border-emerald-500/20"
                                 }`}
                             >
                                 {AVAILABLE_MODELS.map(m => (
@@ -208,7 +206,7 @@ export function ModelSelectionMatrix({ currentModels, onUpdate, isUpdating }: Mo
                                 ))}
                             </select>
                             {localModels[role.id] === role.recommended && (
-                               <div className="absolute -top-1 -right-1 bg-ai-tertiary text-slate-950 rounded-full p-0.5 shadow-lg border border-slate-900">
+                               <div className="absolute -top-1 -right-1 bg-emerald-500/10">
                                   <Sparkles className="w-2.5 h-2.5" />
                                </div>
                             )}

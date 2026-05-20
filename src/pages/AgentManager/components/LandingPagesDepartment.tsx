@@ -106,7 +106,7 @@ export function LandingPagesDepartment({ intelligence, activityFeed, stagingQueu
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <Card className="aether-card border-ai-blue/20 bg-ai-blue/[0.03] rounded-[20px]">
+        <Card className="rounded-lg border-ai-blue/20 bg-ai-blue/[0.03] rounded-lg">
           <CardContent className="p-5 flex flex-col gap-2">
             <div className="flex items-center gap-2 text-ai-blue">
               <Globe className="h-4 w-4" />
@@ -115,16 +115,16 @@ export function LandingPagesDepartment({ intelligence, activityFeed, stagingQueu
             <span className="text-3xl font-display font-extrabold text-white">{uniquePages.length}</span>
           </CardContent>
         </Card>
-        <Card className="aether-card border-ai-primary/20 bg-ai-primary/[0.03] rounded-[20px]">
+        <Card className="rounded-lg border-white/[0.08] bg-ai-primary/[0.03] rounded-lg">
           <CardContent className="p-5 flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-ai-primary">
+            <div className="flex items-center gap-2 text-white/70">
               <Layers className="h-4 w-4" />
               <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Link Opportunities</span>
             </div>
             <span className="text-3xl font-display font-extrabold text-white">{linkPlan.length}</span>
           </CardContent>
         </Card>
-        <Card className="aether-card border-amber-400/20 bg-amber-400/[0.03] rounded-[20px]">
+        <Card className="rounded-lg border-amber-500/[0.08] bg-amber-400/[0.03] rounded-lg">
           <CardContent className="p-5 flex flex-col gap-2">
             <div className="flex items-center gap-2 text-amber-400">
               <Sparkles className="h-4 w-4" />
@@ -157,7 +157,7 @@ export function LandingPagesDepartment({ intelligence, activityFeed, stagingQueu
                 rel="noopener noreferrer"
                 className="group"
               >
-                <Card className="aether-card bg-slate-900/40 border-slate-800/60 rounded-[20px] overflow-hidden hover:border-ai-blue/30 transition-all duration-300 h-full">
+                <Card className="rounded-lg bg-[#111113] border-[#1c1c1f] rounded-lg overflow-hidden hover:border-ai-blue/30 transition-all duration-300 h-full">
                   <CardContent className="p-5 space-y-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="p-2.5 rounded-xl bg-ai-blue/5 border border-ai-blue/10 shrink-0">
@@ -178,7 +178,7 @@ export function LandingPagesDepartment({ intelligence, activityFeed, stagingQueu
                         variant="outline"
                         className={`text-[8px] uppercase tracking-widest rounded-full px-2 py-0.5 ${
                           page.source === "database"
-                            ? "bg-ai-tertiary/5 border-ai-tertiary/20 text-ai-tertiary"
+                            ? "bg-ai-tertiary/5 border-ai-tertiary/20 text-emerald-400/80"
                             : "bg-slate-800/50 border-slate-700 text-slate-400"
                         }`}
                       >
@@ -203,11 +203,11 @@ export function LandingPagesDepartment({ intelligence, activityFeed, stagingQueu
       {linkPlan.length > 0 && (
         <div className="space-y-5">
           <h2 className="text-[10px] font-bold tracking-[0.3em] text-slate-500 uppercase flex items-center gap-3">
-            <Layers className="h-4 w-4 text-ai-primary" /> INTERNAL LINK OPPORTUNITIES
+            <Layers className="h-4 w-4 text-white/70" /> INTERNAL LINK OPPORTUNITIES
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {linkPlan.slice(0, 6).map((item: any, i: number) => (
-              <Card key={`link-${i}`} className="aether-card bg-slate-900/40 border-slate-800/60 rounded-[20px]">
+              <Card key={`link-${i}`} className="rounded-lg bg-[#111113] border-[#1c1c1f] rounded-lg">
                 <CardContent className="p-4 space-y-2">
                   <p className="text-xs text-white font-medium">{item.target}</p>
                   <p className="text-[10px] text-slate-500">
@@ -232,7 +232,7 @@ export function LandingPagesDepartment({ intelligence, activityFeed, stagingQueu
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {pendingLandingPages.map((item: any) => (
-              <Card key={item.id} className="aether-card bg-amber-500/[0.02] border-amber-500/10 rounded-[20px]">
+              <Card key={item.id} className="rounded-lg bg-amber-500/[0.02] border-amber-500/10 rounded-lg">
                 <CardContent className="p-4 space-y-2">
                   <p className="text-xs text-white font-bold">{item.title}</p>
                   <div className="flex items-center gap-2">

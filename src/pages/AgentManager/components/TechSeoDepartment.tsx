@@ -35,7 +35,7 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
           label="Safe Auto"
           value={risk.safe_auto?.length || 0}
           icon={<ShieldCheck className="h-4 w-4" />}
-          color="text-ai-tertiary"
+          color="text-emerald-400/80"
           bgColor="border-ai-tertiary/20 bg-ai-tertiary/[0.03]"
         />
         <StatCard
@@ -43,21 +43,21 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
           value={risk.review_required?.length || 0}
           icon={<AlertTriangle className="h-4 w-4" />}
           color="text-amber-400"
-          bgColor="border-amber-400/20 bg-amber-400/[0.03]"
+          bgColor="border-amber-500/[0.08] bg-amber-400/[0.03]"
         />
         <StatCard
           label="Blocked"
           value={risk.blocked?.length || 0}
           icon={<ShieldAlert className="h-4 w-4" />}
           color="text-red-400"
-          bgColor="border-red-400/20 bg-red-400/[0.03]"
+          bgColor="border-red-500/[0.08] bg-red-400/[0.03]"
         />
         <StatCard
           label="Fixes Applied"
           value={techFixes}
           icon={<Wrench className="h-4 w-4" />}
-          color="text-ai-primary"
-          bgColor="border-ai-primary/20 bg-ai-primary/[0.03]"
+          color="text-white/70"
+          bgColor="border-white/[0.08] bg-ai-primary/[0.03]"
         />
       </div>
 
@@ -66,10 +66,10 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-[10px] font-bold tracking-[0.3em] text-slate-500 uppercase flex items-center gap-3">
-              <Wrench className="h-4 w-4 text-ai-tertiary" /> RISK ASSESSMENT
+              <Wrench className="h-4 w-4 text-emerald-400/80" /> RISK ASSESSMENT
             </h2>
             {isRunning && (
-              <Badge className="bg-ai-tertiary/10 text-ai-tertiary border-ai-tertiary/20 text-[9px] uppercase tracking-widest animate-pulse">
+              <Badge className="bg-ai-tertiary/10 text-emerald-400/80 border-ai-tertiary/20 text-[9px] uppercase tracking-widest animate-pulse">
                 Scanning...
               </Badge>
             )}
@@ -79,10 +79,10 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
           <RiskSection
             title="Safe for Auto-Execution"
             items={risk.safe_auto || []}
-            icon={<CheckCircle2 className="h-4 w-4 text-ai-tertiary" />}
+            icon={<CheckCircle2 className="h-4 w-4 text-emerald-400/80" />}
             borderColor="border-ai-tertiary/10"
             bgColor="bg-ai-tertiary/[0.02]"
-            tagColor="text-ai-tertiary"
+            tagColor="text-emerald-400/80"
           />
 
           {/* Review Required */}
@@ -107,7 +107,7 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
 
           {/* Collisions */}
           {collisions.length > 0 && (
-            <Card className="aether-card bg-amber-500/[0.02] border-amber-500/10 rounded-[24px]">
+            <Card className="rounded-lg bg-amber-500/[0.02] border-amber-500/10 rounded-lg">
               <CardHeader className="pb-3">
                 <CardTitle className="text-white text-base flex items-center gap-2">
                   <Brain className="h-4 w-4 text-amber-400" /> Keyword Collisions ({collisions.length})
@@ -115,7 +115,7 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
               </CardHeader>
               <CardContent className="space-y-3">
                 {collisions.slice(0, 4).map((item: any, i: number) => (
-                  <div key={`col-${i}`} className="rounded-xl border border-amber-500/10 bg-slate-950/50 p-3 space-y-1">
+                  <div key={`col-${i}`} className="rounded-xl border border-amber-500/10 bg-[#0c0c0e] p-3 space-y-1">
                     <p className="text-xs text-amber-200">{item.target}</p>
                     <p className="text-[10px] text-amber-400">vs {item.existing_slug}</p>
                     <p className="text-[10px] text-slate-500">
@@ -129,7 +129,7 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
 
           {/* Duplicate Guard */}
           {duplicateGuard.length > 0 && (
-            <Card className="aether-card bg-slate-900/40 border-slate-800/60 rounded-[24px]">
+            <Card className="rounded-lg bg-[#111113] border-[#1c1c1f] rounded-lg">
               <CardHeader className="pb-3">
                 <CardTitle className="text-white text-base flex items-center gap-2">
                   <Brain className="h-4 w-4 text-red-400" /> Intent Guard ({duplicateGuard.length})
@@ -137,7 +137,7 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
               </CardHeader>
               <CardContent className="space-y-3">
                 {duplicateGuard.slice(0, 4).map((item: any, i: number) => (
-                  <div key={`dup-${i}`} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3 space-y-1">
+                  <div key={`dup-${i}`} className="rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] p-3 space-y-1">
                     <p className="text-xs text-white">{item.target}</p>
                     <p className="text-[10px] text-red-400 uppercase tracking-widest">{item.verdict}</p>
                     <p className="text-[10px] text-slate-500">
@@ -152,10 +152,10 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
 
         {/* Sidebar: Activity */}
         <div className="space-y-6">
-          <Card className="aether-card bg-slate-900/40 border-slate-800/60 rounded-[24px]">
+          <Card className="rounded-lg bg-[#111113] border-[#1c1c1f] rounded-lg">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-sm flex items-center gap-2">
-                <Activity className="h-3.5 w-3.5 text-ai-tertiary" /> Tech Activity
+                <Activity className="h-3.5 w-3.5 text-emerald-400/80" /> Tech Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -164,7 +164,7 @@ export function TechSeoDepartment({ intelligence, activityFeed, runningTasks, di
                   {recentTechActivity.length === 0 ? (
                     <p className="text-xs text-slate-600">No technical activity yet. Run a Tech cycle.</p>
                   ) : recentTechActivity.map((entry: any) => (
-                    <div key={entry.id} className="flex items-start gap-3 p-2.5 rounded-lg bg-slate-950/30 border border-slate-800/30">
+                    <div key={entry.id} className="flex items-start gap-3 p-2.5 rounded-lg bg-[#0c0c0e]/50 border border-[#1c1c1f]/30">
                       <span className="text-sm shrink-0">{entry.emoji}</span>
                       <div className="min-w-0">
                         <p className="text-[11px] text-slate-300 leading-snug">{entry.message}</p>
@@ -189,7 +189,7 @@ function StatCard({ label, value, icon, color, bgColor }: {
   label: string; value: number; icon: React.ReactNode; color: string; bgColor: string;
 }) {
   return (
-    <Card className={`aether-card ${bgColor} rounded-[20px] overflow-hidden`}>
+    <Card className={`rounded-lg ${bgColor} rounded-lg overflow-hidden`}>
       <CardContent className="p-5 flex flex-col gap-2">
         <div className={`flex items-center gap-2 ${color}`}>
           {icon}
@@ -207,7 +207,7 @@ function RiskSection({ title, items, icon, borderColor, bgColor, tagColor }: {
   if (items.length === 0) return null;
 
   return (
-    <Card className={`aether-card ${bgColor} ${borderColor} rounded-[24px]`}>
+    <Card className={`rounded-lg ${bgColor} ${borderColor} rounded-lg`}>
       <CardHeader className="pb-3">
         <CardTitle className="text-white text-base flex items-center gap-2">
           {icon} {title} ({items.length})
@@ -215,7 +215,7 @@ function RiskSection({ title, items, icon, borderColor, bgColor, tagColor }: {
       </CardHeader>
       <CardContent className="space-y-3">
         {items.slice(0, 5).map((item: any, i: number) => (
-          <div key={`risk-${i}`} className={`rounded-xl border ${borderColor} bg-slate-950/50 p-3 space-y-1`}>
+          <div key={`risk-${i}`} className={`rounded-xl border ${borderColor} bg-[#0c0c0e] p-3 space-y-1`}>
             <p className="text-xs text-white">{item.target || item.id}</p>
             <p className={`text-[10px] ${tagColor}`}>{item.reason}</p>
           </div>

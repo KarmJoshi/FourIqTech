@@ -98,7 +98,7 @@ export function InstagramDepartment() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold font-display tracking-tight text-white mb-1">
-            Instagram <span className="text-ai-primary">Hub</span>
+            Instagram <span className="text-white/70">Hub</span>
           </h2>
           <p className="text-neutral-400">Autonomous content creation and grid management</p>
         </div>
@@ -128,7 +128,7 @@ export function InstagramDepartment() {
           <CardHeader className="border-b border-white/5 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Layout className="w-5 h-5 text-ai-primary" />
+                <Layout className="w-5 h-5 text-white/70" />
                 <CardTitle className="text-lg">Visual Grid Preview</CardTitle>
               </div>
               <div className="flex gap-1 bg-white/5 rounded-lg p-1">
@@ -159,9 +159,9 @@ export function InstagramDepartment() {
                       )}
                     </div>
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-ai-primary/5 p-4 text-center">
-                      <Sparkles className="w-6 h-6 text-ai-primary mb-2 animate-pulse" />
-                      <span className="text-[10px] font-bold text-ai-primary uppercase tracking-tighter">Draft Concept</span>
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-white/[0.04] p-4 text-center">
+                      <Sparkles className="w-6 h-6 text-white/70 mb-2 animate-pulse" />
+                      <span className="text-[10px] font-bold text-white/70 uppercase tracking-tighter">Draft Concept</span>
                       <span className="text-[9px] text-neutral-500 mt-1 line-clamp-2">{post.topicPillar}: {post.caption.substring(0, 30)}...</span>
                     </div>
                   )}
@@ -213,7 +213,7 @@ export function InstagramDepartment() {
             <div className="h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-ai-primary" />
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-ai-primary" />
+                <TrendingUp className="w-5 h-5 text-white/70" />
                 Channel Health
               </CardTitle>
             </CardHeader>
@@ -230,7 +230,7 @@ export function InstagramDepartment() {
                   <p className="text-xs text-neutral-400 mb-1 uppercase tracking-wider">Engagement Rate</p>
                   <p className="text-2xl font-bold font-display">4.8%</p>
                 </div>
-                <Badge className="bg-ai-primary/10 text-ai-primary hover:bg-ai-primary/20 border-0">High</Badge>
+                <Badge className="bg-ai-primary/10 text-white/70 hover:bg-ai-primary/20 border-0">High</Badge>
               </div>
             </CardContent>
           </Card>
@@ -238,7 +238,7 @@ export function InstagramDepartment() {
           <Card className="border-white/5 bg-black/40 backdrop-blur-xl">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Clock className="w-5 h-5 text-ai-tertiary" />
+                <Clock className="w-5 h-5 text-emerald-400/80" />
                 Next Activities
               </CardTitle>
             </CardHeader>
@@ -267,7 +267,7 @@ export function InstagramDepartment() {
         <DialogContent className="max-w-2xl bg-black/95 border-white/10 text-white backdrop-blur-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-ai-primary" />
+              <ImageIcon className="w-5 h-5 text-white/70" />
               Content Detail: {selectedPost?.topicPillar}
             </DialogTitle>
             <DialogDescription className="text-neutral-400">
@@ -335,7 +335,7 @@ export function InstagramDepartment() {
 
             <div className="space-y-4">
               <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                <p className="text-xs text-ai-primary font-bold uppercase mb-2">Caption</p>
+                <p className="text-xs text-white/70 font-bold uppercase mb-2">Caption</p>
                 <ScrollArea className="h-[250px] text-sm text-neutral-300 pr-4">
                   {selectedPost?.caption}
                 </ScrollArea>

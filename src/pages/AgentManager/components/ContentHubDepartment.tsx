@@ -58,29 +58,29 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
           label="Live Posts"
           value={blogPosts.length}
           icon={<BookOpen className="h-4 w-4" />}
-          color="text-ai-purple"
-          bgColor="border-ai-purple/20 bg-ai-purple/[0.03]"
+          color="text-white/60"
+          bgColor="border-white/[0.08] bg-ai-purple/[0.03]"
         />
         <StatCard
           label="New Briefs"
           value={contentStrategy.briefs?.length || 0}
           icon={<Sparkles className="h-4 w-4" />}
-          color="text-ai-primary"
-          bgColor="border-ai-primary/20 bg-ai-primary/[0.03]"
+          color="text-white/70"
+          bgColor="border-white/[0.08] bg-ai-primary/[0.03]"
         />
         <StatCard
           label="Needs Refresh"
           value={contentStrategy.refresh_queue?.length || 0}
           icon={<RefreshCw className="h-4 w-4" />}
           color="text-amber-400"
-          bgColor="border-amber-400/20 bg-amber-400/[0.03]"
+          bgColor="border-amber-500/[0.08] bg-amber-400/[0.03]"
         />
         <StatCard
           label="Prune Candidates"
           value={contentStrategy.prune_candidates?.length || 0}
           icon={<Trash2 className="h-4 w-4" />}
           color="text-red-400"
-          bgColor="border-red-400/20 bg-red-400/[0.03]"
+          bgColor="border-red-500/[0.08] bg-red-400/[0.03]"
         />
       </div>
 
@@ -89,10 +89,10 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <h2 className="text-[10px] font-bold tracking-[0.3em] text-slate-500 uppercase flex items-center gap-3">
-              <PenTool className="h-4 w-4 text-ai-purple" /> PUBLISHED ARTICLES
+              <PenTool className="h-4 w-4 text-white/60" /> PUBLISHED ARTICLES
             </h2>
             {isRunning && (
-              <Badge className="bg-ai-purple/10 text-ai-purple border-ai-purple/20 text-[9px] uppercase tracking-widest animate-pulse">
+              <Badge className="bg-ai-purple/10 text-white/60 border-white/[0.08] text-[9px] uppercase tracking-widest animate-pulse">
                 Writing...
               </Badge>
             )}
@@ -103,7 +103,7 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
               <div className="h-8 w-8 border-2 border-ai-purple/30 border-t-ai-purple rounded-full animate-spin" />
             </div>
           ) : blogPosts.length === 0 ? (
-            <Card className="border-dashed border-slate-800/60 bg-slate-900/10 rounded-[24px]">
+            <Card className="border-dashed border-[#1c1c1f] bg-[#111113]/50 rounded-lg">
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <FileText className="h-10 w-10 text-slate-800 mb-4" />
                 <p className="text-sm font-bold text-slate-500">No published articles yet</p>
@@ -122,17 +122,17 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
                   rel="noopener noreferrer"
                   className="group"
                 >
-                  <Card className="aether-card bg-slate-900/40 border-slate-800/60 rounded-[20px] overflow-hidden hover:border-ai-purple/30 transition-all duration-300 h-full">
+                  <Card className="rounded-lg bg-[#111113] border-[#1c1c1f] rounded-lg overflow-hidden hover:border-ai-purple/30 transition-all duration-300 h-full">
                     <CardContent className="p-5 space-y-3">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline" className="text-[9px] uppercase tracking-widest bg-ai-purple/5 border-ai-purple/20 text-ai-purple rounded-full px-2.5 py-0.5">
+                        <Badge variant="outline" className="text-[9px] uppercase tracking-widest bg-white/[0.04] border-white/[0.08] text-white/60 rounded-full px-2.5 py-0.5">
                           {post.category || "Blog"}
                         </Badge>
                         <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1">
                           <Calendar className="h-2.5 w-2.5" /> {post.date}
                         </span>
                       </div>
-                      <h3 className="text-sm font-bold text-white group-hover:text-ai-purple transition-colors leading-snug line-clamp-2">
+                      <h3 className="text-sm font-bold text-white group-hover:text-white/60 transition-colors leading-snug line-clamp-2">
                         {post.title}
                       </h3>
                       <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
@@ -142,7 +142,7 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
                         <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1">
                           <Clock className="h-2.5 w-2.5" /> {post.readTime || "5 min"}
                         </span>
-                        <ExternalLink className="h-3.5 w-3.5 text-slate-700 group-hover:text-ai-purple transition-colors" />
+                        <ExternalLink className="h-3.5 w-3.5 text-slate-700 group-hover:text-white/60 transition-colors" />
                       </div>
                     </CardContent>
                   </Card>
@@ -155,20 +155,20 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
         {/* Sidebar: Strategy Intelligence */}
         <div className="space-y-6">
           {/* Content Briefs */}
-          <Card className="aether-card bg-slate-900/40 border-slate-800/60 rounded-[24px]">
+          <Card className="rounded-lg bg-[#111113] border-[#1c1c1f] rounded-lg">
             <CardHeader className="pb-3">
               <CardDescription className="text-[9px] uppercase font-bold tracking-[0.2em] text-slate-500">CONTENT_STRATEGY</CardDescription>
               <CardTitle className="text-white text-base flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-ai-primary" /> Upcoming Briefs
+                <Sparkles className="h-4 w-4 text-white/70" /> Upcoming Briefs
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {contentStrategy.briefs?.length === 0 ? (
                 <p className="text-xs text-slate-600">No new briefs queued.</p>
               ) : contentStrategy.briefs?.slice(0, 4).map((brief: any, i: number) => (
-                <div key={`brief-${i}`} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3 space-y-1.5">
+                <div key={`brief-${i}`} className="rounded-xl border border-[#1c1c1f] bg-[#0c0c0e] p-3 space-y-1.5">
                   <p className="text-xs text-white font-medium">{brief.target_slug}</p>
-                  <p className="text-[10px] text-ai-primary">{brief.primary_keyword}</p>
+                  <p className="text-[10px] text-white/70">{brief.primary_keyword}</p>
                   <p className="text-[10px] text-slate-500">{brief.objective}</p>
                 </div>
               ))}
@@ -177,7 +177,7 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
 
           {/* Refresh Queue */}
           {contentStrategy.refresh_queue?.length > 0 && (
-            <Card className="aether-card bg-amber-500/[0.02] border-amber-500/10 rounded-[24px]">
+            <Card className="rounded-lg bg-amber-500/[0.02] border-amber-500/10 rounded-lg">
               <CardHeader className="pb-3">
                 <CardTitle className="text-white text-base flex items-center gap-2">
                   <RefreshCw className="h-4 w-4 text-amber-400" /> Needs Refresh
@@ -185,7 +185,7 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
               </CardHeader>
               <CardContent className="space-y-3">
                 {contentStrategy.refresh_queue.slice(0, 3).map((item: any, i: number) => (
-                  <div key={`refresh-${i}`} className="rounded-xl border border-amber-500/10 bg-slate-950/50 p-3 space-y-1">
+                  <div key={`refresh-${i}`} className="rounded-xl border border-amber-500/10 bg-[#0c0c0e] p-3 space-y-1">
                     <p className="text-xs text-white">{item.slug}</p>
                     <p className="text-[10px] text-amber-400/70">Position {item.position} • {item.impressions} impressions</p>
                     <p className="text-[10px] text-slate-500">{item.reason}</p>
@@ -196,10 +196,10 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
           )}
 
           {/* Recent Activity */}
-          <Card className="aether-card bg-slate-900/40 border-slate-800/60 rounded-[24px]">
+          <Card className="rounded-lg bg-[#111113] border-[#1c1c1f] rounded-lg">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-sm flex items-center gap-2">
-                <TrendingUp className="h-3.5 w-3.5 text-ai-tertiary" /> Content Activity
+                <TrendingUp className="h-3.5 w-3.5 text-emerald-400/80" /> Content Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -208,7 +208,7 @@ export function ContentHubDepartment({ intelligence, activityFeed, runningTasks 
                   {recentContentActivity.length === 0 ? (
                     <p className="text-xs text-slate-600">No content activity yet.</p>
                   ) : recentContentActivity.map((entry: any) => (
-                    <div key={entry.id} className="flex items-start gap-3 p-2.5 rounded-lg bg-slate-950/30 border border-slate-800/30">
+                    <div key={entry.id} className="flex items-start gap-3 p-2.5 rounded-lg bg-[#0c0c0e]/50 border border-[#1c1c1f]/30">
                       <span className="text-sm shrink-0">{entry.emoji}</span>
                       <div className="min-w-0">
                         <p className="text-[11px] text-slate-300 leading-snug">{entry.message}</p>
@@ -232,7 +232,7 @@ function StatCard({ label, value, icon, color, bgColor }: {
   label: string; value: number; icon: React.ReactNode; color: string; bgColor: string;
 }) {
   return (
-    <Card className={`aether-card ${bgColor} rounded-[20px] overflow-hidden`}>
+    <Card className={`rounded-lg ${bgColor} rounded-lg overflow-hidden`}>
       <CardContent className="p-5 flex flex-col gap-2">
         <div className={`flex items-center gap-2 ${color}`}>
           {icon}
