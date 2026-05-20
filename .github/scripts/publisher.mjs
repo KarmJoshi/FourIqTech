@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 import pkgPrisma from '@prisma/client';
 const { PrismaClient } = pkgPrisma;
 import pkgPg from 'pg';
@@ -9,13 +8,15 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { githubGetFile, githubPutFile, githubCommitMultiple } from './github-api.mjs';
+
 // ═══════════════════════════════════════════════════════════════════════
-// 🚀 THE PUBLISHER v3 — DB-Native Production Gateway
+// 🚀 PUBLISHER v4 — GitHub API Powered (Works from ANY server)
 // ═══════════════════════════════════════════════════════════════════════
-// Reads approved items from PostgreSQL StagingItem table.
-//   blog_post      → Insert into BlogPost table (isLive: true)
-//   landing_page   → Insert into ServicePage table (isLive: true)
-//   technical_patch → Write code file + git commit
+// No git CLI needed. Pushes code directly via GitHub REST API.
+//   blog_post       → DB only (no file needed)
+//   landing_page    → DB + push .tsx file + update App.tsx via GitHub API
+//   technical_patch → Push patched file via GitHub API
 // ═══════════════════════════════════════════════════════════════════════
 
 const connectionString = process.env.DATABASE_URL;
@@ -23,57 +24,69 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const APP_TSX_PATH = path.join(process.cwd(), 'src/App.tsx');
-
-function injectRouteIntoApp(routePath, componentPath) {
-  let appCode = fs.readFileSync(APP_TSX_PATH, 'utf8');
-  if (appCode.includes(`path="${routePath}"`)) return false;
-
-  const compName = componentPath.split('/').pop().replace('.tsx', '');
-  const importLine = `import ${compName} from "./pages/services/${compName}";`;
-  
-  if (!appCode.includes(compName)) {
-    const importLines = appCode.split('\n');
-    let lastImportIdx = 0;
-    for (let i = 0; i < importLines.length; i++) {
-      if (importLines[i].trimStart().startsWith('import ')) lastImportIdx = i;
-    }
-    importLines.splice(lastImportIdx + 1, 0, importLine);
-    appCode = importLines.join('\n');
-  }
-
-  const routeElement = `              <Route path="${routePath}" element={<${compName} />} />`;
-  const catchAllPattern = /(\s*<Route\s+path="\*")/;
-  if (catchAllPattern.test(appCode)) {
-    appCode = appCode.replace(catchAllPattern, `${routeElement}\n$1`);
-  } else {
-    appCode = appCode.replace('</Routes>', `${routeElement}\n            </Routes>`);
-  }
-
-  fs.writeFileSync(APP_TSX_PATH, appCode);
-  return true;
-}
-
 async function logActivity(emoji, source, message, type = 'info') {
   try {
     await prisma.activityLog.create({
-      data: {
-        id: crypto.randomUUID(),
-        emoji, source, message, type,
-        timestamp: new Date()
-      }
+      data: { id: crypto.randomUUID(), emoji, source, message, type, timestamp: new Date() }
     });
   } catch (err) {
     console.error('   ⚠️ Activity log failed:', err.message);
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// ROUTE INJECTOR — Updates App.tsx via GitHub API
+// ═══════════════════════════════════════════════════════════════════════
+async function injectRouteViaAPI(routePath, componentName) {
+  console.log(`   🔗 Injecting route ${routePath} into App.tsx...`);
+  
+  // Get current App.tsx from GitHub
+  const appFile = await githubGetFile('src/App.tsx');
+  if (!appFile.exists) {
+    console.log('   ❌ App.tsx not found on GitHub');
+    return null;
+  }
+  
+  let appCode = appFile.content;
+  
+  // Check if route already exists
+  if (appCode.includes(`path="${routePath}"`)) {
+    console.log(`   ℹ️ Route ${routePath} already exists in App.tsx`);
+    return null;
+  }
+  
+  // Add import
+  const importLine = `import ${componentName} from "./pages/services/${componentName}";`;
+  if (!appCode.includes(componentName)) {
+    const lines = appCode.split('\n');
+    let lastImportIdx = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trimStart().startsWith('import ')) lastImportIdx = i;
+    }
+    lines.splice(lastImportIdx + 1, 0, importLine);
+    appCode = lines.join('\n');
+  }
+  
+  // Add route (before the catch-all * route)
+  const routeElement = `              <Route path="${routePath}" element={<${componentName} />} />`;
+  const catchAllPattern = /(\s*<Route\s+path="\*")/;
+  if (catchAllPattern.test(appCode)) {
+    appCode = appCode.replace(catchAllPattern, `${routeElement}\n$1`);
+  } else {
+    appCode = appCode.replace('</Routes>', `${routeElement}\n            </Routes>`);
+  }
+  
+  return appCode;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MAIN PUBLISH LOGIC
+// ═══════════════════════════════════════════════════════════════════════
 async function publishApprovedItems() {
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  🚀 PUBLISHER v3 — DB-Native Production Gateway          ║');
+  console.log('║  🚀 PUBLISHER v4 — GitHub API Powered                     ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
 
-  // Get approved but not yet published items
   const approvedItems = await prisma.stagingItem.findMany({
     where: { status: 'approved' }
   });
@@ -85,17 +98,15 @@ async function publishApprovedItems() {
 
   console.log(`\n📦 Found ${approvedItems.length} approved item(s) to deploy.\n`);
   let publishedCount = 0;
-  let codeChanged = false;
+  const filesToCommit = []; // Collect files for a single atomic commit
 
   for (const item of approvedItems) {
     console.log(`\n📦 PUBLISHING [${item.id}] "${item.title}" (${item.type})...`);
 
     try {
       if (item.type === 'blog_post') {
-        // ── BLOG POST → Insert into BlogPost table ──
+        // ── BLOG POST → DB only (no file needed) ──
         const content = item.content || '';
-        
-        // Parse blog metadata from content (AI generates in specific format)
         const slug = content.match(/slug:\s*'([^']+)'/)?.[1] || `post-${Date.now()}`;
         const title = content.match(/title:\s*'([^']+)'/)?.[1] || item.title;
         const excerpt = content.match(/excerpt:\s*'([^']+)'/)?.[1] || '';
@@ -105,29 +116,25 @@ async function publishApprovedItems() {
         const readTime = content.match(/readTime:\s*'([^']+)'/)?.[1] || '5 min read';
         const htmlContent = content.match(/content:\s*`([\s\S]*)`/)?.[1]?.trim() || content;
 
-        // Check for duplicate slug
-        const existing = await prisma.blogPost.findUnique({ where: { slug } });
-        if (existing) {
-          console.log(`   ⚠️ Blog "${slug}" already exists. Updating...`);
-          await prisma.blogPost.update({
-            where: { slug },
-            data: { title, excerpt, content: htmlContent, isLive: true }
-          });
-        } else {
-          await prisma.blogPost.create({
-            data: {
-              slug, title, excerpt, date, readTime,
-              category, author, content: htmlContent, isLive: true,
-            }
-          });
+        // Validation
+        if (!title || htmlContent.length < 200) {
+          console.log(`   ⚠️ Blog content invalid. Skipping.`);
+          continue;
         }
+
+        await prisma.blogPost.upsert({
+          where: { slug },
+          update: { title, excerpt, content: htmlContent, isLive: true },
+          create: { slug, title, excerpt, date, readTime, category, author, content: htmlContent, isLive: true }
+        });
 
         console.log(`   ✅ Blog "${title}" → DB (isLive: true)`);
 
       } else if (item.type === 'landing_page' || item.type === 'structural_page') {
-        // ── LANDING PAGE → Insert into ServicePage table + write .tsx file ──
+        // ── LANDING PAGE → DB + push .tsx file via GitHub API ──
         const payload = JSON.parse(item.content || '{}');
         const slug = payload.route?.replace('/services/', '') || `page-${Date.now()}`;
+        const componentName = payload.component_name || slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
         
         let finalCode = payload.code || '';
         try {
@@ -136,57 +143,46 @@ async function publishApprovedItems() {
           else if (inner.code) finalCode = inner.code;
         } catch { /* not nested */ }
 
+        if (!finalCode || finalCode.length < 100) {
+          console.log(`   ⚠️ Page code too short. Skipping.`);
+          continue;
+        }
+
         // Save to DB
-        const existingPage = await prisma.servicePage.findUnique({ where: { slug } });
-        if (existingPage) {
-          await prisma.servicePage.update({
-            where: { slug },
-            data: { component: finalCode, isLive: true }
-          });
-        } else {
-          await prisma.servicePage.create({
-            data: {
-              slug,
-              title: item.title,
-              component: finalCode,
-              route: payload.route || `/services/${slug}`,
-              isLive: true,
-            }
-          });
+        await prisma.servicePage.upsert({
+          where: { slug },
+          update: { component: finalCode, isLive: true },
+          create: { slug, title: item.title, component: finalCode, route: payload.route || `/services/${slug}`, isLive: true }
+        });
+
+        // Queue the .tsx file for GitHub commit
+        const targetFile = payload.target_file || `src/pages/services/${componentName}.tsx`;
+        filesToCommit.push({ path: targetFile, content: finalCode });
+        
+        // Update App.tsx with new route
+        const updatedAppTsx = await injectRouteViaAPI(payload.route || `/services/${slug}`, componentName);
+        if (updatedAppTsx) {
+          filesToCommit.push({ path: 'src/App.tsx', content: updatedAppTsx });
         }
 
-        // Also write the .tsx file for static rendering
-        if (payload.target_file) {
-          const fullPath = path.join(process.cwd(), payload.target_file);
-          const dirPath = path.dirname(fullPath);
-          if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
-          fs.writeFileSync(fullPath, finalCode, 'utf8');
-          injectRouteIntoApp(payload.route, payload.target_file);
-          codeChanged = true;
-        }
-
-        console.log(`   ✅ Page "${item.title}" → DB + file system`);
+        console.log(`   ✅ Page "${item.title}" → DB + queued for GitHub push`);
 
       } else if (item.type === 'technical_patch') {
-        // ── TECHNICAL PATCH → Write code, needs git commit ──
+        // ── TECHNICAL PATCH → Push via GitHub API ──
         const payload = JSON.parse(item.content || '{}');
-        const cleanPath = payload.target_file?.startsWith('/') 
-          ? payload.target_file.slice(1) : payload.target_file;
+        const targetFile = payload.target_file?.startsWith('/') ? payload.target_file.slice(1) : payload.target_file;
         
-        if (cleanPath && payload.code) {
-          const fullPath = path.join(process.cwd(), cleanPath);
-          fs.writeFileSync(fullPath, payload.code, 'utf8');
-          codeChanged = true;
-          console.log(`   ✅ Patch applied to ${cleanPath}`);
+        if (targetFile && payload.code) {
+          filesToCommit.push({ path: targetFile, content: payload.code });
+          console.log(`   ✅ Patch queued: ${targetFile}`);
         }
       }
 
-      // Mark as published in DB
+      // Mark as published
       await prisma.stagingItem.update({
         where: { id: item.id },
         data: { status: 'published', publishedAt: new Date() }
       });
-
       publishedCount++;
       await logActivity('📣', 'publisher', `Deployed ${item.type}: "${item.title}"`, 'publish');
 
@@ -196,154 +192,32 @@ async function publishApprovedItems() {
     }
   }
 
-  console.log(`\n🎉 PUBLISHER: Deployed ${publishedCount}/${approvedItems.length} items.`);
-
-
-
-  // Load settings to check for auto-commit
-  let isAutoCommit = process.env.GITHUB_ACTIONS === 'true';
-  try {
-    const dbSettings = await prisma.agencyConfig.findUnique({ where: { id: 'default' }});
-    if (dbSettings && dbSettings.isAutoCommit) {
-      isAutoCommit = true;
+  // ═══════════════════════════════════════════════════════════════════
+  // PUSH TO GITHUB — Single atomic commit for all file changes
+  // ═══════════════════════════════════════════════════════════════════
+  if (filesToCommit.length > 0) {
+    console.log(`\n🐙 GITHUB PUSH: Committing ${filesToCommit.length} file(s)...`);
+    
+    const result = await githubCommitMultiple(
+      filesToCommit,
+      `[AI-PUBLISH] Deployed ${publishedCount} improvement(s)`
+    );
+    
+    if (result.success) {
+      console.log(`   ✅ Pushed to GitHub: ${result.sha?.substring(0, 7)}`);
+      console.log(`   🔄 Vercel will auto-deploy in ~30 seconds`);
+      await logActivity('🐙', 'publisher', `Pushed ${filesToCommit.length} files to GitHub (${result.sha?.substring(0, 7)})`, 'publish');
     } else {
-      // Fallback
-      const settings = JSON.parse(fs.readFileSync(path.join(process.cwd(), '.github/staging/system-settings.json'), 'utf8'));
-      if (settings.isAutoCommit) isAutoCommit = true;
-    }
-  } catch (e) {
-    console.error('   ⚠️ Could not load settings:', e.message);
-  }
-
-  if (publishedCount > 0 && isAutoCommit) {
-    try {
-      console.log(`\n👔 CI/AUTO-COMMIT: Stage, Commit & Push...`);
-      
-      const REPO_URL = 'https://github.com/KarmJoshi/FourIqTech.git';
-      const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-      
-      if (!GITHUB_TOKEN) {
-        console.warn('   ⚠️ No GITHUB_TOKEN found in environment. Skipping push.');
-      } else {
-        console.log(`   🔑 Token detected (Length: ${GITHUB_TOKEN.length}).`);
-      }
-
-      if (!GITHUB_TOKEN) {
-        console.log(`\n💡 LOCAL: Published ${publishedCount} items locally. No token for push.`);
-      } else {
-        // ═══════════════════════════════════════════════════════
-        // STEP 0: HEAL — Clean up any previous broken git state
-        // ═══════════════════════════════════════════════════════
-        console.log(`   🩹 Step 0: Healing any previous broken git state...`);
-        try { execSync('git rebase --abort', { stdio: 'ignore' }); } catch(e) {}
-        try { execSync('git merge --abort', { stdio: 'ignore' }); } catch(e) {}
-        try { execSync('git cherry-pick --abort', { stdio: 'ignore' }); } catch(e) {}
-        // Reset any unmerged/conflicted index entries back to HEAD
-        try { execSync('git reset HEAD', { stdio: 'ignore' }); } catch(e) {}
-        // Discard any leftover conflict markers in working tree
-        try { execSync('git checkout -- .', { stdio: 'ignore' }); } catch(e) {}
-        console.log(`   ✅ Git state is clean.`);
-        
-        // ═══════════════════════════════════════════════════════
-        // STEP 1: CONFIGURE — Set up remote and identity
-        // ═══════════════════════════════════════════════════════
-        let branch = 'main';
-        try {
-          const detected = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
-          if (detected && detected !== 'HEAD') branch = detected;
-        } catch (e) {}
-
-        const authenticatedUrl = REPO_URL.replace('https://', `https://${GITHUB_TOKEN}@`);
-        
-        try { execSync('git remote remove origin', { stdio: 'ignore' }); } catch (e) {}
-        execSync(`git remote add origin ${authenticatedUrl}`);
-        execSync('git config user.name "FourIqTech AI Publisher"');
-        execSync('git config user.email "ai-publisher@fouriqtech.com"');
-        console.log(`   🔄 Remote configured for branch: ${branch}`);
-
-        // ═══════════════════════════════════════════════════════
-        // STEP 2: PULL FIRST — Get remote changes BEFORE staging
-        // ═══════════════════════════════════════════════════════
-        console.log(`   📥 Step 2: Pulling latest from remote BEFORE committing...`);
-        try {
-          // Stash our local changes so pull doesn't conflict
-          execSync('git stash --include-untracked', { stdio: 'ignore' });
-          
-          try {
-            execSync(`git pull origin ${branch} --no-edit`, { stdio: 'pipe' });
-          } catch (pullErr) {
-            // If pull fails, force-reset to remote to guarantee clean state
-            console.log(`   ⚠️ Pull failed. Force-resetting to remote state...`);
-            try { execSync(`git fetch origin ${branch}`, { stdio: 'ignore' }); } catch(e) {}
-            try { execSync(`git reset --hard origin/${branch}`, { stdio: 'ignore' }); } catch(e) {}
-          }
-          
-          // Pop our stashed changes back
-          try { execSync('git stash pop', { stdio: 'ignore' }); } catch(e) {
-            // If stash pop fails (conflict), just drop stash and re-generate files
-            try { execSync('git stash drop', { stdio: 'ignore' }); } catch(e) {}
-            console.log(`   ⚠️ Stash pop had conflicts. Re-syncing JSON files...`);
-            // Re-sync the JSON files since stash pop failed
-            try {
-              const allBlogs = await prisma.blogPost.findMany({ where: { isLive: true } });
-              fs.writeFileSync(path.join(process.cwd(), 'public/live_posts.json'), JSON.stringify({ posts: allBlogs }, null, 2));
-              const allServices = await prisma.servicePage.findMany({ where: { isLive: true } });
-              fs.writeFileSync(path.join(process.cwd(), 'public/live_pages.json'), JSON.stringify({ pages: allServices }, null, 2));
-            } catch(e) {}
-          }
-        } catch (e) {
-          console.log(`   ⚠️ Stash/pull cycle had issues, continuing anyway...`);
-        }
-
-        // ═══════════════════════════════════════════════════════
-        // STEP 3: SYNC & STAGE — Write UI files and stage
-        // ═══════════════════════════════════════════════════════
-        console.log(`   📝 Step 3: Refreshing UI JSON indices...`);
-        try {
-          const allBlogs = await prisma.blogPost.findMany({ where: { isLive: true } });
-          fs.writeFileSync(path.join(process.cwd(), 'public/live_posts.json'), JSON.stringify({ posts: allBlogs }, null, 2));
-          const allServices = await prisma.servicePage.findMany({ where: { isLive: true } });
-          fs.writeFileSync(path.join(process.cwd(), 'public/live_pages.json'), JSON.stringify({ pages: allServices }, null, 2));
-        } catch (e) {
-          console.error('   ⚠️ UI Sync failed:', e.message);
-        }
-
-        execSync('git add .');
-        const status = execSync('git status --porcelain').toString();
-        
-        if (status) {
-          console.log(`   📝 Step 3: Committing ${status.split('\\n').filter(Boolean).length} changed files...`);
-          execSync(`git commit -m "[AI-PUBLISH] Deployed ${publishedCount} improvements"`);
-          
-          // ═══════════════════════════════════════════════════════
-          // STEP 4: PUSH — Send to GitHub
-          // ═══════════════════════════════════════════════════════
-          console.log(`   📤 Step 4: Pushing to ${branch}...`);
-          execSync(`git push origin ${branch}`, { stdio: 'pipe' });
-          
-          console.log('   ✅ Git push successful.');
-          await logActivity('🐙', 'publisher', `Successfully pushed ${publishedCount} changes to ${branch}`, 'info');
-        } else {
-          console.log('   ℹ️ No file changes to commit (DB-only updates applied).');
-        }
-      }
-    } catch (gitErr) {
-      const errorMsg = gitErr.stderr?.toString() || gitErr.message;
-      console.error('   ❌ Git operation failed:', errorMsg.substring(0, 200));
-      await logActivity('⚠️', 'publisher', `Auto-commit failed: ${errorMsg.substring(0, 100)}`, 'error');
-      
-      // FINAL SAFETY NET: Always leave repo in a clean state for next run
-      try { execSync('git rebase --abort', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('git merge --abort', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('git reset HEAD', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('git checkout -- .', { stdio: 'ignore' }); } catch(e) {}
+      console.error(`   ❌ GitHub push failed: ${result.error}`);
+      await logActivity('❌', 'publisher', `GitHub push failed: ${result.error}`, 'error');
     }
   } else if (publishedCount > 0) {
-    console.log(`\n💡 LOCAL: Published ${publishedCount} items. (Auto-commit disabled in settings)`);
+    console.log(`\n✅ ${publishedCount} items published (DB-only, no file changes needed).`);
   }
+
+  console.log(`\n🎉 PUBLISHER: Done. ${publishedCount}/${approvedItems.length} deployed.`);
 }
 
-
 publishApprovedItems()
-  .catch(e => console.error('Publisher fatal:', e))
+  .catch(e => console.error('Publisher fatal:', e.message))
   .finally(() => pool.end());
