@@ -417,10 +417,19 @@ async function main() {
 
   await sleep(3000);
 
-  // Phase 3: Page Builder
-  const code = await pageBuilder(scanResult, design);
+  // Phase 3: Page Builder (with retry)
+  let code = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    console.log(`\n🏗️ PHASE 3: Page Builder (attempt ${attempt}/2)...`);
+    code = await pageBuilder(scanResult, design);
+    if (code && code.length >= 500) break;
+    console.log(`   ⚠️ Attempt ${attempt}: Code empty or too short (${code?.length || 0} chars). ${attempt < 2 ? 'Retrying...' : ''}`);
+    if (attempt < 2) await sleep(5000);
+  }
+  
   if (!code || code.length < 500) {
-    console.log('\n⚠️ Code generation failed or too short. Aborting.');
+    console.log('\n❌ Code generation failed after 2 attempts. Aborting.');
+    await logActivity('❌', 'structural', 'Page Builder failed — model returned empty code', 'error');
     await closeMemory();
     return;
   }
