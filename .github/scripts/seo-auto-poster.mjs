@@ -1,10 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import puppeteer from 'puppeteer';
-import { GoogleGenAI } from '@google/genai';
 import yaml from 'js-yaml';
 import crypto from 'crypto';
-import { submitToStaging, logActivity, getModelsForRole } from './agency-core.mjs';
+import { submitToStaging, logActivity, getModelsForRole, smartCall as coreSmartCall, healedCall, sleep, getApiKeyCount } from './agency-core.mjs';
 import { spawn } from 'child_process';
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -49,96 +47,25 @@ const RAG_ARTICLES_DIR = path.join(RAG_DIR, 'articles');
 const RAG_GSC_SNAPSHOTS = path.join(RAG_DIR, 'gsc_snapshots');
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🔑 MULTI-API KEY ROTATION & SMART CALL ENGINE
+// 🔑 API & MODEL ROUTING (Uses agency-core.mjs shared infrastructure)
 // ═══════════════════════════════════════════════════════════════════════
-// ── API KEY ROTATION ──
-const PRO_KEY = process.env.GEMINI_PRO_API_KEY || '';
-const OTHER_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-  .replace(/["']/g, '')
-  .split(',').map(k => k.trim()).filter(k => k.length > 0);
-
-// Prioritize Pro Key (Billed) and deduplicate with others
-const API_KEYS = [...new Set([PRO_KEY, ...OTHER_KEYS])].filter(k => k.length > 0);
-
-let currentKeyIdx = 0;
-if (API_KEYS.length > 0) process.env.GEMINI_API_KEY = API_KEYS[0];
-let aiClient = API_KEYS.length > 0 ? new GoogleGenAI({ apiKey: API_KEYS[0] }) : null;
-
-function rotateKey() {
-  currentKeyIdx = (currentKeyIdx + 1) % API_KEYS.length;
-  const nextKey = API_KEYS[currentKeyIdx];
-  process.env.GEMINI_API_KEY = nextKey;
-  aiClient = new GoogleGenAI({ apiKey: nextKey });
-  console.log(`   🔑 Rotated → Key #${currentKeyIdx + 1}/${API_KEYS.length}`);
-}
-
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function getModels(taskType) {
-  // Map local task names to the global roles defined in the Matrix UI
   const roleMap = { 
     writing: 'writer', 
     research: 'researcher', 
-    manager: 'content_manager', // Now uses the granular content strategist role
+    manager: 'content_manager',
     qa: 'qa' 
   };
   const targetRole = roleMap[taskType] || taskType;
   return await getModelsForRole(targetRole);
 }
 
-async function smartCall(modelArray, contents, agentName = 'AI') {
-  const models = Array.isArray(modelArray) ? modelArray : [modelArray];
-  for (const model of models) {
-    let tries = 0;
-    let backoffMs = 5000;
-    console.log(`   🚀 [${agentName}] Trying model: ${model}...`);
-    while (tries < API_KEYS.length * 2) {
-      try {
-        const resp = await aiClient.models.generateContent({
-          model, contents, config: { 
-            responseMimeType: "application/json", 
-            maxOutputTokens: 8192,
-            tools: [{ googleSearch: {} }]
-          }
-        });
-        await sleep(3000);
-        return resp.candidates[0].content.parts[0].text;
-      } catch (err) {
-        if (err.status === 429 || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
-          console.log(`   ⏳ Rate limit hit! Backing off for ${backoffMs / 1000}s...`);
-          await sleep(backoffMs);
-          tries++;
-          if (tries % 2 !== 0 && API_KEYS.length > 1) rotateKey();
-          else backoffMs *= 2;
-          continue;
-        }
-        const errStr = String(err.status || err.message || '').toLowerCase();
-        if (errStr.includes('404') || errStr.includes('400') || errStr.includes('503') || errStr.includes('500') || errStr.includes('high demand')) {
-          console.log(`   ❌ Model ${model} unavailable. Falling back...`);
-          break;
-        }
-        throw err;
-      }
-    }
-  }
-  throw new Error('All models and API keys exhausted.');
+// Local smartCall wrapper using core
+async function smartCall(modelArray, contents, agentName = 'AI', options = {}) {
+  return await coreSmartCall(modelArray, contents, agentName, options);
 }
 
-async function healedCall(agent, fn, retries = 3) {
-  let lastErr = null;
-  for (let i = 1; i <= retries; i++) {
-    try { return await fn(lastErr); }
-    catch (e) {
-      console.error(`   ⚠️ [${agent}] Attempt ${i}: ${e.message?.substring(0, 120)}`);
-      lastErr = e;
-      if (i < retries) {
-        console.log(`   🩹 [${agent}] Self-healing: cooling down for 8s...`);
-        await sleep(8000);
-      }
-    }
-  }
-  throw lastErr;
-}
 
 // ═══════════════════════════════════════════════════════════════════════
 // 📊 INFRASTRUCTURE — Publish Log, Content Pipeline, GSC Loader
@@ -700,90 +627,45 @@ RETURN VALID JSON:
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🌐 SCRAPER — Live SERP Data Extraction (Headless with Fallback)
+// 🌐 LIVE SERP DATA — Via Gemini Google Search Grounding (No Puppeteer)
 // ═══════════════════════════════════════════════════════════════════════
 async function scrapeSerp(keyword) {
-  let browser = null;
   try {
-    console.log(`\n🕵️ SCRAPER: Launching headless browser for real-time SERP scrape...`);
-    browser = await puppeteer.launch({
-      headless: "new",
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080']
-    });
-    const page = await browser.newPage();
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    console.log(`\n🌐 SERP INTEL: Using Gemini grounding for "${keyword}"...`);
+    
+    const models = await getModels('research');
+    // Use grounding (non-JSON mode) to get live search results
+    const raw = await coreSmartCall(models, `Search Google for: "${keyword}"
 
-    // --- TRY GOOGLE FIRST ---
-    console.log(`   🌐 Primary Attempt: Google Search for "${keyword}"`);
-    await page.goto(`https://www.google.com/search?q=${encodeURIComponent(keyword)}&hl=en`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await new Promise(r => setTimeout(r, 2000));
+Return the top 10 organic search results currently ranking on page 1. For each result provide:
+- position (1-10)
+- title (exact title tag)
+- snippet (meta description shown in SERP)
 
-    let serpData = await page.evaluate(() => {
-      if (document.body.innerText.includes('unusual traffic') || document.querySelector('#captcha-form')) return null;
-      
-      const results = [];
-      const items = document.querySelectorAll('div.tF2Cxc, div.g');
-      items.forEach((item, index) => {
-        if (index >= 10) return;
-        const titleEl = item.querySelector('h3');
-        const snippetEl = item.querySelector('.VwiC3b, .yXK7lf, .MUxGbd, .yDYNvb');
-        if (titleEl) {
-          results.push({
-            position: index + 1,
-            title: titleEl.innerText || '',
-            snippet: snippetEl ? snippetEl.innerText : ''
-          });
-        }
-      });
+Also extract:
+- People Also Ask questions (up to 5)
+- Featured snippet text if one exists
 
-      // --- EXTRACT SERP FEATURES ---
-      const paa = Array.from(document.querySelectorAll('.iD87jt, .dn799b, .s67bU')).map(el => el.innerText).filter(t => t.includes('?'));
-      const featured = document.querySelector('.LGOv1b, .hp00ve, .XnoxBy, .DI6Ybe')?.innerText || null;
-      
-      return { results, paa, featured_snippet: featured };
-    });
+Return as JSON:
+{
+  "results": [{"position": 1, "title": "...", "snippet": "..."}],
+  "paa": ["question 1?", "question 2?"],
+  "featured_snippet": "text or null"
+}`, 'SERP Intel', { json: true, maxTokens: 4096 });
 
-    let results = serpData?.results || [];
-    const paa = serpData?.paa || [];
-    const featured = serpData?.featured_snippet;
-
-    // --- FALLBACK TO DUCKDUCKGO IF BLOCKED ---
-    if (!results || results.length === 0) {
-      console.log(`   ⚠️ Google blocked us (CAPTCHA). Falling back to DuckDuckGo...`);
-      await page.goto(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(keyword)}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await new Promise(r => setTimeout(r, 1500));
-
-      results = await page.evaluate(() => {
-        const items = document.querySelectorAll('.result');
-        const data = [];
-        items.forEach((item, index) => {
-          if (index >= 10) return;
-          const titleEl = item.querySelector('.result__title');
-          const snippetEl = item.querySelector('.result__snippet');
-          if (titleEl) {
-            data.push({
-              position: index + 1,
-              title: titleEl.innerText || '',
-              snippet: snippetEl ? snippetEl.innerText : ''
-            });
-          }
-        });
-        return data;
-      });
-    }
-
-    console.log(`   ✅ Extracted ${results.length} live organic results.`);
-    return { 
-      results, 
-      paa: paa || [], 
-      featured_snippet: featured || null,
-      source: results.length > 0 ? 'Google' : 'Fallback' 
+    const parsed = JSON.parse(raw);
+    const results = parsed.results || [];
+    console.log(`   ✅ Got ${results.length} live SERP results via grounding.`);
+    
+    return {
+      results,
+      paa: parsed.paa || [],
+      featured_snippet: parsed.featured_snippet || null,
+      source: 'Gemini-Grounding'
     };
   } catch (err) {
-    console.error(`   ❌ Scraper failed: ${err.message}`);
+    console.error(`   ⚠️ SERP grounding failed: ${err.message}. Continuing without live data.`);
     return { results: [], paa: [], featured_snippet: null, source: 'Error' };
-  } finally {
-    if (browser) await browser.close();
   }
 }
 
@@ -1197,10 +1079,10 @@ async function engine() {
   console.log('║  🧠 FOURIQTECH SEO ENGINE V8.0 — Autonomous Agency     ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log(`⏰ ${new Date().toISOString()}`);
-  console.log(`🔑 API Keys: ${API_KEYS.length}`);
+  console.log(`🔑 API Keys: ${getApiKeyCount()}`);
 
-  if (API_KEYS.length === 0) {
-    console.error('❌ No API keys. Set GEMINI_API_KEYS. Exiting.');
+  if (getApiKeyCount() === 0) {
+    console.error('❌ No API keys. Set GEMINI_API_KEYS in .env. Exiting.');
     process.exit(1);
   }
 

@@ -10,11 +10,11 @@ interface ModelSelectionMatrixProps {
 
 const AVAILABLE_MODELS = [
   { id: "gemini-3.1-pro-preview", label: "3.1 Pro", tier: "pro" },
-  { id: "gemini-1.5-pro", label: "1.5 Pro", tier: "pro" },
-  { id: "gemini-3.1-flash-lite-preview", label: "3.1 Flash", tier: "flash" },
-  { id: "gemini-1.5-flash", label: "1.5 Flash", tier: "flash" },
-  { id: "gemini-3-flash", label: "3 Flash", tier: "flash" },
-  { id: "gemini-2.5-flash", label: "2.5 Flash", tier: "flash" }
+  { id: "gemini-3-pro-preview", label: "3 Pro", tier: "pro" },
+  { id: "gemini-3.1-flash-lite-preview", label: "3.1 Flash Lite", tier: "flash" },
+  { id: "gemini-3-flash-preview", label: "3 Flash", tier: "flash" },
+  { id: "gemini-2.5-flash", label: "2.5 Flash", tier: "flash" },
+  { id: "gemini-2.0-flash", label: "2.0 Flash", tier: "flash" }
 ];
 
 const PRICING_INR = {
@@ -32,15 +32,15 @@ const DEPARTMENTS = [
 
 const ROLES = [
   { id: "manager", dept: "management", label: "Agency Director (CEO)", recommended: "gemini-3.1-pro-preview", desc: "Orchestrates all departments and costs." },
-  { id: "content_manager", dept: "content", label: "Content Strategist", recommended: "gemini-1.5-pro", desc: "Creates the brief and snippet strategy." },
+  { id: "content_manager", dept: "content", label: "Content Strategist", recommended: "gemini-3-pro-preview", desc: "Creates the brief and snippet strategy." },
   { id: "researcher", dept: "content", label: "SERP Researcher", recommended: "gemini-3.1-flash-lite-preview", desc: "Audits top 10 results and PAA gaps." },
-  { id: "writer", dept: "content", label: "Content Writer", recommended: "gemini-1.5-flash", desc: "Generates technical blog posts." },
+  { id: "writer", dept: "content", label: "Content Writer", recommended: "gemini-3-flash-preview", desc: "Generates technical blog posts." },
   { id: "qa", dept: "content", label: "QA Inspector", recommended: "gemini-3.1-pro-preview", desc: "Validates technical accuracy and tone." },
   { id: "scanner", dept: "outreach", label: "Revenue Scanner", recommended: "gemini-3.1-flash-lite-preview", desc: "Finds commercial niches and lead info." },
-  { id: "architect", dept: "landing_pages", label: "Page Architect", recommended: "gemini-1.5-pro", desc: "Blueprints landing page structures." },
+  { id: "architect", dept: "landing_pages", label: "Page Architect", recommended: "gemini-3-pro-preview", desc: "Blueprints landing page structures." },
   { id: "builder", dept: "landing_pages", label: "Page Builder", recommended: "gemini-3.1-pro-preview", desc: "Writes production React/Tailwind code." },
   { id: "auditor", dept: "technical", label: "Code Auditor", recommended: "gemini-3.1-pro-preview", desc: "Scans for SEO and performance risks." },
-  { id: "browser", dept: "technical", label: "Digital Scout", recommended: "gemini-1.5-flash", desc: "Executes automated site scraping." }
+  { id: "browser", dept: "technical", label: "Digital Scout", recommended: "gemini-3-flash-preview", desc: "Executes automated site scraping." }
 ];
 
 export function ModelSelectionMatrix({ currentModels, onUpdate, isUpdating }: ModelSelectionMatrixProps) {
@@ -108,7 +108,9 @@ export function ModelSelectionMatrix({ currentModels, onUpdate, isUpdating }: Mo
     const payload: Record<string, string[]> = {};
     Object.entries(localModels).forEach(([role, model]) => {
       // Send the selection with a robust fallback chain
-      payload[role] = [model, "gemini-3.1-flash-lite-preview", "gemini-3-flash", "gemini-2.5-flash"];
+      // Build a full fallback chain: selected → flash-preview → 2.5-flash → 2.0-flash
+      const fallbacks = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.0-flash"].filter(m => m !== model);
+      payload[role] = [model, ...fallbacks];
     });
     onUpdate(payload);
   };

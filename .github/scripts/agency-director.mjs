@@ -1,502 +1,408 @@
 import fs from 'fs';
 import path from 'path';
-import { GoogleGenAI } from '@google/genai';
 import { execSync } from 'child_process';
-import { buildOpportunitySnapshot } from './seo-opportunity-engine.mjs';
-import { recordDirectorAction, buildPlaybookScores } from './seo-learning-engine.mjs';
+import { getModelsForRole, smartCall, sleep, logActivity } from './agency-core.mjs';
+import { compileMemory, recordAction, recordPattern, trackKeyword, addToBlacklist, closeMemory } from './memory-compiler.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
-// 👔 FOURIQTECH AGENCY DIRECTOR — "The 20-Year Expert" v1.0
+// 👔 AGENCY DIRECTOR v2.0 — Memory-Powered Strategic Brain
 // ═══════════════════════════════════════════════════════════════════════
-// The top-level Strategic Brain that sits above all 3 departments:
-//   ✍️ CONTENT TEAM     → seo-auto-poster.mjs  (Writes blog posts)
-//   🏗️ STRUCTURAL TEAM  → seo-dev-agent.mjs    (Builds landing pages)
-//   🛡️ TECHNICAL TEAM   → technical-seo-agent.mjs (Site health & speed)
+// The Director is the TOP-LEVEL decision maker. It:
+//   1. Loads FULL agency memory (4 layers)
+//   2. Analyzes current state + opportunities
+//   3. Makes a strategic decision (which department to run)
+//   4. Dispatches the chosen department
+//   5. Reviews output quality
+//   6. Records everything for future learning
 //
-// Architecture:
-//   📊 SITREP           → Gathers intelligence from all department logs
-//   🧠 STRATEGIC BRAIN  → Gemini 3.1 Pro makes the call (billed key)
-//   🎲 QUALITY AUDIT    → Random "surprise inspection" of recent work
-//   ⚡ DISPATCH          → Executes the chosen department
-//   📋 JOURNAL          → Logs every decision for accountability
-//   💬 CHAT MODE        → Talk to the Director via --chat flag
+// KEY DIFFERENCE from v1: The Director now has FULL CONTEXT.
+// It knows what worked, what failed, what's stuck, and what to avoid.
+// It's not guessing — it's making informed decisions based on data.
 // ═══════════════════════════════════════════════════════════════════════
 
-// ── Paths ──
-const PUBLISH_LOG      = path.join(process.cwd(), '.github/publish_log.json');
-const TECH_LOG         = path.join(process.cwd(), '.github/technical_seo_log.json');
-const GSC_REPORT       = path.join(process.cwd(), '.github/gsc-reports/latest.json');
-const BLOG_DATA        = path.join(process.cwd(), 'src/data/blogPosts.ts');
-const APP_TSX          = path.join(process.cwd(), 'src/App.tsx');
-const CONFIG_PATH      = path.join(process.cwd(), 'fouriqtech-seo-config.yaml');
-const DIRECTOR_JOURNAL = path.join(process.cwd(), '.github/director_journal.json');
-const OPPORTUNITY_SNAPSHOT = path.join(process.cwd(), '.github/seo-memory/latest-opportunities.json');
-
-// ── Department Scripts ──
+const CWD = process.cwd();
 const DEPARTMENTS = {
   content:    '.github/scripts/seo-auto-poster.mjs',
   structural: '.github/scripts/seo-dev-agent.mjs',
   technical:  '.github/scripts/technical-seo-agent.mjs',
 };
 
-// ── API Setup (Separate billed key for Director) ──
-const PRO_KEY = process.env.GEMINI_PRO_API_KEY || '';
-const FREE_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-  .split(',').map(k => k.trim()).filter(k => k.length > 0);
+// DB connection
+import pkgPrisma from '@prisma/client';
+const { PrismaClient } = pkgPrisma;
+import pkgPg from 'pg';
+const { Pool } = pkgPg;
+import { PrismaPg } from '@prisma/adapter-pg';
 
-// Director uses Pro key; falls back to free keys if not set
-const directorKey = PRO_KEY || FREE_KEYS[0] || '';
-if (!directorKey) {
-  console.error('💥 FATAL: No API keys found. Set GEMINI_PRO_API_KEY or GEMINI_API_KEYS in .env');
-  process.exit(1);
-}
-
-const ai = new GoogleGenAI({ apiKey: directorKey });
-
-import { getModelsForRole } from './agency-core.mjs';
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🔧 UTILITIES
+// PHASE 1: SITUATION REPORT — Full memory-powered context
 // ═══════════════════════════════════════════════════════════════════════
-
-function readJsonSafe(filePath) {
-  try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
-  catch { return null; }
-}
-
-function loadJournal() {
-  try { return JSON.parse(fs.readFileSync(DIRECTOR_JOURNAL, 'utf8')); }
-  catch { return { entries: [], total_cycles: 0 }; }
-}
-
-function saveJournal(journal) {
-  fs.writeFileSync(DIRECTOR_JOURNAL, JSON.stringify(journal, null, 2));
-}
-
-async function directorCall(prompt, jsonMode = true) {
-  const models = await getModelsForRole('manager');
-  for (const model of models) {
-    try {
-      console.log(`   🧠 [Director] Thinking with ${model}...`);
-      const config = jsonMode ? { responseMimeType: "application/json" } : {};
-      const resp = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config
-      });
-      return resp.candidates[0].content.parts[0].text;
-    } catch (err) {
-      console.error(`   ⚠️ Model ${model} failed: ${err.message?.substring(0, 80)}. Falling back...`);
-    }
-  }
-  throw new Error('All Director models exhausted.');
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// 📊 PHASE 1: SITUATION REPORT (SitRep) — DB-Native
-// ═══════════════════════════════════════════════════════════════════════
-
 async function gatherSitRep() {
-  console.log('\n📊 PHASE 1: Gathering Situation Report...');
-  const sitrep = {};
+  console.log('\n📊 PHASE 1: Building Situation Report from Memory...');
+  
+  // Compile full memory context
+  const memory = await compileMemory('director');
+  console.log(`   🧠 Memory loaded: ${memory.context.length} chars of context`);
 
+  // Get additional real-time data
+  const sitrep = { memoryContext: memory.context };
+
+  // Content team status
   try {
-    // We import locally to keep connections clean
-    const pkgPrisma = await import('@prisma/client');
-    const { PrismaClient } = pkgPrisma.default || pkgPrisma;
-    
-    // Attempt standard connection first, then pg-adapter fallback if needed
-    let prisma;
-    try {
-      prisma = new PrismaClient();
-      await prisma.$connect();
-    } catch {
-      const pkgPg = await import('pg');
-      const { Pool } = pkgPg.default || pkgPg;
-      const { PrismaPg } = await import('@prisma/adapter-pg');
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      const adapter = new PrismaPg(pool);
-      prisma = new PrismaClient({ adapter });
-    }
-
-    // Content Team Status
     const blogCount = await prisma.blogPost.count({ where: { isLive: true } });
     const recentBlogs = await prisma.blogPost.findMany({
-      where: { isLive: true },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-      select: { title: true, date: true }
+      where: { isLive: true }, orderBy: { createdAt: 'desc' }, take: 5,
+      select: { title: true, slug: true, targetKeyword: true, qaScore: true, createdAt: true }
     });
-    
-    sitrep.content_team = {
-      total_published: blogCount,
-      last_3: recentBlogs,
-    };
-    sitrep.total_blog_posts = blogCount;
-    console.log(`   ✍️  Content Team: ${blogCount} articles published`);
+    sitrep.content = { total: blogCount, recent: recentBlogs };
+    console.log(`   ✍️ Content: ${blogCount} posts | Latest: "${recentBlogs[0]?.title || 'none'}"`);
+  } catch { sitrep.content = { total: 0, recent: [] }; }
 
-    // Structural Team Status
+  // Structural team status
+  try {
     const pageCount = await prisma.servicePage.count({ where: { isLive: true } });
-    const recentPages = await prisma.servicePage.findMany({
-      where: { isLive: true },
-      select: { route: true }
-    });
-    
-    sitrep.structural_team = {
-      deployed_service_pages: pageCount,
-      routes: recentPages.map(p => p.route),
-    };
-    console.log(`   🏗️  Structural Team: ${pageCount} service pages deployed`);
+    sitrep.structural = { total: pageCount };
+    console.log(`   🏗️ Structural: ${pageCount} service pages`);
+  } catch { sitrep.structural = { total: 0 }; }
 
-    await prisma.$disconnect();
-  } catch (err) {
-    console.error(`   ⚠️ Failed to query DB for sitrep:`, err.message);
-    sitrep.content_team = { total_published: 0, last_3: [] };
-    sitrep.total_blog_posts = 0;
-    sitrep.structural_team = { deployed_service_pages: 0, routes: [] };
-  }
-
-  // Technical Team Status (Still log based for now)
-  const techLog = readJsonSafe(TECH_LOG);
-  if (techLog) {
-    sitrep.technical_team = {
-      last_run: techLog.last_run,
-      fixes_applied: techLog.applied_fixes?.length || 0,
-    };
-    console.log(`   🛡️  Technical Team: Last ran ${techLog.last_run || 'never'}`);
-  } else {
-    sitrep.technical_team = { last_run: 'never', fixes_applied: 0 };
-    console.log('   🛡️  Technical Team: No log found');
-  }
-
-  // GSC Rankings (from DB)
+  // Technical team status
   try {
-    const latestGsc = await prisma.searchPerformance.findFirst({
-      orderBy: { generatedAt: 'desc' }
-    });
+    const lastAudit = await prisma.techAuditReport.findFirst({ orderBy: { date: 'desc' } });
+    sitrep.technical = lastAudit ? { lastScore: lastAudit.overallScore, lastRun: lastAudit.date } : { lastScore: null, lastRun: null };
+    console.log(`   🛡️ Technical: Last score ${sitrep.technical.lastScore || 'N/A'}/100`);
+  } catch { sitrep.technical = { lastScore: null, lastRun: null }; }
 
+  // Staging queue
+  try {
+    const pending = await prisma.stagingItem.count({ where: { status: 'pending_review' } });
+    sitrep.pendingReviews = pending;
+    console.log(`   📋 Pending reviews: ${pending}`);
+  } catch { sitrep.pendingReviews = 0; }
+
+  // GSC latest
+  try {
+    const latestGsc = await prisma.gscDailySnapshot.findFirst({ orderBy: { date: 'desc' } });
     if (latestGsc) {
-      sitrep.gsc = {
-        total_clicks: latestGsc.totalClicks,
-        total_impressions: latestGsc.totalImpressions,
-        avg_position: latestGsc.avgPosition,
-        pages_on_page_1: latestGsc.page1Count,
-        report: latestGsc.fullReport // For detailed analysis
-      };
-      console.log(`   📈 GSC: ${latestGsc.totalClicks} clicks | Avg Position: ${latestGsc.avgPosition}`);
+      sitrep.gsc = { clicks: latestGsc.totalClicks, impressions: latestGsc.totalImpressions, position: latestGsc.avgPosition, pages: latestGsc.pageCount };
+      console.log(`   📈 GSC: ${latestGsc.totalClicks} clicks | Position: ${latestGsc.avgPosition?.toFixed(1)}`);
     } else {
-      sitrep.gsc = null;
-      console.log('   📈 GSC: No report found in database');
+      // Fallback to old SearchPerformance table
+      const legacy = await prisma.searchPerformance.findFirst({ orderBy: { generatedAt: 'desc' } });
+      sitrep.gsc = legacy ? { clicks: legacy.totalClicks, impressions: legacy.totalImpressions, position: legacy.avgPosition } : null;
     }
-  } catch (err) {
-    sitrep.gsc = null;
-    console.error('   ⚠️ Failed to read GSC data from DB:', err.message);
-  }
+  } catch { sitrep.gsc = null; }
 
+  // Recent insights
   try {
-    const opportunitySnapshot = await buildOpportunitySnapshot();
-    const playbookScores = buildPlaybookScores();
-    sitrep.opportunity_engine = {
-      recommended_department: opportunitySnapshot.recommended_department,
-      recommended_orders: opportunitySnapshot.recommended_orders,
-      top_opportunities: opportunitySnapshot.top_opportunities.slice(0, 5),
-      department_scores: opportunitySnapshot.departments.map((item) => ({
-        department: item.department,
-        adjusted_score: item.adjusted_score,
-        recent_success_rate: item.recent_success_rate,
-        playbook_average_success: item.playbook_average_success,
-      })),
-      best_playbooks: playbookScores.slice(0, 5),
-    };
-    console.log(`   🧠 Opportunity Engine: ${opportunitySnapshot.recommended_department.toUpperCase()} leads this cycle`);
-  } catch (e) {
-    sitrep.opportunity_engine = null;
-    console.log(`   ⚠️ Opportunity Engine unavailable: ${e.message}`);
-  }
+    const insights = await prisma.gscInsight.findMany({ orderBy: { generatedAt: 'desc' }, take: 5 });
+    sitrep.insights = insights.map(i => i.insightText);
+  } catch { sitrep.insights = []; }
 
-  // Journal history
-  const journal = loadJournal();
-  sitrep.previous_decisions = journal.entries.slice(-5).map(e => ({
-    date: e.date,
-    decision: e.decision,
-    department: e.department,
-  }));
-  sitrep.total_director_cycles = journal.total_cycles;
+  // Recent journal (last 5 decisions)
+  try {
+    const journal = await prisma.journalEntry.findMany({ orderBy: { date: 'desc' }, take: 5 });
+    sitrep.recentDecisions = journal.map(j => ({ date: j.date, decision: j.decision, success: j.dispatchSuccess }));
+  } catch { sitrep.recentDecisions = []; }
 
   return sitrep;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🧠 PHASE 2: STRATEGIC DECISION
+// PHASE 2: STRATEGIC DECISION — AI with full memory context
 // ═══════════════════════════════════════════════════════════════════════
-
-async function makeStrategicDecision(sitrep) {
+async function makeDecision(sitrep) {
   console.log('\n🧠 PHASE 2: Making Strategic Decision...');
+  
+  const models = await getModelsForRole('manager');
+  const raw = await smartCall(models, `You are the Agency Director — a 20-year veteran SEO strategist running an autonomous agency.
 
-  const recommendedDepartment = sitrep.opportunity_engine?.recommended_department || 'content';
-  const recommendedOrders = sitrep.opportunity_engine?.recommended_orders || [];
+${sitrep.memoryContext}
 
-  const raw = await directorCall(`You are the Agency Director of FouriqTech — a 20-year veteran SEO strategist who has built and scaled agencies from $0 to $10M ARR. You are brutally honest, data-driven, and have zero tolerance for mediocre work.
+═══ REAL-TIME STATUS ═══
+- Content: ${sitrep.content?.total || 0} blog posts published
+- Service Pages: ${sitrep.structural?.total || 0} deployed
+- Technical Health: ${sitrep.technical?.lastScore || 'Unknown'}/100
+- Pending Reviews: ${sitrep.pendingReviews}
+- GSC: ${sitrep.gsc ? `${sitrep.gsc.clicks} clicks, avg position ${sitrep.gsc.position?.toFixed(1)}` : 'No data'}
 
-You manage 3 autonomous departments:
-1. **Content Team** (seo-auto-poster.mjs): Writes deep-dive blog posts to build authority
-2. **Structural Team** (seo-dev-agent.mjs): Builds high-conversion React landing pages autonomously
-3. **Technical Team** (technical-seo-agent.mjs): Audits site speed, Core Web Vitals, meta tags
+═══ RECENT INSIGHTS ═══
+${sitrep.insights?.length > 0 ? sitrep.insights.join('\n') : 'No insights yet — system is new.'}
 
-═══ CURRENT AGENCY STATUS ═══
-${JSON.stringify(sitrep, null, 2)}
-
-═══ SCORED RECOMMENDATION FROM OPPORTUNITY ENGINE ═══
-- Recommended department: ${recommendedDepartment}
-- Recommended orders:
-${recommendedOrders.map((order, index) => `${index + 1}. ${order}`).join('\n') || '1. No scored opportunities found'}
+═══ LAST 5 DECISIONS ═══
+${sitrep.recentDecisions?.map(d => `${new Date(d.date).toLocaleDateString()}: ${d.decision} (${d.success ? 'success' : 'failed'})`).join('\n') || 'No history yet.'}
 
 ═══ YOUR TASK ═══
-Based on the current situation, decide. Treat the scored recommendation as the default unless you have a strong, explicit reason to override it:
-1. Which ONE department should run next? (content, structural, or technical)
-2. Should you run a quality audit on recent content? (true/false — do this randomly ~30% of the time, or if you suspect quality issues)
-3. Any cross-department orders? (e.g., "Content team should write articles linking to the new service page")
-4. Your strategic reasoning as a 20-year expert
+Based on ALL the context above, decide:
+1. Which department should run? (content | structural | technical)
+2. What specific orders should they follow?
+3. Should you run a quality audit? (randomly ~30% of the time)
+4. Any cross-department coordination needed?
 
-Return a JSON object:
+DECISION RULES:
+- If no content published in 3+ days → prioritize content
+- If technical score < 80 → prioritize technical
+- If a keyword is stuck (position 8-15 for 2+ weeks) → content to support it
+- If recent decisions all failed → try a different department
+- Respect the blacklist — don't repeat failed strategies
+- Balance: don't run the same department 3x in a row
+
+Return JSON:
 {
   "department": "content" | "structural" | "technical",
-  "run_quality_audit": true | false,
-  "cross_department_orders": "string or null",
-  "reasoning": "Your expert strategic reasoning",
+  "orders": "Specific instructions for the team (2-3 sentences)",
+  "run_quality_audit": true/false,
+  "cross_dept_orders": "string or null",
+  "reasoning": "Why this decision (2-3 sentences)",
   "confidence": 1-10,
-  "agency_health_score": 1-10
-}`);
+  "agency_health": 1-10,
+  "target_keyword": "keyword to focus on (if applicable)",
+  "playbook": "which strategy to use (ctr_optimization, cluster_support, content_refresh, technical_fix, etc)"
+}`, 'Director');
 
   try {
     const decision = JSON.parse(raw);
-    console.log(`   🎯 Decision: Deploy → ${decision.department?.toUpperCase()} TEAM`);
-    console.log(`   📋 Reasoning: ${decision.reasoning?.substring(0, 120)}...`);
-    console.log(`   💪 Confidence: ${decision.confidence}/10 | Agency Health: ${decision.agency_health_score}/10`);
-    if (decision.cross_department_orders) {
-      console.log(`   📢 Cross-Dept Order: ${decision.cross_department_orders}`);
-    }
+    console.log(`   🎯 Decision: ${decision.department?.toUpperCase()}`);
+    console.log(`   📋 Orders: ${decision.orders}`);
+    console.log(`   💪 Confidence: ${decision.confidence}/10 | Health: ${decision.agency_health}/10`);
+    console.log(`   🎮 Playbook: ${decision.playbook}`);
     return decision;
   } catch (e) {
-    console.error(`   ⚠️ Failed to parse decision, defaulting to Content Team.`);
-    return { department: 'content', run_quality_audit: false, reasoning: 'Fallback', confidence: 3, agency_health_score: 5 };
+    console.error(`   ⚠️ Failed to parse decision. Defaulting to content.`);
+    return { department: 'content', orders: 'Write a new article', confidence: 3, agency_health: 5, playbook: 'content_general' };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 🎲 PHASE 3: QUALITY AUDIT (Surprise Inspection)
+// PHASE 3: QUALITY AUDIT — Random inspection from DB
 // ═══════════════════════════════════════════════════════════════════════
-
 async function runQualityAudit() {
-  console.log('\n🎲 PHASE 3: Running Quality Audit (Surprise Inspection)...');
-
-  // Pick a random recent blog post
-  let blogContent = '';
-  let blogTitle = '';
+  console.log('\n🎲 PHASE 3: Quality Audit (Surprise Inspection)...');
+  
   try {
-    const blogData = fs.readFileSync(BLOG_DATA, 'utf8');
-    const titles = [...blogData.matchAll(/title:\s*'([^']+)'/g)].map(m => m[1]);
-    const slugs = [...blogData.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]);
+    const posts = await prisma.blogPost.findMany({
+      where: { isLive: true }, orderBy: { createdAt: 'desc' }, take: 10,
+      select: { title: true, content: true, slug: true, qaScore: true }
+    });
 
-    if (titles.length === 0) {
-      console.log('   ⚠️ No blog posts to audit.');
-      return null;
-    }
+    if (posts.length === 0) { console.log('   ⚠️ No posts to audit.'); return null; }
 
-    // Pick from the last 10 posts (most recent)
-    const recentCount = Math.min(10, titles.length);
-    const randomIdx = Math.floor(Math.random() * recentCount);
-    blogTitle = titles[randomIdx];
-    const blogSlug = slugs[randomIdx];
+    const randomPost = posts[Math.floor(Math.random() * posts.length)];
+    console.log(`   🔍 Inspecting: "${randomPost.title}"`);
 
-    // Extract the content for that post
-    const contentMatch = blogData.match(new RegExp(`slug:\\s*'${blogSlug}'[\\s\\S]*?content:\\s*\`([\\s\\S]*?)\``, 'm'));
-    blogContent = contentMatch ? contentMatch[1].substring(0, 3000) : 'Content not extractable';
+    const models = await getModelsForRole('qa');
+    const raw = await smartCall(models, `You are a Senior Editorial Director doing a surprise quality audit.
 
-    console.log(`   🔍 Inspecting: "${blogTitle}"`);
-  } catch (e) {
-    console.log(`   ⚠️ Could not load blog data: ${e.message}`);
-    return null;
-  }
+ARTICLE: "${randomPost.title}"
+CONTENT (first 2500 chars):
+${(randomPost.content || '').substring(0, 2500)}
 
-  const raw = await directorCall(`You are a Senior Editorial Director with 20 years in SEO content strategy. You've just pulled a RANDOM article from the production site for a surprise quality audit. You are known for being brutally honest — mediocre work does not pass your desk.
+AUDIT CRITERIA:
+1. Authority & Expertise (expert-level or generic?)
+2. SEO Strength (keywords natural? H-tags correct?)
+3. Lead Generation (CTAs? Push toward services?)
+4. Originality (new insights or regurgitation?)
+5. Technical Depth (metrics, code examples, real data?)
 
-═══ ARTICLE UNDER REVIEW ═══
-Title: "${blogTitle}"
-Content (first 3000 chars):
-${blogContent}
-
-═══ YOUR AUDIT CRITERIA ═══
-1. **Authority & Expertise** (Does it sound like a 20-year expert wrote it, or a junior intern?)
-2. **SEO Strength** (Are keywords naturally woven in? Is the H-tag structure correct?)
-3. **Lead Generation** (Does it push the reader toward FouriqTech's services? Are there CTAs?)
-4. **Originality** (Does it say something new, or is it generic regurgitation?)
-5. **Brand Voice** (Does it match a "Premium, Elite Agency" tone?)
-
-Return a JSON object:
+Return JSON:
 {
   "article_title": "string",
   "overall_score": 1-10,
   "verdict": "PUBLISH" | "NEEDS_REVISION" | "REWRITE",
   "strengths": ["string"],
   "weaknesses": ["string"],
-  "specific_feedback": "Your brutally honest feedback as a 20-year expert",
-  "rewrite_order": "string or null (specific instructions if verdict is REWRITE)"
-}`);
+  "feedback": "Brutally honest 1-2 sentence feedback"
+}`, 'QA Auditor');
 
-  try {
     const audit = JSON.parse(raw);
     console.log(`   📊 Score: ${audit.overall_score}/10 | Verdict: ${audit.verdict}`);
-    if (audit.specific_feedback) {
-      console.log(`   💬 Feedback: ${audit.specific_feedback.substring(0, 150)}...`);
+
+    // Update the post's QA score in DB
+    await prisma.blogPost.update({
+      where: { slug: randomPost.slug },
+      data: { qaScore: audit.overall_score * 10 }
+    }).catch(() => {});
+
+    // Learn from the audit
+    if (audit.overall_score >= 8) {
+      await recordPattern('winning', 'content', `High-quality article pattern: "${randomPost.title}" scored ${audit.overall_score}/10. Strengths: ${audit.strengths?.join(', ')}`, 0.7, audit);
+    } else if (audit.overall_score <= 4) {
+      await recordPattern('failing', 'content', `Low-quality article: "${randomPost.title}" scored ${audit.overall_score}/10. Issues: ${audit.weaknesses?.join(', ')}`, 0.7, audit);
     }
+
     return audit;
-  } catch {
-    console.log('   ⚠️ Audit parse failed.');
+  } catch (e) {
+    console.log(`   ⚠️ Audit failed: ${e.message}`);
     return null;
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// ⚡ PHASE 4: DEPARTMENT DISPATCH
+// PHASE 4: DISPATCH — Execute the chosen department
 // ═══════════════════════════════════════════════════════════════════════
-
 function dispatchDepartment(decision) {
-  const department = decision.department;
-  const scriptPath = DEPARTMENTS[department];
-  if (!scriptPath) {
-    console.error(`   ❌ Unknown department: ${department}`);
-    return false;
-  }
+  const dept = decision.department;
+  const script = DEPARTMENTS[dept];
+  if (!script) { console.error(`   ❌ Unknown department: ${dept}`); return false; }
 
-  console.log(`\n⚡ PHASE 4: Dispatching ${department.toUpperCase()} TEAM...`);
-  
-  // Write CEO Orders for the agent to read
-  const ordersPath = path.join(process.cwd(), '.github/director_orders.json');
+  console.log(`\n⚡ PHASE 4: Dispatching ${dept.toUpperCase()} TEAM...`);
+
+  // Write orders for the department to read
+  const ordersPath = path.join(CWD, '.github/director_orders.json');
   fs.writeFileSync(ordersPath, JSON.stringify({
     timestamp: new Date().toISOString(),
-    department: department,
-    reasoning: decision.reasoning,
-    cross_department_orders: decision.cross_department_orders || "None. Continue standard operations.",
-    agency_health_score: decision.agency_health_score
+    department: dept,
+    orders: decision.orders,
+    playbook: decision.playbook,
+    target_keyword: decision.target_keyword || null,
+    cross_dept: decision.cross_dept_orders || null,
   }, null, 2));
 
-  console.log(`   📜 CEO Orders drafted to director_orders.json`);
-  console.log(`   🚀 Executing: node --env-file=.env ${scriptPath}`);
-
   if (process.env.DRY_RUN === 'true') {
-    console.log('   🧪 DRY_RUN: Skipping actual execution.');
+    console.log('   🧪 DRY_RUN: Skipping execution.');
     return true;
   }
 
   try {
-    execSync(`node --env-file=.env ${scriptPath}`, {
-      stdio: 'inherit',
-      cwd: process.cwd(),
-      timeout: 300000, // 5 minute timeout per department
-    });
-    console.log(`   ✅ ${department.toUpperCase()} TEAM completed successfully.`);
+    console.log(`   🚀 Executing: node --env-file=.env ${script}`);
+    execSync(`node --env-file=.env ${script}`, { stdio: 'inherit', cwd: CWD, timeout: 300000 });
+    console.log(`   ✅ ${dept.toUpperCase()} completed.`);
     return true;
   } catch (e) {
-    console.error(`   ❌ ${department.toUpperCase()} TEAM failed: ${e.message?.substring(0, 100)}`);
+    console.error(`   ❌ ${dept.toUpperCase()} failed: ${e.message?.substring(0, 100)}`);
     return false;
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 📋 PHASE 5: JOURNAL ENTRY
+// PHASE 5: AUTO-REVIEW — Check staging queue
 // ═══════════════════════════════════════════════════════════════════════
+async function autoReview() {
+  console.log('\n👀 PHASE 5: Auto-Review...');
+  
+  const pending = await prisma.stagingItem.findFirst({
+    where: { status: 'pending_review' }, orderBy: { createdAt: 'desc' }
+  });
 
-function writeJournal(sitrep, decision, audit, dispatchSuccess) {
-  console.log('\n📋 PHASE 5: Writing Director Journal...');
+  if (!pending) { console.log('   ✅ No pending items.'); return; }
 
-  const journal = loadJournal();
+  console.log(`   🧠 Reviewing: "${pending.title}"`);
+  const models = await getModelsForRole('manager');
+  
+  const raw = await smartCall(models, `You are reviewing work from your ${pending.department} team.
 
-  const entry = {
-    date: new Date().toISOString(),
-    cycle: journal.total_cycles + 1,
-    sitrep_summary: {
-      blog_posts: sitrep.total_blog_posts,
-      service_pages: sitrep.structural_team?.deployed_service_pages || 0,
-      gsc_clicks: sitrep.gsc?.total_clicks || 'N/A',
-      opportunity_leader: sitrep.opportunity_engine?.recommended_department || null,
-    },
-    decision: decision.department,
-    reasoning: decision.reasoning,
-    confidence: decision.confidence,
-    agency_health: decision.agency_health_score,
-    scored_recommendation: sitrep.opportunity_engine?.recommended_department || null,
-    recommended_orders: sitrep.opportunity_engine?.recommended_orders || [],
-    cross_dept_orders: decision.cross_department_orders || null,
-    quality_audit: audit ? {
-      article: audit.article_title,
-      score: audit.overall_score,
-      verdict: audit.verdict,
-    } : null,
-    dispatch_success: dispatchSuccess,
-  };
+ITEM: "${pending.title}" (${pending.type})
+CONTENT PREVIEW:
+${(pending.content || '').substring(0, 2000)}
 
-  journal.entries.push(entry);
-  journal.total_cycles += 1;
+Is this good enough to publish? Check:
+1. Is it complete and well-structured?
+2. Does it represent the brand properly?
+3. Is it technically sound?
 
-  // Keep only last 50 entries to prevent bloat
-  if (journal.entries.length > 50) {
-    journal.entries = journal.entries.slice(-50);
+Return JSON: { "verdict": "approved" or "rejected", "feedback": "1 sentence", "confidence": 1-10 }`, 'Reviewer');
+
+  try {
+    const review = JSON.parse(raw);
+    console.log(`   👔 Verdict: ${review.verdict.toUpperCase()} — ${review.feedback}`);
+
+    await prisma.stagingItem.update({
+      where: { id: pending.id },
+      data: {
+        status: review.verdict,
+        managerReview: { verdict: review.verdict, feedback: review.feedback, reviewedAt: new Date().toISOString() },
+        ...(review.verdict === 'approved' ? { publishedAt: new Date() } : {})
+      }
+    });
+
+    if (review.verdict === 'approved') {
+      console.log(`   🚀 Spawning publisher...`);
+      try { execSync('node --env-file=.env .github/scripts/publisher.mjs', { stdio: 'inherit', cwd: CWD }); } catch {}
+    }
+  } catch (e) {
+    console.log(`   ⚠️ Review failed: ${e.message}`);
   }
-
-  saveJournal(journal);
-  console.log(`   ✅ Cycle #${entry.cycle} logged to director_journal.json`);
 }
 
-function recordLearningSnapshot(sitrep, decision) {
-  const topOpportunity = sitrep.opportunity_engine?.top_opportunities?.[0] || null;
-  if (!topOpportunity) return;
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 6: RECORD & LEARN — Update memory
+// ═══════════════════════════════════════════════════════════════════════
+async function recordCycle(sitrep, decision, audit, success) {
+  console.log('\n📋 PHASE 6: Recording to Memory...');
 
-  recordDirectorAction({
-    department: decision.department,
-    playbook: topOpportunity.playbook || topOpportunity.department,
-    target_slug: typeof topOpportunity.target === 'string'
-      ? topOpportunity.target.replace(/^https?:\/\/[^/]+\//, '')
-      : null,
-    target: topOpportunity.target,
-    opportunity_id: topOpportunity.id,
-    opportunity_type: topOpportunity.type,
-    baseline: {
-      clicks: topOpportunity.clicks,
-      impressions: topOpportunity.impressions,
-      ctr: topOpportunity.ctr,
-      position: topOpportunity.position,
+  // Update AgentState (working memory)
+  await prisma.agentState.upsert({
+    where: { id: 'global' },
+    update: {
+      lastDecision: decision.department,
+      lastCycleAt: new Date(),
+      cycleCount: { increment: 1 },
+      currentOrders: decision.orders ? { department: decision.department, orders: decision.orders } : undefined,
     },
-    score: topOpportunity.score,
-    recommendation: sitrep.opportunity_engine?.recommended_department || null,
-  });
+    create: { id: 'global', lastDecision: decision.department, lastCycleAt: new Date(), cycleCount: 1 }
+  }).catch(() => {});
+
+  // Record journal entry
+  const cycleCount = await prisma.journalEntry.count();
+  await prisma.journalEntry.create({
+    data: {
+      cycle: cycleCount + 1,
+      decision: decision.department,
+      reasoning: decision.reasoning || '',
+      confidence: decision.confidence,
+      agencyHealth: decision.agency_health,
+      scoredRecommendation: decision.playbook,
+      recommendedOrders: { orders: decision.orders, target: decision.target_keyword },
+      crossDeptOrders: decision.cross_dept_orders,
+      qualityAudit: audit ? { score: audit.overall_score, verdict: audit.verdict } : null,
+      dispatchSuccess: success,
+    }
+  }).catch(e => console.log(`   ⚠️ Journal write failed: ${e.message}`));
+
+  // Record action for learning engine
+  await recordAction(
+    decision.department,
+    decision.playbook || `${decision.department}_general`,
+    decision.target_keyword || null,
+    decision.orders,
+    sitrep.gsc ? { clicks: sitrep.gsc.clicks, position: sitrep.gsc.position } : null
+  );
+
+  // Track keyword if specified
+  if (decision.target_keyword) {
+    await trackKeyword(decision.target_keyword, decision.department, null);
+  }
+
+  // Learn from failure
+  if (!success && decision.playbook) {
+    await recordPattern('failing', decision.department, `Playbook "${decision.playbook}" failed on this cycle`, 0.4, { decision, success });
+  }
+
+  await logActivity('👔', 'director', `Cycle complete: ${decision.department} (${success ? 'success' : 'failed'}) | Health: ${decision.agency_health}/10`, 'info');
+  console.log(`   ✅ Cycle recorded to memory.`);
 }
 
 // ═══════════════════════════════════════════════════════════════════════
 // 💬 CHAT MODE — Talk to the Director
 // ═══════════════════════════════════════════════════════════════════════
-
 async function chatMode(question) {
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  const models = await getModelsForRole('manager');
-  console.log(`║  🧠 Model: ${models[0]}                             ║`);
+  console.log('║  💬 DIRECTOR CHAT MODE                                    ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
 
-  const sitrep = await gatherSitRep();
-  const journal = loadJournal();
+  const memory = await compileMemory('director');
+  const models = await getModelsForRole('manager');
 
-  const raw = await directorCall(`You are the Agency Director of FouriqTech — a brilliant, experienced (20+ years) SEO strategist. You speak directly, with confidence and a touch of humor. You know everything about the agency's current state.
+  const raw = await smartCall(models, `You are the Agency Director of FourIQ Tech — a brilliant, experienced SEO strategist. You speak directly, with confidence. You know everything about the agency.
 
-═══ CURRENT AGENCY STATUS ═══
-${JSON.stringify(sitrep, null, 2)}
+${memory.context}
 
-═══ RECENT DIRECTOR DECISIONS ═══
-${JSON.stringify(journal.entries.slice(-5), null, 2)}
+HUMAN ASKS: "${question}"
 
-═══ HUMAN ASKS ═══
-"${question}"
-
-Respond naturally and conversationally as the Agency Director. Be data-driven, reference specific numbers from the SitRep. If the human asks about performance, quote the actual metrics. If they ask for advice, give a strong, opinionated recommendation. Keep it under 200 words.`, false);
+Respond naturally and conversationally. Be data-driven, reference specific numbers. Keep it under 200 words.`, 'Director Chat', { json: false });
 
   console.log('\n👔 DIRECTOR:');
   console.log('─'.repeat(60));
@@ -505,140 +411,49 @@ Respond naturally and conversationally as the Agency Director. Be data-driven, r
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 📋 PHASE 5: AUTO-REVIEW (The Director as QA Boss) — DB-Native
+// 🚀 MAIN — The Full Director Cycle
 // ═══════════════════════════════════════════════════════════════════════
-
-async function runAutoReview() {
-  console.log('\n👀 PHASE 5: Autonomous Review Gate...');
-  
-  try {
-    const pkgPrisma = await import('@prisma/client');
-    const { PrismaClient } = pkgPrisma.default || pkgPrisma;
-    
-    let prisma;
-    try {
-      prisma = new PrismaClient();
-      await prisma.$connect();
-    } catch {
-      const pkgPg = await import('pg');
-      const { Pool } = pkgPg.default || pkgPg;
-      const { PrismaPg } = await import('@prisma/adapter-pg');
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      const adapter = new PrismaPg(pool);
-      prisma = new PrismaClient({ adapter });
-    }
-
-    const latest = await prisma.stagingItem.findFirst({
-      where: { status: 'pending_review' },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    if (!latest) {
-      console.log('   ✅ No pending items found in staging queue.');
-      await prisma.$disconnect();
-      return;
-    }
-
-    console.log(`   🧠 Reviewing [${latest.id}] "${latest.title}"...`);
-
-    // The Director (3.1 Pro) does a quick check of the content
-    const review = await directorCall(`You are the Agency Director reviewing work from your ${latest.department}.
-    
-    ITEM TITLE: ${latest.title}
-    TYPE: ${latest.type}
-    METADATA: ${latest.metadata ? JSON.stringify(latest.metadata) : "{}"}
-    CONTENT PREVIEW (First 2000 chars):
-    ${latest.content ? latest.content.substring(0, 2000) : "No textual content provided."}
-    
-    DECISION CRITERIA:
-    1. If it's a blog post, does it have a clear H1, intros, and high word count?
-    2. If it's a tech patch, does it look like valid code?
-    3. Is it logically sound and represents FouriqTech properly?
-
-    Return a JSON object:
-    {
-      "verdict": "approved" or "rejected",
-      "feedback": "Your 1-sentence feedback to the team",
-      "confidence": 1-10
-    }`);
-
-    const result = JSON.parse(review);
-    
-    console.log(`   👔 VERDICT: [${result.verdict.toUpperCase()}] — ${result.feedback}`);
-
-    await prisma.stagingItem.update({
-      where: { id: latest.id },
-      data: {
-        status: result.verdict,
-        managerReview: {
-          verdict: result.verdict,
-          feedback: `[AUTO-DIRECTOR] ${result.feedback}`,
-          reviewedAt: new Date().toISOString()
-        },
-        ...(result.verdict === 'approved' ? { publishedAt: new Date() } : {})
-      }
-    });
-
-    console.log(`   📦 SUCCESS: Item ${latest.id} successfully reviewed and ${result.verdict}.`);
-
-    await prisma.$disconnect();
-
-    // IF APPROVED, SPAWN THE PUBLISHER
-    if (result.verdict === 'approved') {
-      console.log(`   🚀 DEPLOYING: Spawning Publisher for ${latest.id}...`);
-      execSync('node --env-file=.env .github/scripts/publisher.mjs', { stdio: 'inherit' });
-    }
-
-  } catch (err) {
-    console.error(`   ❌ Auto-Review failed: ${err.message}`);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// 🚀 MAIN — The Agency Director's Daily Cycle
-// ═══════════════════════════════════════════════════════════════════════
-
 async function main() {
-  // ── Parse CLI flags ──
   const args = process.argv.slice(2);
   const chatIdx = args.indexOf('--chat');
   const auditOnly = args.includes('--audit-only');
   const reviewOnly = args.includes('--review-only');
 
-  // ── Review Only Mode ──
+  // Review Only
   if (reviewOnly) {
     console.log('╔═══════════════════════════════════════════════════════════╗');
-    console.log('║  👔 AGENCY DIRECTOR — Standalone Review Mode            ║');
+    console.log('║  👔 DIRECTOR — Review Mode                               ║');
     console.log('╚═══════════════════════════════════════════════════════════╝');
-    await runAutoReview();
+    await autoReview();
+    await closeMemory();
+    await prisma.$disconnect();
     return;
   }
 
-  // ── Chat Mode ──
+  // Chat Mode
   if (chatIdx !== -1 && args[chatIdx + 1]) {
-    await chatMode(args[chatIdx + 1]);
+    await chatMode(args.slice(chatIdx + 1).join(' '));
+    await closeMemory();
+    await prisma.$disconnect();
     return;
   }
 
-  // ── Full Director Cycle ──
+  // ═══ FULL STRATEGIC CYCLE ═══
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  👔 FOURIQTECH AGENCY DIRECTOR v1.0                     ║');
-  console.log('║  "The 20-Year Expert" — Strategic Brain                 ║');
+  console.log('║  👔 AGENCY DIRECTOR v2.0 — Memory-Powered Brain           ║');
   console.log('╠═══════════════════════════════════════════════════════════╣');
-  const models = await getModelsForRole('manager');
   console.log(`║  ⏰ ${new Date().toISOString()}`);
-  console.log(`║  🧠 Model: ${models[0]}`);
-  console.log(`║  🔑 Key: ${PRO_KEY ? 'BILLED (Pro)' : 'FREE TIER (Flash)'}`);
-  console.log(`║  📊 Opportunity Engine: ${OPPORTUNITY_SNAPSHOT}`);
+  console.log('║  🧠 Memory System: Active');
+  console.log('║  📊 4-Layer Context: Loading...');
   console.log('╚═══════════════════════════════════════════════════════════╝');
 
-  // Phase 1: SitRep
+  // Phase 1: Situation Report
   const sitrep = await gatherSitRep();
 
   // Phase 2: Strategic Decision
-  const decision = await makeStrategicDecision(sitrep);
+  const decision = await makeDecision(sitrep);
 
-  // Phase 3: Quality Audit (if Director decided or audit-only mode)
+  // Phase 3: Quality Audit (if decided)
   let audit = null;
   if (decision.run_quality_audit || auditOnly) {
     audit = await runQualityAudit();
@@ -646,40 +461,41 @@ async function main() {
     console.log('\n🎲 PHASE 3: Quality Audit → Skipped this cycle.');
   }
 
-  // If audit-only mode, stop here
   if (auditOnly) {
-    console.log('\n🛑 AUDIT-ONLY mode. Skipping dispatch.');
-    writeJournal(sitrep, decision, audit, null);
+    await recordCycle(sitrep, decision, audit, null);
+    await closeMemory();
+    await prisma.$disconnect();
     return;
   }
 
   // Phase 4: Dispatch
   const success = dispatchDepartment(decision);
 
-  // Give local scripts a tiny bit of time to submit their staging work
+  // Wait for department to submit work
   if (success) {
-    console.log('\n⏳ Waiting for department to submit work to staging...');
-    await new Promise(r => setTimeout(r, 5000));
-    await runAutoReview();
+    console.log('\n⏳ Waiting for department output...');
+    await sleep(5000);
+    await autoReview();
   }
 
-  // Phase 5: Journal
-  writeJournal(sitrep, decision, audit, success);
-  recordLearningSnapshot(sitrep, decision);
+  // Phase 6: Record & Learn
+  await recordCycle(sitrep, decision, audit, success);
 
-  // ── Final Report ──
+  // Final Report
   console.log('\n╔═══════════════════════════════════════════════════════════╗');
-  console.log('║  📋 DIRECTOR CYCLE COMPLETE                             ║');
+  console.log('║  📋 DIRECTOR CYCLE COMPLETE                               ║');
   console.log('╠═══════════════════════════════════════════════════════════╣');
-  console.log(`║  🎯 Deployed: ${decision.department?.toUpperCase()} TEAM`);
+  console.log(`║  🎯 Deployed: ${decision.department?.toUpperCase()}`);
+  console.log(`║  🎮 Playbook: ${decision.playbook}`);
   console.log(`║  💪 Confidence: ${decision.confidence}/10`);
-  console.log(`║  ❤️  Agency Health: ${decision.agency_health_score}/10`);
-  if (audit) {
-    console.log(`║  🎲 Audit: "${audit.article_title?.substring(0, 40)}..." → ${audit.verdict} (${audit.overall_score}/10)`);
-  }
-  console.log(`║  ✅ Dispatch: ${success ? 'SUCCESS' : 'FAILED'}`);
+  console.log(`║  ❤️  Health: ${decision.agency_health}/10`);
+  if (audit) console.log(`║  🎲 Audit: ${audit.overall_score}/10 (${audit.verdict})`);
+  console.log(`║  ✅ Result: ${success ? 'SUCCESS' : 'FAILED'}`);
   console.log('╚═══════════════════════════════════════════════════════════╝');
-  console.log('\n👔 DIRECTOR: Signing off. The agency is in good hands. ✅');
+
+  await closeMemory();
+  await prisma.$disconnect();
+  await pool.end();
 }
 
 main().catch(err => {

@@ -15,8 +15,8 @@ async function testUpsert() {
   console.log('Testing AgencyConfig Upsert...');
   try {
     const payload = {
-      manager: ["gemini-3.1-pro-preview", "gemini-3.1-flash-lite-preview", "gemini-3-flash", "gemini-2.5-flash"],
-      writer: ["gemini-3-flash", "gemini-3.1-flash-lite-preview", "gemini-3-flash", "gemini-2.5-flash"]
+      manager: ["gemini-3.1-pro-preview", "gemini-3.1-flash-lite-preview", "gemini-3-flash-preview", "gemini-2.5-flash"],
+      writer: ["gemini-3-flash-preview", "gemini-3.1-flash-lite-preview", "gemini-2.5-flash", "gemini-2.0-flash"]
     };
 
     const config = await prisma.agencyConfig.upsert({

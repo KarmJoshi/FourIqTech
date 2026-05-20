@@ -1,5 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// ═══════════════════════════════════════════════════════════════════════
+// FOURIQ TECH — Autonomous SEO Agency Database Schema
+// ═══════════════════════════════════════════════════════════════════════
+// 4-Layer Memory Architecture:
+//   Layer 1: Working Memory (current state)
+//   Layer 2: Short-Term Memory (last 30 days)
+//   Layer 3: Long-Term Memory (patterns & learning)
+//   Layer 4: Institutional Knowledge (static context)
+// ═══════════════════════════════════════════════════════════════════════
 
 generator client {
   provider = "prisma-client-js"
@@ -8,6 +15,382 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// LAYER 1: WORKING MEMORY — Current cycle state
+// ═══════════════════════════════════════════════════════════════════════
+
+model AgencyConfig {
+  id           String    @id @default("default")
+  isAutoPilot  Boolean   @default(false)
+  isAutoCommit Boolean   @default(false)
+  apiMode      String    @default("free") // "free" | "paid"
+  startTime    String    @default("10:00")
+  cyclesPerDay Int       @default(1)
+  lastRunAt    DateTime?
+  updatedAt    DateTime  @updatedAt
+  agentModels  Json?     // { role: "model-id" }
+}
+
+model AgentState {
+  id            String   @id @default("global")
+  currentOrders Json?    // Director's active orders
+  activeTasks   Json?    // Currently running departments
+  lastCycleAt   DateTime?
+  lastDecision  String?  // "content" | "structural" | "technical"
+  cycleCount    Int      @default(0)
+  updatedAt     DateTime @updatedAt
+}
+
+model StagingItem {
+  id             String    @id
+  type           String    // "blog_post" | "landing_page" | "technical_patch"
+  department     String
+  status         String    // "pending_review" | "approved" | "rejected" | "published"
+  createdAt      DateTime
+  title          String
+  content        String?
+  summary        Json?
+  draftPath      String?
+  codePath       String?
+  diffPath       String?
+  metadata       Json?
+  managerReview  Json?
+  revisionCount  Int       @default(0)
+  publishedAt    DateTime?
+}
+
+model ActivityLog {
+  id        String   @id
+  emoji     String?
+  source    String
+  message   String
+  type      String   // "info" | "error" | "publish" | "review" | "staging"
+  timestamp DateTime
+
+  @@index([timestamp])
+  @@index([source])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// LAYER 2: SHORT-TERM MEMORY — Recent actions & performance (30 days)
+// ═══════════════════════════════════════════════════════════════════════
+
+model AgentAction {
+  id            String    @id @default(uuid())
+  timestamp     DateTime  @default(now())
+  department    String    // "content" | "structural" | "technical"
+  playbook      String    // "ctr_optimization" | "cluster_support" | "content_refresh" etc
+  targetSlug    String?   // The page/keyword targeted
+  targetUrl     String?
+  description   String?   // What was done
+  baseline      Json?     // { clicks, impressions, ctr, position } at time of action
+  score         Float?    // Opportunity score when action was taken
+  outcome       ActionOutcome?
+
+  @@index([timestamp])
+  @@index([department])
+  @@index([targetSlug])
+}
+
+model ActionOutcome {
+  id            String   @id @default(uuid())
+  actionId      String   @unique
+  action        AgentAction @relation(fields: [actionId], references: [id])
+  evaluatedAt   DateTime @default(now())
+  metricsCurrent Json?   // { clicks, impressions, ctr, position } at evaluation
+  delta         Json?    // { clicks: +5, position: -3 } (negative position = improvement)
+  successScore  Float    // Weighted score of improvement
+  verdict       String   // "positive" | "negative" | "neutral"
+
+  @@index([verdict])
+  @@index([evaluatedAt])
+}
+
+model JournalEntry {
+  id                   String   @id @default(uuid())
+  date                 DateTime @default(now())
+  cycle                Int
+  sitrepSummary        Json?    // Snapshot of agency state
+  decision             String   // Which department was chosen
+  reasoning            String   // Why
+  confidence           Int?     // 1-10
+  agencyHealth         Int?     // 1-10
+  scoredRecommendation String?  // What the opportunity engine suggested
+  recommendedOrders    Json?    // Orders given to the department
+  crossDeptOrders      String?  // Cross-department instructions
+  qualityAudit         Json?    // Random content inspection results
+  dispatchSuccess      Boolean?
+
+  @@index([date])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// GSC DATA — Google Search Console Performance Tracking
+// ═══════════════════════════════════════════════════════════════════════
+
+model GscDailySnapshot {
+  id               String   @id @default(uuid())
+  date             DateTime // The date this data represents
+  totalClicks      Int
+  totalImpressions Int
+  avgPosition      Float
+  avgCtr           Float
+  pageCount        Int      // Pages with impressions
+  topPages         Json?    // Top 20 pages summary
+  topQueries       Json?    // Top 20 queries summary
+  fetchedAt        DateTime @default(now())
+
+  @@unique([date])
+  @@index([date])
+}
+
+model GscPageMetric {
+  id          String   @id @default(uuid())
+  date        DateTime
+  pageUrl     String   // "/blog/react-performance-audit"
+  clicks      Int      @default(0)
+  impressions Int      @default(0)
+  ctr         Float    @default(0)
+  position    Float    @default(100)
+
+  @@unique([date, pageUrl])
+  @@index([pageUrl])
+  @@index([date])
+  @@index([position])
+}
+
+model GscQueryMetric {
+  id          String   @id @default(uuid())
+  date        DateTime
+  query       String   // "react performance audit"
+  pageUrl     String?  // Which page ranks for this query
+  clicks      Int      @default(0)
+  impressions Int      @default(0)
+  ctr         Float    @default(0)
+  position    Float    @default(100)
+
+  @@unique([date, query])
+  @@index([query])
+  @@index([date])
+  @@index([position])
+}
+
+model GscInsight {
+  id             String   @id @default(uuid())
+  generatedAt    DateTime @default(now())
+  type           String   // "rising_star" | "declining" | "opportunity" | "winner" | "stuck" | "new_keyword"
+  pageUrl        String?
+  query          String?
+  insightText    String   // Human-readable insight for agent context
+  metricsBefore  Json?    // { clicks, impressions, ctr, position }
+  metricsAfter   Json?
+  changePeriod   String?  // "7d" | "14d" | "30d"
+  confidence     Float?   // 0-1
+
+  @@index([type])
+  @@index([generatedAt])
+  @@index([pageUrl])
+}
+
+// Legacy table (keep for backward compat, will be replaced by GscDailySnapshot)
+model SearchPerformance {
+  id               String   @id @default(uuid())
+  dateRangeStart   String
+  dateRangeEnd     String
+  totalClicks      Int
+  totalImpressions Int
+  avgPosition      Float
+  avgCtr           Float
+  page1Count       Int
+  fullReport       Json?
+  generatedAt      DateTime @default(now())
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// LAYER 3: LONG-TERM MEMORY — Patterns, learning, accumulated wisdom
+// ═══════════════════════════════════════════════════════════════════════
+
+model PlaybookStat {
+  id              String   @id @default(uuid())
+  playbook        String   @unique // "ctr_optimization" | "cluster_support" | "content_refresh" etc
+  totalRuns       Int      @default(0)
+  successCount    Int      @default(0)
+  failureCount    Int      @default(0)
+  neutralCount    Int      @default(0)
+  avgSuccessScore Float    @default(0)
+  bestResult      Json?    // The single best outcome ever
+  worstResult     Json?    // The single worst outcome ever
+  lastRunAt       DateTime?
+  updatedAt       DateTime @updatedAt
+
+  @@index([avgSuccessScore])
+}
+
+model LearnedPattern {
+  id          String   @id @default(uuid())
+  type        String   // "winning" | "failing" | "insight"
+  department  String   // "content" | "structural" | "technical"
+  pattern     String   // "Case study articles rank 2x faster than guides"
+  evidence    Json?    // Supporting data points
+  confidence  Float    // 0-1 how sure we are
+  timesProven Int      @default(1)
+  firstSeen   DateTime @default(now())
+  lastSeen    DateTime @default(now())
+  isActive    Boolean  @default(true) // Can be deprecated
+
+  @@index([type])
+  @@index([department])
+  @@index([confidence])
+}
+
+model KeywordMemory {
+  id            String   @id @default(uuid())
+  keyword       String   @unique
+  firstTargeted DateTime @default(now())
+  lastTargeted  DateTime @default(now())
+  timesTargeted Int      @default(1)
+  bestPosition  Float?   // Best ranking ever achieved
+  currentPosition Float? // Latest known position
+  status        String   @default("active") // "active" | "ranked" | "stuck" | "abandoned"
+  department    String?  // Which department owns this keyword
+  cluster       String?  // Topic cluster it belongs to
+  notes         String?  // AI-generated notes about this keyword
+
+  @@index([status])
+  @@index([cluster])
+  @@index([bestPosition])
+}
+
+model MonthlySummary {
+  id              String   @id @default(uuid())
+  month           String   @unique // "2026-05"
+  totalClicks     Int      @default(0)
+  totalImpressions Int     @default(0)
+  avgPosition     Float    @default(0)
+  articlesPublished Int    @default(0)
+  pagesCreated    Int      @default(0)
+  techFixesApplied Int     @default(0)
+  directorCycles  Int      @default(0)
+  topWin          String?  // Best achievement this month
+  topLoss         String?  // Biggest failure this month
+  keyInsights     Json?    // Array of key learnings
+  createdAt       DateTime @default(now())
+
+  @@index([month])
+}
+
+model Blacklist {
+  id        String   @id @default(uuid())
+  type      String   // "keyword" | "strategy" | "model" | "approach"
+  value     String   // The thing to avoid
+  reason    String   // Why it's blacklisted
+  addedAt   DateTime @default(now())
+  attempts  Int      @default(1) // How many times we tried before blacklisting
+
+  @@unique([type, value])
+  @@index([type])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// LAYER 4: INSTITUTIONAL KNOWLEDGE — Static company context
+// ═══════════════════════════════════════════════════════════════════════
+
+model CompanyContext {
+  id        String   @id @default("default")
+  name      String   @default("FourIQ Tech")
+  website   String   @default("https://www.fouriqtech.com")
+  about     String?  // Company description
+  services  Json?    // Array of services offered
+  targetAudience Json? // Who we serve
+  brandVoice String? // Tone and style guidelines
+  goals     Json?    // Business goals and KPIs
+  updatedAt DateTime @updatedAt
+}
+
+model TopicCluster {
+  id              String   @id @default(uuid())
+  name            String   @unique // "React Performance" | "Enterprise Architecture"
+  pillarPage      String?  // URL of the pillar content
+  pillarKeyword   String?  // Main keyword for the cluster
+  supportingPages Json?    // Array of supporting page URLs
+  status          String   @default("growing") // "growing" | "mature" | "declining"
+  authority       Float?   // 0-100 estimated topical authority
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CONTENT & PAGES — Published assets
+// ═══════════════════════════════════════════════════════════════════════
+
+model BlogPost {
+  id         String   @id @default(uuid())
+  slug       String   @unique
+  title      String
+  excerpt    String
+  date       String
+  readTime   String   @default("5 min read")
+  category   String   @default("Engineering")
+  author     String   @default("FouriqTech Engineering")
+  content    String
+  metaTitle  String?
+  metaDesc   String?
+  schemaJson String?
+  isLive     Boolean  @default(false)
+  // Performance tracking
+  targetKeyword String?  // Primary keyword this post targets
+  cluster       String?  // Topic cluster it belongs to
+  qaScore       Int?     // QA inspection score (0-100)
+  structure     String?  // "case_study" | "strategic_guide" | "deep_explainer"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([cluster])
+  @@index([targetKeyword])
+  @@index([isLive])
+}
+
+model ServicePage {
+  id         String   @id @default(uuid())
+  slug       String   @unique
+  title      String
+  component  String
+  route      String
+  metaTitle  String?
+  metaDesc   String?
+  schemaJson String?
+  isLive     Boolean  @default(false)
+  targetKeyword String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isLive])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TECHNICAL SEO — Audit history
+// ═══════════════════════════════════════════════════════════════════════
+
+model TechAuditReport {
+  id             String   @id @default(uuid())
+  date           DateTime @default(now())
+  overallScore   Int      // 0-100
+  perfScore      Int?     // PageSpeed performance score
+  seoScore       Int?     // PageSpeed SEO score
+  patchesApplied Int      @default(0)
+  qaVerdict      String?  // "PASS" | "FAIL" | "NOT_RUN"
+  modules        Json?    // Detailed module scores
+  recommendations Json?   // What to improve next
+  
+  @@index([date])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// OUTREACH — Lead management (personal use)
+// ═══════════════════════════════════════════════════════════════════════
 
 model Lead {
   id                String      @id
@@ -48,129 +431,25 @@ model DraftEmail {
   lead           Lead      @relation(fields: [leadId], references: [id])
 }
 
-model StagingItem {
-  id             String    @id
-  type           String
-  department     String
-  status         String
-  createdAt      DateTime
-  title          String
-  content        String?
-  summary        Json?
-  draftPath      String?
-  codePath       String?
-  diffPath       String?
-  metadata       Json?
-  managerReview  Json?
-  revisionCount  Int       @default(0)
-  publishedAt    DateTime?
-}
-
-model ActivityLog {
-  id        String   @id
-  emoji     String?
-  source    String
-  message   String
-  type      String
-  timestamp DateTime
-}
-
-model JournalEntry {
-  id                  String   @id @default(uuid())
-  date                DateTime
-  cycle               Int
-  sitrepSummary       Json?
-  decision            String
-  reasoning           String
-  confidence          Int?
-  agencyHealth        Int?
-  scoredRecommendation String?
-  recommendedOrders   Json?
-  crossDeptOrders     String?
-  qualityAudit        Json?
-  dispatchSuccess     Boolean?
-}
-
-model BlogPost {
-  id         String   @id @default(uuid())
-  slug       String   @unique
-  title      String
-  excerpt    String
-  date       String
-  readTime   String   @default("5 min read")
-  category   String   @default("Engineering")
-  author     String   @default("FouriqTech Engineering")
-  content    String
-  metaTitle  String?
-  metaDesc   String?
-  schemaJson String?
-  isLive     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model ServicePage {
-  id         String   @id @default(uuid())
-  slug       String   @unique
-  title      String
-  component  String
-  route      String
-  metaTitle  String?
-  metaDesc   String?
-  schemaJson String?
-  isLive     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model AgencyConfig {
-  id           String    @id @default("default")
-  isAutoPilot  Boolean   @default(false)
-  isAutoCommit Boolean   @default(false)
-  startTime    String    @default("10:00")
-  cyclesPerDay Int       @default(1)
-  lastRunAt    DateTime?
-  updatedAt    DateTime  @updatedAt
-  agentModels  Json?
-}
-
-model SearchPerformance {
-  id              String   @id @default(uuid())
-  dateRangeStart  String
-  dateRangeEnd    String
-  totalClicks     Int
-  totalImpressions Int
-  avgPosition     Float
-  avgCtr          Float
-  page1Count      Int
-  fullReport      Json?
-  generatedAt     DateTime @default(now())
-}
+// ═══════════════════════════════════════════════════════════════════════
+// SOCIAL MEDIA
+// ═══════════════════════════════════════════════════════════════════════
 
 model SocialPost {
   id              String   @id @default(uuid())
-  type            String   // "post" | "reel" | "carousel" | "infographic"
-  topicPillar     String   // "SEO" | "Web Dev" | "AI" | "Marketing"
-  status          String   @default("draft") // "draft" | "staged" | "approved" | "published" | "rejected"
-  
-  // AI Generated Brainstorming
+  type            String
+  topicPillar     String
+  status          String   @default("draft")
   caption         String?
   hashtags        String?
-  visualPrompt    String?  // The instruction sent to Imagen
-  reelScript      Json?    // Array of scenes with text overlays and timings
-  quizData        Json?    // Infographic template data (Question, Options, Answer)
-  
-  // Final Assets
+  visualPrompt    String?
+  reelScript      Json?
+  quizData        Json?
   imageUrl        String?
   videoUrl        String?
-  
-  // Real-world stats
-  externalPostId  String?  // IG Post ID for tracking
+  externalPostId  String?
   engagementStats Json?
-  
-  // Budget smart
   estimatedCost   Float?   @default(0.0)
-  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   publishedAt     DateTime?

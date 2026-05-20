@@ -625,5 +625,38 @@
       "day28_due": "2026-05-14",
       "last_checked": null
     }
+  },
+  {
+    "article_id": "sharing-state-between-micro-frontends-architectural-patterns",
+    "metadata": {
+      "published_date": "2026-05-19",
+      "word_count": 1006,
+      "keyword_primary": "sharing state between micro-frontends",
+      "keyword_density": 0.4,
+      "internal_links_injected": 0,
+      "qa_score": 93,
+      "human_tone_score": 9,
+      "rewrite_attempts": 0,
+      "schema_injected": true,
+      "lead_score": 7,
+      "business_relevance": 7,
+      "intent_type": "informational",
+      "cluster": "Enterprise Application Modernization & Microservices"
+    },
+    "performance": {
+      "day1_indexed": null,
+      "day3_impressions": null,
+      "day7_ctr": null,
+      "day14_avg_position": null,
+      "day28_classification": "pending"
+    },
+    "check_schedule": {
+      "day1_due": "2026-05-20",
+      "day3_due": "2026-05-22",
+      "day7_due": "2026-05-26",
+      "day14_due": "2026-06-02",
+      "day28_due": "2026-06-16",
+      "last_checked": null
+    }
   }
 ]

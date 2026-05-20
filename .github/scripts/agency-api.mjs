@@ -599,55 +599,8 @@ app.get('/api/staging/:id/content', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
-// GET/POST /api/settings — DB-Driven Auto-Pilot Settings
+// (Settings endpoints moved to bottom — see /api/config section)
 // ═══════════════════════════════════════════════════════════════════════
-app.get('/api/settings', async (req, res) => {
-  try {
-    // Try JSON file first
-    const settingsPath = path.join(CWD, '.github/staging/system-settings.json');
-    if (fs.existsSync(settingsPath)) {
-      const jsonSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-      return res.json(jsonSettings);
-    }
-    // Fallback to database
-    let config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
-    if (!config) {
-      config = await prisma.agencyConfig.create({ data: { id: 'default' } });
-    }
-    res.json(config);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/settings', async (req, res) => {
-  try {
-    const { isAutoPilot, startTime, cyclesPerDay, agentModels } = req.body;
-    
-    // Upsert to database
-    const config = await prisma.agencyConfig.upsert({
-      where: { id: 'default' },
-      update: {
-        ...(isAutoPilot !== undefined && { isAutoPilot }),
-        ...(startTime && { startTime }),
-        ...(cyclesPerDay && { cyclesPerDay }),
-        ...(agentModels && { agentModels }),
-      },
-      create: { id: 'default' }
-    });
-    
-    // Also save to JSON file for scripts to read
-    const settingsPath = path.join(CWD, '.github/staging/system-settings.json');
-    const existing = fs.existsSync(settingsPath) ? JSON.parse(fs.readFileSync(settingsPath, 'utf8')) : {};
-    const updated = { ...existing, isAutoPilot, startTime, cyclesPerDay, agentModels };
-    fs.writeFileSync(settingsPath, JSON.stringify(updated, null, 2));
-    
-    await logActivity('⚙️', 'system', 'Strategic Auto-Pilot settings updated', 'info');
-    res.json({ success: true, settings: config });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
 
 // ═══════════════════════════════════════════════════════════════════════
 // GET /api/leads — Fetch Leads Gathered by the Hunter
@@ -1005,9 +958,19 @@ app.get(['/api/config', '/api/settings'], async (req, res) => {
         data: { id: 'default' }
       });
     }
-    // Ensure agentModels is an object if null
     if (!config.agentModels) config.agentModels = {};
-    res.json(config);
+    
+    // Merge apiMode from JSON settings (not stored in DB)
+    let apiMode = 'free';
+    try {
+      const settingsPath = path.join(CWD, '.github/staging/system-settings.json');
+      if (fs.existsSync(settingsPath)) {
+        const jsonSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        apiMode = jsonSettings.apiMode || 'free';
+      }
+    } catch {}
+    
+    res.json({ ...config, apiMode });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1015,7 +978,7 @@ app.get(['/api/config', '/api/settings'], async (req, res) => {
 
 app.post(['/api/config', '/api/settings'], async (req, res) => {
   try {
-    const { isAutoPilot, isAutoCommit, startTime, cyclesPerDay, agentModels } = req.body;
+    const { isAutoPilot, isAutoCommit, startTime, cyclesPerDay, agentModels, apiMode } = req.body;
     const config = await prisma.agencyConfig.upsert({
       where: { id: 'default' },
       update: {
@@ -1039,10 +1002,25 @@ app.post(['/api/config', '/api/settings'], async (req, res) => {
       if (fs.existsSync(settingsPath)) currentSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
     } catch(e) {}
     
-    fs.writeFileSync(settingsPath, JSON.stringify({ ...currentSettings, ...config }, null, 2));
+    // Build merged settings: keep existing JSON values, overlay DB config, then set apiMode
+    const dbFields = {
+      isAutoPilot: config.isAutoPilot,
+      isAutoCommit: config.isAutoCommit,
+      startTime: config.startTime,
+      cyclesPerDay: config.cyclesPerDay,
+      lastRunAt: config.lastRunAt,
+      agentModels: config.agentModels,
+    };
+    const merged = { ...currentSettings, ...dbFields };
+    // apiMode is JSON-only (not in DB schema) — always preserve/update it
+    if (apiMode !== undefined) {
+      merged.apiMode = apiMode;
+    }
+    
+    fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2));
 
-    await logActivity('⚙️', 'system', 'Agency config updated via API', 'info');
-    res.json({ success: true, settings: config, config });
+    await logActivity('⚙️', 'system', `Config updated${apiMode ? ` (API Mode: ${apiMode})` : ''}`, 'info');
+    res.json({ success: true, settings: { ...merged } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

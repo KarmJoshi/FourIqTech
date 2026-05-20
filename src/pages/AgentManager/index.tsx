@@ -19,6 +19,8 @@ import { StagingQueue } from "./components/StagingQueue";
 import { ChatPanel } from "./components/ChatPanel";
 import { ModelSelectionMatrix } from "./components/ModelSelectionMatrix";
 import { OutreachDepartment } from "./components/OutreachDepartment";
+import { Sidebar } from "./components/Sidebar";
+import { TopBar } from "./components/TopBar";
 
 // Department Views
 import { ContentHubDepartment } from "./components/ContentHubDepartment";
@@ -506,423 +508,298 @@ No extra words. Just the niche string.`;
     };
   }, [leads, emails, replies]);
 
+  const pendingCount = stagingQueue.filter(s => s.status === "pending_review").length;
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginId === "FouriqTech" && loginPassword === "#Fouriqtech04") {
+    const validId = import.meta.env.VITE_ADMIN_ID || "FouriqTech";
+    const validPass = import.meta.env.VITE_ADMIN_PASS || "#Fouriqtech04";
+    if (loginId === validId && loginPassword === validPass) {
       setIsAuthenticated(true);
       setLoginError("");
+      sessionStorage.setItem("fouriq_auth", "true");
     } else {
-      setLoginError("Invalid ID or Password");
+      setLoginError("Invalid credentials");
     }
   };
 
-  // Login Screen
+  // ═══════════════════════════════════════════════════════════════
+  // LOGIN SCREEN
+  // ═══════════════════════════════════════════════════════════════
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-aether-base flex items-center justify-center text-slate-50 font-sans relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-ai-primary/[0.03] rounded-full blur-[150px] -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-ai-secondary/[0.02] rounded-full blur-[120px] translate-y-1/2 -translate-x-1/4" />
-
-        <Card className="w-[420px] max-w-[90vw] border-ai-primary/20 bg-slate-900/60 backdrop-blur-xl shadow-2xl relative z-10">
-          <CardHeader className="pb-4">
-            <div className="flex justify-center mb-4">
-              <Crown className="h-10 w-10 text-ai-primary opacity-80" />
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="w-[360px] max-w-[90vw]">
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600 flex items-center justify-center">
+              <Zap className="h-4 w-4 text-white" />
             </div>
-            <CardTitle className="text-center text-2xl font-bold font-display text-white tracking-wide">Agency Command</CardTitle>
-            <CardDescription className="text-center text-slate-400">Secure Access Required</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operator ID</label>
+            <span className="text-lg font-semibold text-white">SEO Agency</span>
+          </div>
+
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-7">
+            <h2 className="text-base font-semibold text-white mb-1">Sign in</h2>
+            <p className="text-[13px] text-slate-500 mb-6">Access your autonomous SEO command center</p>
+            
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="text-[12px] font-medium text-slate-400 mb-1.5 block">Username</label>
                 <input
                   type="text"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  className="w-full bg-slate-950/50 border border-slate-800 rounded-xl p-3 text-white outline-none focus:border-ai-primary transition-colors text-sm"
-                  placeholder="Enter ID"
+                  className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-3 py-2.5 text-[13px] text-white outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all placeholder:text-slate-600"
+                  placeholder="Enter username"
+                  autoFocus
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Authentication Code</label>
+              <div>
+                <label className="text-[12px] font-medium text-slate-400 mb-1.5 block">Password</label>
                 <input
                   type="password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full bg-slate-950/50 border border-slate-800 rounded-xl p-3 text-white outline-none focus:border-ai-primary transition-colors text-sm font-mono"
+                  className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-3 py-2.5 text-[13px] text-white outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all placeholder:text-slate-600"
                   placeholder="••••••••"
                 />
               </div>
-              {loginError && <p className="text-red-400 text-xs text-center font-bold">{loginError}</p>}
-              <Button type="submit" className="w-full bg-ai-primary text-slate-950 hover:bg-ai-primary/90 font-bold h-12 rounded-xl mt-2">
-                INITIALIZE LINK
-              </Button>
+              {loginError && <p className="text-red-400 text-[12px]">{loginError}</p>}
+              <button
+                type="submit"
+                className="w-full bg-white text-black font-medium py-2.5 rounded-lg hover:bg-white/90 transition-colors text-[13px] mt-1"
+              >
+                Continue
+              </button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // MAIN DASHBOARD
+  // ═══════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-aether-base text-slate-50 font-sans selection:bg-ai-primary/30 selection:text-white">
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-ai-primary/[0.03] rounded-full blur-[150px] -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-ai-secondary/[0.02] rounded-full blur-[120px] translate-y-1/2 -translate-x-1/4" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
-      </div>
+    <div className="min-h-screen bg-[#09090b] text-slate-50 font-sans">
+      {/* Sidebar */}
+      <Sidebar
+        activeDept={activeDept}
+        setActiveDept={setActiveDept}
+        onChatOpen={() => setChatOpen(true)}
+        onLogout={() => { sessionStorage.removeItem("fouriq_auth"); setIsAuthenticated(false); }}
+        apiOnline={apiOnline}
+        isAutoPilot={(scheduleSettings as any).isAutoPilot}
+      />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-10">
+      {/* Main Area */}
+      <div className="ml-[260px] min-h-screen flex flex-col">
+        {/* Top Bar */}
+        <TopBar
+          activeDept={activeDept}
+          pendingCount={pendingCount}
+          runningTasks={runningTasks}
+          onDispatchDirector={dispatchDirectorCycle}
+          isDispatching={isDispatching}
+        />
 
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-center lg:justify-between mb-8 sm:mb-12">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 flex-wrap">
-              <Badge variant="outline" className="border-ai-primary/20 bg-ai-primary/5 text-ai-primary px-3 py-1 font-bold tracking-[0.15em] uppercase text-[9px] rounded-full shadow-[0_0_15px_rgba(56,189,248,0.1)]">
-                <Crown className="mr-2 h-3 w-3" /> STRATEGIC COMMAND
-              </Badge>
-              <span className={`h-2 w-2 rounded-full ${apiOnline ? "bg-ai-tertiary" : "bg-red-400"}`} />
-              <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-slate-500">
-                {apiOnline ? "ONLINE" : "OFFLINE"}
-              </span>
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-display font-extrabold tracking-tight text-white leading-[1.1]">
-              Agency <span className="ai-gradient-text uppercase">Manager</span>
-            </h1>
-          </div>
-          <Button
-            onClick={() => setChatOpen(true)}
-            className="relative h-12 sm:h-14 px-6 sm:px-10 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-ai-primary/40 text-white font-bold transition-all shadow-2xl group overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-ai-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <MessageCircle className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-ai-primary group-hover:scale-110 transition-transform" />
-            <span className="text-xs sm:text-sm">AI CHAT</span>
-          </Button>
-        </div>
-
-        {/* Department Tabs — Scrollable on mobile */}
-        <div className="mb-8 sm:mb-10">
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
-            {departments.map((dept) => {
-              const isActive = activeDept === dept.id;
-              return (
-                <button
-                  key={dept.id}
-                  onClick={() => setActiveDept(dept.id)}
-                  className={`group relative flex items-center gap-3 rounded-2xl border px-5 py-3.5 text-left transition-all duration-300 shrink-0 min-w-[160px] sm:min-w-0 ${isActive
-                    ? "border-ai-primary/40 bg-ai-primary/[0.06] shadow-[0_0_25px_rgba(56,189,248,0.06)]"
-                    : "border-slate-800/60 bg-slate-900/40 hover:bg-slate-800/60 hover:border-slate-700"
-                  }`}
-                >
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950/50 border border-slate-800 transition-all duration-300 ${isActive ? "border-ai-primary/50 " + dept.color : "text-slate-500 group-hover:text-slate-300"
-                  }`}>
-                    <dept.icon className={`h-5 w-5 transition-all duration-500 ${isActive ? "scale-110" : ""}`} />
-                  </div>
-                  <div>
-                    <div className={`text-sm font-bold ${isActive ? "text-white" : "text-slate-400"}`}>{dept.label}</div>
-                    <div className={`text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5 ${isActive ? dept.color + "/70" : "text-slate-600"}`}>
-                      {dept.desc}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Offline Warning */}
-        {!apiOnline && (
-          <Card className="mb-8 aether-card bg-red-500/5 border-red-500/20 rounded-[20px]">
-            <CardContent className="p-4 sm:p-6">
-              <p className="text-sm font-bold text-red-300 uppercase tracking-[0.15em]">Agency API Offline</p>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Cannot reach {API_BASE_URL}. {API_BASE_URL.includes('localhost')
-                  ? "Run the local API on port 3848."
-                  : "Verify Render service is active."}
+        {/* Content */}
+        <main className="flex-1 p-6 lg:p-8">
+          {/* Offline Banner */}
+          {!apiOnline && (
+            <div className="mb-6 flex items-center gap-3 p-3 rounded-lg bg-red-500/[0.08] border border-red-500/[0.15]">
+              <div className="h-2 w-2 rounded-full bg-red-400" />
+              <p className="text-[12px] text-red-300">
+                API unreachable at {API_BASE_URL}. {API_BASE_URL.includes('localhost') ? "Run: npm start" : "Check Render."}
               </p>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {/* MAIN CONTENT */}
-        <main>
           {/* ── DIRECTOR ── */}
           {activeDept === "director" && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              {/* Stats */}
+            <div className="space-y-6 animate-in fade-in duration-300">
               <StatsBar
                 directorStatus={directorStatus}
                 stagingStats={stagingStats}
-                pendingCount={stagingQueue.filter(s => s.status === "pending_review").length}
+                pendingCount={pendingCount}
                 runningTasks={runningTasks}
                 intelligence={intelligence}
               />
 
-              {/* Auto-Pilot */}
-              <Card className="aether-card border-ai-primary/20 bg-ai-primary/[0.02] rounded-[24px] sm:rounded-[32px] overflow-hidden">
-                <CardHeader className="pb-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Zap className={`h-4 w-4 ${scheduleSettings.isAutoPilot ? "text-ai-tertiary animate-pulse" : "text-slate-600"}`} />
-                        <span className="text-[9px] font-bold tracking-[0.2em] text-slate-500 uppercase">AUTONOMOUS MODE</span>
-                      </div>
-                      <CardTitle className="text-xl sm:text-2xl font-display font-bold">Strategic Auto-Pilot</CardTitle>
-                    </div>
-                    <div className="flex items-center gap-6 bg-slate-950/40 p-2 rounded-2xl border border-white/5 self-start">
-                      <div className="flex items-center gap-3 pr-4 border-r border-white/10">
-                        <span className={`text-[10px] font-bold tracking-widest uppercase ${scheduleSettings.isAutoPilot ? "text-ai-tertiary" : "text-slate-500"}`}>
-                          {scheduleSettings.isAutoPilot ? "AUTO-PILOT ACTIVE" : "AUTO-PILOT STANDBY"}
-                        </span>
-                        <button
-                          onClick={() => updateScheduleSettings({ isAutoPilot: !scheduleSettings.isAutoPilot })}
-                          disabled={isUpdatingSettings}
-                          className={`h-7 w-12 rounded-full transition-all relative ${scheduleSettings.isAutoPilot ? "bg-ai-tertiary" : "bg-slate-800"}`}
-                        >
-                          <div className={`absolute top-1 bottom-1 w-5 rounded-full bg-white transition-all ${scheduleSettings.isAutoPilot ? "right-1" : "left-1"}`} />
-                        </button>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <span className={`text-[10px] font-bold tracking-widest uppercase ${(scheduleSettings as any).isAutoCommit ? "text-ai-primary" : "text-slate-500"}`}>
-                          {(scheduleSettings as any).isAutoCommit ? "GIT PUSH ENABLED" : "GIT PUSH DISABLED"}
-                        </span>
-                        <button
-                          onClick={() => updateScheduleSettings({ isAutoCommit: !(scheduleSettings as any).isAutoCommit })}
-                          disabled={isUpdatingSettings}
-                          className={`h-7 w-12 rounded-full transition-all relative ${(scheduleSettings as any).isAutoCommit ? "bg-ai-primary shadow-[0_0_15px_rgba(56,189,248,0.3)]" : "bg-slate-800"}`}
-                        >
-                          <div className={`absolute top-1 bottom-1 w-5 rounded-full bg-white transition-all ${(scheduleSettings as any).isAutoCommit ? "right-1" : "left-1"}`} />
-                        </button>
-                      </div>
-                    </div>
+              {/* Auto-Pilot Card */}
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-[14px] font-semibold text-white flex items-center gap-2">
+                      <Zap className={`h-4 w-4 ${(scheduleSettings as any).isAutoPilot ? "text-emerald-400" : "text-slate-600"}`} />
+                      Auto-Pilot
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Autonomous strategic cycles on schedule</p>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-4">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <Clock className="h-3 w-3" /> Start Time
-                      </label>
-                      <input
-                        type="time"
-                        value={draftStartTime !== null ? draftStartTime : scheduleSettings.startTime}
-                        onChange={(e) => setDraftStartTime(e.target.value)}
-                        className="w-full bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5 text-sm font-bold text-ai-primary focus:border-ai-primary/50 transition-all outline-none"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <Activity className="h-3 w-3" /> Frequency
-                      </label>
-                      <select
-                        value={draftFreq !== null ? draftFreq : scheduleSettings.cyclesPerDay}
-                        onChange={(e) => setDraftFreq(parseInt(e.target.value))}
-                        className="w-full bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:border-ai-primary/50 transition-all outline-none appearance-none"
+                  <div className="flex items-center gap-4">
+                    {/* API Mode Toggle */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08]">
+                      <span className={`text-[10px] font-semibold ${(scheduleSettings as any).apiMode !== 'paid' ? 'text-emerald-400' : 'text-slate-600'}`}>FREE</span>
+                      <button
+                        onClick={() => updateScheduleSettings({ apiMode: (scheduleSettings as any).apiMode === 'paid' ? 'free' : 'paid' })}
+                        disabled={isUpdatingSettings}
+                        className={`h-5 w-9 rounded-full transition-all relative ${(scheduleSettings as any).apiMode === 'paid' ? "bg-amber-500" : "bg-emerald-500"}`}
                       >
-                        <option value={1}>1 Cycle / Day</option>
-                        <option value={2}>2 Cycles / Day</option>
-                        <option value={4}>Every 6 Hours</option>
-                        <option value={12}>Every 2 Hours</option>
-                        <option value={24}>Hourly</option>
-                      </select>
+                        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-sm ${(scheduleSettings as any).apiMode === 'paid' ? "right-0.5" : "left-0.5"}`} />
+                      </button>
+                      <span className={`text-[10px] font-semibold ${(scheduleSettings as any).apiMode === 'paid' ? 'text-amber-400' : 'text-slate-600'}`}>PAID</span>
                     </div>
-                    <div className="flex flex-col justify-end">
-                      {(draftStartTime !== null || draftFreq !== null) ? (
-                        <button
-                          onClick={() => {
-                            updateScheduleSettings({
-                              startTime: draftStartTime !== null ? draftStartTime : scheduleSettings.startTime,
-                              cyclesPerDay: draftFreq !== null ? draftFreq : scheduleSettings.cyclesPerDay
-                            });
-                            setDraftStartTime(null);
-                            setDraftFreq(null);
-                          }}
-                          disabled={isUpdatingSettings}
-                          className="h-[42px] px-4 rounded-xl bg-ai-primary text-slate-950 font-bold hover:bg-ai-primary/90 transition-all border border-transparent disabled:opacity-50"
-                        >
-                          Save Settings
-                        </button>
-                      ) : (
-                        <div className="bg-slate-950/50 border border-white/5 rounded-xl px-4 py-2.5 h-[42px]">
-                          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Last Pulse</p>
-                          <p className="text-[11px] font-mono text-ai-primary/70">
-                            {scheduleSettings.lastRunAt ? new Date(scheduleSettings.lastRunAt).toLocaleTimeString() : "Never"}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      onClick={() => updateScheduleSettings({ isAutoPilot: !(scheduleSettings as any).isAutoPilot })}
+                      disabled={isUpdatingSettings}
+                      className={`h-6 w-11 rounded-full transition-all relative ${(scheduleSettings as any).isAutoPilot ? "bg-emerald-500" : "bg-slate-700"}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-sm ${(scheduleSettings as any).isAutoPilot ? "right-0.5" : "left-0.5"}`} />
+                    </button>
+                    <button
+                      onClick={() => updateScheduleSettings({ isAutoCommit: !(scheduleSettings as any).isAutoCommit })}
+                      disabled={isUpdatingSettings}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider border transition-all ${(scheduleSettings as any).isAutoCommit ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-400" : "bg-white/[0.03] border-white/[0.08] text-slate-500"}`}
+                    >
+                      Git Push {(scheduleSettings as any).isAutoCommit ? "ON" : "OFF"}
+                    </button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1 block">Start Time</label>
+                    <input
+                      type="time"
+                      value={draftStartTime ?? (scheduleSettings as any).startTime ?? "10:00"}
+                      onChange={(e) => setDraftStartTime(e.target.value)}
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-cyan-500/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1 block">Frequency</label>
+                    <select
+                      value={draftFreq ?? (scheduleSettings as any).cyclesPerDay ?? 1}
+                      onChange={(e) => setDraftFreq(parseInt(e.target.value))}
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-cyan-500/40 appearance-none"
+                    >
+                      <option value={1}>1×/day</option>
+                      <option value={2}>2×/day</option>
+                      <option value={4}>Every 6h</option>
+                      <option value={12}>Every 2h</option>
+                    </select>
+                  </div>
+                  <div className="flex items-end">
+                    {(draftStartTime !== null || draftFreq !== null) ? (
+                      <button
+                        onClick={() => { updateScheduleSettings({ startTime: draftStartTime ?? (scheduleSettings as any).startTime, cyclesPerDay: draftFreq ?? (scheduleSettings as any).cyclesPerDay }); setDraftStartTime(null); setDraftFreq(null); }}
+                        className="w-full py-2 rounded-lg bg-white text-black text-[12px] font-medium hover:bg-white/90 transition-colors"
+                      >
+                        Save
+                      </button>
+                    ) : (
+                      <div className="w-full py-2 px-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                        <p className="text-[10px] text-slate-500">Last run</p>
+                        <p className="text-[11px] text-slate-400 font-mono">{(scheduleSettings as any).lastRunAt ? new Date((scheduleSettings as any).lastRunAt).toLocaleTimeString() : "Never"}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-              {/* Model Selection Matrix */}
-              <ModelSelectionMatrix 
-                currentModels={scheduleSettings.agentModels || {}}
-                onUpdate={(models) => updateScheduleSettings({ agentModels: models })}
+              {/* Model Matrix */}
+              <ModelSelectionMatrix
+                currentModels={(scheduleSettings as any).agentModels || {}}
+                onUpdate={(models: any) => updateScheduleSettings({ agentModels: models })}
                 isUpdating={isUpdatingSettings}
               />
 
               {/* Dispatch + Queue + Feed */}
-              <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
-                <div className="space-y-8">
+              <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                <div className="space-y-6">
                   <ControlHub
                     dispatchDepartment={dispatchDepartment}
                     dispatchDirectorCycle={dispatchDirectorCycle}
                     isDispatching={isDispatching}
                     runningTasks={runningTasks}
                   />
-                  <div className="space-y-4">
-                    <h2 className="text-[10px] font-bold tracking-[0.3em] text-slate-500 uppercase flex items-center gap-3">
-                      <Layers className="h-4 w-4 text-ai-primary" /> STAGING QUEUE
-                    </h2>
-                    <StagingQueue
-                      stagingQueue={stagingQueue}
-                      reviewItem={reviewItem}
-                      previewItem={previewItem}
-                      previewContent={previewContent}
-                      setPreviewContent={setPreviewContent}
-                    />
-                  </div>
+                  <StagingQueue
+                    stagingQueue={stagingQueue}
+                    reviewItem={reviewItem}
+                    previewItem={previewItem}
+                    previewContent={previewContent}
+                    setPreviewContent={setPreviewContent}
+                  />
                 </div>
-                <aside>
-                  <div className="space-y-4 sticky top-6">
-                    <h2 className="text-[10px] font-bold tracking-[0.3em] text-slate-500 uppercase flex items-center gap-3">
-                      <Activity className="h-4 w-4 text-ai-tertiary" /> LIVE ACTIVITY
-                    </h2>
-                    <ActivityFeed activityFeed={activityFeed} />
-                  </div>
+                <aside className="sticky top-[76px] self-start">
+                  <ActivityFeed activityFeed={activityFeed} />
                 </aside>
               </div>
             </div>
           )}
 
-          {/* ── CONTENT HUB ── */}
+          {/* ── CONTENT ── */}
           {activeDept === "content" && (
-            <ContentHubDepartment
-              intelligence={intelligence}
-              activityFeed={activityFeed}
-              runningTasks={runningTasks}
-            />
+            <ContentHubDepartment intelligence={intelligence} activityFeed={activityFeed} runningTasks={runningTasks} />
           )}
 
           {/* ── TECH SEO ── */}
           {activeDept === "techseo" && (
-            <TechSeoDepartment
-              intelligence={intelligence}
-              activityFeed={activityFeed}
-              runningTasks={runningTasks}
-              directorStatus={directorStatus}
-            />
+            <TechSeoDepartment intelligence={intelligence} activityFeed={activityFeed} runningTasks={runningTasks} directorStatus={directorStatus} />
           )}
 
           {/* ── LANDING PAGES ── */}
           {activeDept === "landing" && (
-            <LandingPagesDepartment
-              intelligence={intelligence}
-              activityFeed={activityFeed}
-              stagingQueue={stagingQueue}
-            />
+            <LandingPagesDepartment intelligence={intelligence} activityFeed={activityFeed} stagingQueue={stagingQueue} />
           )}
 
-          {/* ── INSTAGRAM HUB ── */}
-          {activeDept === "instagram" && (
-            <InstagramDepartment />
-          )}
-
+          {/* ── INSTAGRAM ── */}
+          {activeDept === "instagram" && <InstagramDepartment />}
 
           {/* ── OUTREACH ── */}
           {activeDept === "outreach" && (
-            <OutreachDepartment 
-              leads={leads}
-              emails={emails}
-              replies={replies}
-              stats={outreachStats}
-              outreachTab={outreachTab}
-              setOutreachTab={setOutreachTab}
+            <OutreachDepartment
+              leads={leads} emails={emails} replies={replies} stats={outreachStats}
+              outreachTab={outreachTab} setOutreachTab={setOutreachTab}
               autoDecideNicheAndHunt={autoDecideNicheAndHunt}
-              isGeneratingNiche={isGeneratingNiche}
-              aiNiche={aiNiche}
-              manualNiche={manualNiche}
-              setManualNiche={setManualNiche}
-              leadCount={leadCount}
-              setLeadCount={setLeadCount}
-              exportLeads={exportLeads}
-              exportOutreach={exportOutreach}
-              syncLeads={async () => {
-                try {
-                  await fetch(`${API_BASE_URL}/api/leads/sync-scraper`, { method: 'POST' });
-                  await syncLeads();
-                } catch (err) {
-                  console.error("Sync failed", err);
-                }
-              }}
+              isGeneratingNiche={isGeneratingNiche} aiNiche={aiNiche}
+              manualNiche={manualNiche} setManualNiche={setManualNiche}
+              leadCount={leadCount} setLeadCount={setLeadCount}
+              exportLeads={exportLeads} exportOutreach={exportOutreach}
+              syncLeads={async () => { await fetch(`${API_BASE_URL}/api/leads/sync-scraper`, { method: 'POST' }); await syncLeads(); }}
               isImporting={isImporting}
-              selectedLeadId={selectedLeadId}
-              setSelectedLeadId={setSelectedLeadId}
-              leadFilter={leadFilter}
-              setLeadFilter={setLeadFilter}
-              search={search}
-              setSearch={setSearch}
-              isEditing={isEditing}
-              setIsEditing={setIsEditing}
-              editForm={editForm}
-              setEditForm={setEditForm}
-              saveEdit={async () => { 
+              selectedLeadId={selectedLeadId} setSelectedLeadId={setSelectedLeadId}
+              leadFilter={leadFilter} setLeadFilter={setLeadFilter}
+              search={search} setSearch={setSearch}
+              isEditing={isEditing} setIsEditing={setIsEditing}
+              editForm={editForm} setEditForm={setEditForm}
+              saveEdit={async () => {
                 try {
                   const res = await fetch(`${API_BASE_URL}/api/leads/${selectedLeadId}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      businessName: editForm.businessName,
-                      contactEmail: editForm.contactEmail,
-                      website: editForm.website,
-                      niche: editForm.niche,
-                      status: editForm.status,
-                      location: editForm.location,
-                      problemTitle: editForm.problemTitle,
-                      problemDetail: editForm.problemDetail
-                    })
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ businessName: editForm.businessName, contactEmail: editForm.contactEmail, website: editForm.website, niche: editForm.niche, status: editForm.status, location: editForm.location, problemTitle: editForm.problemTitle, problemDetail: editForm.problemDetail })
                   });
-
-                  if (res.ok) {
-                    setLeads(prev => prev.map(l => l.id === selectedLeadId ? { ...l, ...editForm } : l)); 
-                    setIsEditing(false); 
-                  } else {
-                    const errorData = await res.json();
-                    alert(`Failed to save changes: ${errorData.error || 'Unknown error'}`);
-                  }
-
-                } catch (err) {
-                  console.error("Save failed", err);
-                  alert("Network error while saving.");
-                }
+                  if (res.ok) { setLeads(prev => prev.map(l => l.id === selectedLeadId ? { ...l, ...editForm } : l)); setIsEditing(false); }
+                  else { const err = await res.json(); alert(`Save failed: ${err.error}`); }
+                } catch { alert("Network error."); }
               }}
               startEditing={(l: any) => { setSelectedLeadId(l.id); setEditForm(l); setIsEditing(true); }}
-              handleSendEmail={handleSendEmail}
-              isSending={isSending}
+              handleSendEmail={handleSendEmail} isSending={isSending}
               addReply={async () => { setReplies(prev => [...prev, { ...newReply, id: `reply-${Date.now()}`, leadId: selectedLeadId }]); setNewReply({ summary: "", nextStep: "" }); }}
-              newReply={newReply}
-              setNewReply={setNewReply}
+              newReply={newReply} setNewReply={setNewReply}
             />
           )}
         </main>
       </div>
 
-      {/* Chat Overlay */}
+      {/* Chat Panel */}
       <ChatPanel
-        isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
-        messages={chatHistory}
-        input={chatInput}
-        setInput={setChatInput}
-        isLoading={isChatLoading}
-        handleSend={handleChatSend}
+        isOpen={chatOpen} onClose={() => setChatOpen(false)}
+        messages={chatHistory} input={chatInput} setInput={setChatInput}
+        isLoading={isChatLoading} handleSend={handleChatSend}
         clearHistory={() => setChatHistory([])}
-        keyLabel={`Gemini 2.0 Flash`}
-        totalKeys={API_KEYS.length}
+        keyLabel="Gemini 2.0 Flash" totalKeys={API_KEYS.length}
       />
     </div>
   );
 }
+

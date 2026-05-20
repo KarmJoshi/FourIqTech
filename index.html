@@ -10,9 +10,11 @@
   <!-- Preconnect for Google Fonts to eliminate render-blocking -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
   <!-- Fonts loaded as link (not CSS @import) — async, non-blocking -->
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" /></noscript>
   <!-- Critical inline styles: black bg + stable scrollbar gutter to prevent CLS from overflow toggling -->
   <style>
     html {
@@ -41,6 +43,7 @@
     <!-- Ensure the hero image component within /src/main.tsx or downstream components -->
     <!-- uses fetchpriority="high" and removes loading="lazy" for LCP optimization -->
   </div>
+  <link rel="modulepreload" href="/src/main.tsx" />
   <script type="module" src="/src/main.tsx" defer></script>
 </body>
 

@@ -20,7 +20,8 @@
       "supporting_articles": [
         "enterprise-legacy-system-modernization-strategy-nextjs-strangler-fig",
         "enterprise-frontend-modernization-hybrid-bridge-blueprint",
-        "headless-commerce-migration-strangler-fig-session-state"
+        "headless-commerce-migration-strangler-fig-session-state",
+        "sharing-state-between-micro-frontends-architectural-patterns"
       ],
       "target_supporting_count": 5,
       "cluster_complete": false

@@ -48,14 +48,29 @@ export const PATHS = {
   crawlerToolbox:   path.join(CWD, '.github/scripts/crawlers/toolbox-registry.json'),
 };
 
-// ── API KEY ROTATION ──
-const PRO_KEY = process.env.GEMINI_PRO_API_KEY || '';
-const OTHER_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-  .replace(/["']/g, '')
-  .split(',').map(k => k.trim()).filter(k => k.length > 0);
+// ── API KEY SELECTION (Mode-aware: free vs paid) ──
+function getApiMode() {
+  // Check settings file first (set by UI toggle)
+  try {
+    const settingsPath = path.join(CWD, '.github/staging/system-settings.json');
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      if (settings.apiMode) return settings.apiMode;
+    }
+  } catch {}
+  // Fallback to env var
+  return process.env.GEMINI_API_MODE || 'free';
+}
 
-// Prioritize Pro Key (Billed) and deduplicate with others
-const API_KEYS = [...new Set([PRO_KEY, ...OTHER_KEYS])].filter(k => k.length > 0);
+const API_MODE = getApiMode();
+const FREE_KEYS = (process.env.GEMINI_FREE_KEY || process.env.GEMINI_API_KEYS || '')
+  .replace(/["']/g, '').split(',').map(k => k.trim()).filter(k => k.length > 0);
+const PAID_KEYS = (process.env.GEMINI_PAID_KEY || '')
+  .replace(/["']/g, '').split(',').map(k => k.trim()).filter(k => k.length > 0);
+
+// Pick keys based on mode
+const API_KEYS = API_MODE === 'paid' && PAID_KEYS.length > 0 ? PAID_KEYS : FREE_KEYS;
+console.log(`   🔑 API Mode: ${API_MODE.toUpperCase()} | Keys: ${API_KEYS.length}`);
 
 let currentKeyIdx = 0;
 let aiClient = API_KEYS.length > 0 ? new GoogleGenAI({ apiKey: API_KEYS[0] }) : null;
@@ -78,19 +93,20 @@ export function getAiClient() { return aiClient; }
 // ═══════════════════════════════════════════════════════════════════════
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// Model presets — roles mapped to model arrays
+// Model presets — fallback defaults per role
+// Free tier (May 2026): gemini-3-flash-preview, gemini-2.5-flash, gemini-2.5-flash-lite, gemini-2.0-flash
+// Note: gemini-1.5-* are REMOVED (404). Use full model IDs with -preview suffix for v3.
 export const MODELS = {
-  // Manager (THE BOSS) — highest reasoning, used sparingly
-  manager:    ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-  content_manager: ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-  researcher: ['gemini-3.1-flash-lite-preview', 'gemini-3-flash', 'gemini-1.5-flash'],
-  writer:     ['gemini-1.5-flash', 'gemini-3-flash', 'gemini-3.1-flash-lite-preview'],
-  architect:  ['gemini-1.5-pro', 'gemini-3.1-pro-preview', 'gemini-1.5-flash'],
-  qa:         ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-  scanner:    ['gemini-3.1-flash-lite-preview', 'gemini-1.5-flash', 'gemini-2.5-flash'],
-  builder:    ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-  auditor:    ['gemini-3.1-pro-preview', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-  browser:    ['gemini-1.5-flash', 'gemini-3-flash', 'gemini-3.1-flash-lite-preview'],
+  manager:         ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  content_manager: ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  researcher:      ['gemini-3-flash-preview', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'],
+  writer:          ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  architect:       ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  qa:              ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  scanner:         ['gemini-3-flash-preview', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'],
+  builder:         ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  auditor:         ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+  browser:         ['gemini-3-flash-preview', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'],
 };
 
 const SETTINGS_PATH = path.join(CWD, '.github/staging/system-settings.json');
@@ -107,27 +123,41 @@ function readSettings() {
 /**
  * Fetch dynamic model fallback arrays for a given role based on stored settings.
  * Priority: JSON settings > Database > Hardcoded MODELS
+ * The user-selected model is ALWAYS tried first. Hardcoded defaults are appended as fallbacks.
  */
 export async function getModelsForRole(role) {
+  let userSelected = null;
+
   // Try JSON file first (set by UI)
   const settings = readSettings();
   if (settings.agentModels?.[role]) {
     const assigned = settings.agentModels[role];
-    return Array.isArray(assigned) ? assigned : [assigned];
+    userSelected = Array.isArray(assigned) ? assigned[0] : assigned;
   }
   
-  // Fallback to database
-  try {
-    const config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
-    if (config?.agentModels?.[role]) {
-      const assigned = config.agentModels[role];
-      return Array.isArray(assigned) ? assigned : [assigned];
+  // Fallback to database if no JSON setting
+  if (!userSelected) {
+    try {
+      const config = await prisma.agencyConfig.findUnique({ where: { id: 'default' } });
+      if (config?.agentModels?.[role]) {
+        const assigned = config.agentModels[role];
+        userSelected = Array.isArray(assigned) ? assigned[0] : assigned;
+      }
+    } catch (e) {
+      // DB error, fallback silently
     }
-  } catch (e) {
-    // DB error, fallback silently
+  }
+
+  // Build final model array: user selection first, then hardcoded fallbacks
+  const defaults = MODELS[role] || ['gemini-2.5-flash', 'gemini-2.0-flash'];
+  
+  if (userSelected) {
+    // Deduplicate: user's pick first, then defaults (excluding the pick)
+    const fallbacks = defaults.filter(m => m !== userSelected);
+    return [userSelected, ...fallbacks];
   }
   
-  return MODELS[role] || ['gemini-3-flash', 'gemini-3.1-flash-lite-preview'];
+  return defaults;
 }
 
 /**
@@ -146,43 +176,80 @@ export async function smartCall(modelArrayOrRole, contents, agentName = 'AI', op
   }
   const { json = true, maxTokens = 8192 } = options;
 
+  // NOTE: googleSearch grounding and JSON response mime type are mutually exclusive.
+  const useGrounding = !json;
+
   for (const model of models) {
-    let tries = 0;
+    let rateLimitTries = 0;
     let backoffMs = 5000;
+    let withGrounding = useGrounding;
+    const maxWaitTime = 5 * 60 * 1000; // 5 minutes max per model
+    const startTime = Date.now();
 
     console.log(`   🚀 [${agentName}] Trying model: ${model}...`);
-    while (tries < API_KEYS.length * 2) {
+    while (true) {
       try {
-        const config = { 
-          maxOutputTokens: maxTokens,
-          tools: [{ googleSearch: {} }]
-        };
+        const config = { maxOutputTokens: maxTokens };
         if (json) config.responseMimeType = "application/json";
+        if (withGrounding) config.tools = [{ googleSearch: {} }];
 
         const resp = await aiClient.models.generateContent({
-          model, 
-          contents: contents, 
+          model,
+          contents: contents,
           config
         });
-        await sleep(2000); // Respect rate limits
-        return resp.candidates[0].content.parts[0].text;
+        // Free tier: 6s gap between successful calls
+        await sleep(6000);
+        return typeof resp.text === 'function' ? resp.text() : resp.text;
       } catch (err) {
-        if (err.status === 429 || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
-          console.log(`   ⏳ [${agentName}] Rate limit hit! Backing off for ${backoffMs/1000}s...`);
-          await sleep(backoffMs);
-          tries++;
-          if (tries % 2 !== 0 && API_KEYS.length > 1) {
-            rotateKey();
-          } else {
-            backoffMs = Math.min(backoffMs * 2, 60000);
+        const errStr = String(err.status || err.message || '').toLowerCase();
+        const elapsed = Date.now() - startTime;
+
+        // 503 = server overloaded — retry INDEFINITELY (doesn't cost quota)
+        if (err.status === 503 || errStr.includes('503') || errStr.includes('high demand') || errStr.includes('overloaded')) {
+          if (elapsed > maxWaitTime) {
+            console.log(`   ⏰ [${agentName}] Model ${model} overloaded for 5+ min. Trying next model...`);
+            break;
           }
+          console.log(`   ⏳ [${agentName}] Server busy (503). Retrying in ${backoffMs/1000}s... (${Math.round(elapsed/1000)}s elapsed)`);
+          await sleep(backoffMs);
+          backoffMs = Math.min(backoffMs * 1.5, 30000); // Cap at 30s between retries
           continue;
         }
-        const errStr = String(err.status || err.message || '').toLowerCase();
-        if (errStr.includes('404') || errStr.includes('400') || errStr.includes('503') || errStr.includes('500') || errStr.includes('high demand')) {
-          console.log(`   ❌ [${agentName}] Model ${model} unavailable (${err.status || 'Overloaded'}). Falling back...`);
+
+        // 429 = quota exhausted — retry with key rotation
+        if (err.status === 429 || errStr.includes('429') || errStr.includes('RESOURCE_EXHAUSTED')) {
+          rateLimitTries++;
+          if (rateLimitTries > API_KEYS.length * 3) {
+            console.log(`   💀 [${agentName}] All keys exhausted for ${model}. Trying next model...`);
+            break;
+          }
+          console.log(`   ⏳ [${agentName}] Rate limit (429). Backing off ${backoffMs/1000}s...`);
+          await sleep(backoffMs);
+          if (API_KEYS.length > 1) rotateKey();
+          backoffMs = Math.min(backoffMs * 2, 60000);
+          continue;
+        }
+
+        // 404 = model doesn't exist — skip immediately
+        if (errStr.includes('404')) {
+          console.log(`   ❌ [${agentName}] Model ${model} not found (404). Skipping...`);
           break;
         }
+
+        // 400 with grounding = model doesn't support it — retry without
+        if (errStr.includes('400') && withGrounding) {
+          console.log(`   ⚠️  [${agentName}] Model ${model} rejected grounding. Retrying without...`);
+          withGrounding = false;
+          continue;
+        }
+
+        // 400/500 = bad request or server error — skip to next model
+        if (errStr.includes('400') || errStr.includes('500')) {
+          console.log(`   ❌ [${agentName}] Model ${model} error (${err.status}). Falling back...`);
+          break;
+        }
+
         throw err;
       }
     }

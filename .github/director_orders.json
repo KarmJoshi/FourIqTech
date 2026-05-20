@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-04-16T10:31:35.903Z",
-  "department": "content",
-  "reasoning": "Manager dispatched content team via command center",
-  "cross_department_orders": "Manager dispatched content team via command center",
+  "timestamp": "2026-05-20T06:30:08.885Z",
+  "department": "technical",
+  "reasoning": "Manager dispatched technical team via command center",
+  "cross_department_orders": "Manager dispatched technical team via command center",
   "agency_health_score": 7,
   "source": "chat_manager"
 }

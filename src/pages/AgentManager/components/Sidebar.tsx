@@ -1,4 +1,5 @@
-import { Crown, PenTool, Wrench, Globe, Mail, Instagram, MessageCircle, Settings, Activity, LogOut, Zap } from "lucide-react";
+import { Crown, PenTool, Wrench, Globe, Mail, Instagram, MessageCircle, LogOut, Zap, Activity, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 type DeptId = "director" | "content" | "techseo" | "landing" | "outreach" | "instagram";
 
@@ -11,85 +12,107 @@ interface SidebarProps {
   isAutoPilot: boolean;
 }
 
-const NAV_ITEMS: { id: DeptId; label: string; icon: any; shortLabel: string }[] = [
-  { id: "director", label: "Director", icon: Crown, shortLabel: "CMD" },
-  { id: "content", label: "Content", icon: PenTool, shortLabel: "BLG" },
-  { id: "techseo", label: "Tech SEO", icon: Wrench, shortLabel: "SEO" },
-  { id: "landing", label: "Pages", icon: Globe, shortLabel: "PGS" },
-  { id: "instagram", label: "Social", icon: Instagram, shortLabel: "SOC" },
-  { id: "outreach", label: "Outreach", icon: Mail, shortLabel: "OUT" },
+const NAV_ITEMS: { id: DeptId; label: string; icon: any; badge?: string }[] = [
+  { id: "director", label: "Command Center", icon: Crown },
+  { id: "content", label: "Content Studio", icon: PenTool },
+  { id: "techseo", label: "Technical SEO", icon: Wrench },
+  { id: "landing", label: "Landing Pages", icon: Globe },
+  { id: "instagram", label: "Social Media", icon: Instagram },
+  { id: "outreach", label: "Outreach", icon: Mail },
 ];
 
 export function Sidebar({ activeDept, setActiveDept, onChatOpen, onLogout, apiOnline, isAutoPilot }: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[72px] lg:w-[240px] bg-slate-950/80 backdrop-blur-xl border-r border-white/[0.06] flex flex-col z-40 transition-all">
-      {/* Logo */}
-      <div className="h-16 flex items-center justify-center lg:justify-start lg:px-5 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+    <aside className={`fixed left-0 top-0 bottom-0 ${collapsed ? "w-[68px]" : "w-[260px]"} bg-[#09090b] border-r border-white/[0.06] flex flex-col z-50 transition-all duration-300`}>
+      
+      {/* Header */}
+      <div className="h-[60px] flex items-center justify-between px-4 border-b border-white/[0.06]">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
             <Zap className="h-4 w-4 text-white" />
           </div>
-          <span className="hidden lg:block text-sm font-bold text-white tracking-tight">FourIQ Agency</span>
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="text-[13px] font-semibold text-white leading-tight">SEO Agency</span>
+              <span className="text-[10px] text-slate-500 leading-tight">Autonomous Platform</span>
+            </div>
+          )}
         </div>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="h-6 w-6 rounded-md flex items-center justify-center text-slate-600 hover:text-slate-400 hover:bg-white/[0.05] transition-colors shrink-0"
+        >
+          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
       </div>
 
-      {/* Status Indicator */}
-      <div className="px-3 lg:px-4 py-3 border-b border-white/[0.06]">
-        <div className="flex items-center justify-center lg:justify-start gap-2">
-          <span className={`h-2 w-2 rounded-full ${apiOnline ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" : "bg-red-400 shadow-[0_0_6px_rgba(248,113,113,0.6)]"}`} />
-          <span className="hidden lg:block text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            {apiOnline ? "System Online" : "Offline"}
-          </span>
+      {/* System Status */}
+      <div className="px-3 py-3">
+        <div className={`flex items-center gap-2.5 ${collapsed ? "justify-center" : "px-2"} py-2 rounded-lg ${apiOnline ? "bg-emerald-500/[0.08]" : "bg-red-500/[0.08]"}`}>
+          <span className={`h-2 w-2 rounded-full shrink-0 ${apiOnline ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" : "bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]"}`} />
+          {!collapsed && (
+            <span className={`text-[11px] font-medium ${apiOnline ? "text-emerald-400" : "text-red-400"}`}>
+              {apiOnline ? "System Online" : "System Offline"}
+            </span>
+          )}
         </div>
-        {isAutoPilot && (
-          <div className="hidden lg:flex items-center gap-1.5 mt-2 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-            <Activity className="h-3 w-3 text-emerald-400 animate-pulse" />
-            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Auto-Pilot</span>
+        {isAutoPilot && !collapsed && (
+          <div className="flex items-center gap-2 px-2 py-1.5 mt-2 rounded-lg bg-violet-500/[0.08] border border-violet-500/[0.12]">
+            <Activity className="h-3 w-3 text-violet-400 animate-pulse shrink-0" />
+            <span className="text-[10px] font-semibold text-violet-400 uppercase tracking-wider">Auto-Pilot Active</span>
           </div>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-3 px-2 lg:px-3 space-y-1 overflow-y-auto">
-        <p className="hidden lg:block text-[9px] font-bold text-slate-600 uppercase tracking-[0.2em] px-2 mb-2">Departments</p>
+      <nav className="flex-1 px-2 py-1 space-y-0.5 overflow-y-auto">
+        {!collapsed && (
+          <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-[0.12em] px-3 mb-2 mt-1">Workspace</p>
+        )}
         {NAV_ITEMS.map((item) => {
           const isActive = activeDept === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setActiveDept(item.id)}
-              className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 group relative ${
+              title={collapsed ? item.label : undefined}
+              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-150 group relative ${
                 isActive
-                  ? "bg-white/[0.08] text-white shadow-sm"
+                  ? "bg-white/[0.08] text-white"
                   : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.04]"
               }`}
             >
               {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-cyan-400 rounded-r-full" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-r-full" />
               )}
-              <item.icon className={`h-[18px] w-[18px] shrink-0 transition-colors ${isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-400"}`} />
-              <span className="hidden lg:block text-[13px] font-medium">{item.label}</span>
-              <span className="lg:hidden text-[8px] font-bold uppercase tracking-wider">{item.shortLabel}</span>
+              <item.icon className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-400"}`} />
+              {!collapsed && (
+                <span className={`text-[13px] font-medium truncate ${isActive ? "text-white" : ""}`}>{item.label}</span>
+              )}
             </button>
           );
         })}
       </nav>
 
-      {/* Bottom Actions */}
-      <div className="border-t border-white/[0.06] p-2 lg:p-3 space-y-1">
+      {/* Bottom */}
+      <div className="border-t border-white/[0.06] p-2 space-y-0.5">
         <button
           onClick={onChatOpen}
-          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-slate-500 hover:text-cyan-400 hover:bg-cyan-400/[0.06] transition-all"
+          title={collapsed ? "AI Chat" : undefined}
+          className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/[0.06] transition-all"
         >
-          <MessageCircle className="h-[18px] w-[18px] shrink-0" />
-          <span className="hidden lg:block text-[13px] font-medium">AI Chat</span>
+          <MessageCircle className="h-4 w-4 shrink-0" />
+          {!collapsed && <span className="text-[13px] font-medium">AI Assistant</span>}
         </button>
         <button
           onClick={onLogout}
-          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-slate-500 hover:text-red-400 hover:bg-red-400/[0.06] transition-all"
+          title={collapsed ? "Logout" : undefined}
+          className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 hover:text-red-400 hover:bg-red-500/[0.06] transition-all"
         >
-          <LogOut className="h-[18px] w-[18px] shrink-0" />
-          <span className="hidden lg:block text-[13px] font-medium">Logout</span>
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && <span className="text-[13px] font-medium">Sign Out</span>}
         </button>
       </div>
     </aside>
