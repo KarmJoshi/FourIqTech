@@ -57,6 +57,19 @@ function loadDirectorOrders() {
   } catch { return null; }
 }
 
+// Safe JSON parser — handles trailing text after JSON
+function safeParseJSON(raw) {
+  if (!raw) return null;
+  // Try direct parse first
+  try { return JSON.parse(raw); } catch {}
+  // Try to extract JSON object from the text
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch {}
+  }
+  return null;
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // PHASE 1: MARKET SCANNER — Find commercial keywords for landing pages
 // ═══════════════════════════════════════════════════════════════════════
@@ -70,8 +83,16 @@ async function marketScanner(memory, config, existingRoutes) {
 
 ${memory.context}
 
-COMPANY SERVICES:
-${JSON.stringify(config.services || {}, null, 2)}
+OUR CORE SERVICES (ONLY target these):
+- Custom Web Application Development
+- Custom SaaS Platform Development
+- Legacy Web Application Modernization
+- Enterprise React/Next.js Development
+- Web Design & Development
+- SEO Services
+- Performance Optimization
+
+DO NOT target: Google Ads, Social Media Marketing, WordPress, E-commerce, or any service we don't actually provide as a core offering.
 
 EXISTING PAGES (DO NOT DUPLICATE):
 ${existingRoutes.filter(r => r.includes('/services/')).join('\n') || 'None yet'}
@@ -100,7 +121,7 @@ Return JSON:
   "reasoning": "Why this keyword is a good choice"
 }`, 'Market Scanner');
 
-  const result = JSON.parse(raw);
+  const result = safeParseJSON(raw); if (!result) { console.log("   ? Failed to parse Market Scanner response."); return null; }
   console.log(`   🎯 Keyword: "${result.keyword}"`);
   console.log(`   📄 Page: ${result.page_title}`);
   console.log(`   🔗 Route: ${result.route}`);
@@ -181,7 +202,7 @@ Return JSON:
   "secondary_keywords": ["kw1", "kw2", "kw3"]
 }`, 'Page Strategist');
 
-  const design = JSON.parse(raw);
+  const design = safeParseJSON(raw); if (!design) { console.log("   ? Failed to parse Page Strategist response."); return null; }
   console.log(`   ✅ Architecture: ${design.sections?.length || 0} sections designed`);
   console.log(`   🔗 Internal links: ${design.internal_links?.length || 0}`);
   console.log(`   ❓ FAQ items: ${design.faq_items?.length || 0}`);
