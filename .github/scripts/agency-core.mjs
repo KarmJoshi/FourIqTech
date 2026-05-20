@@ -200,7 +200,12 @@ export async function smartCall(modelArrayOrRole, contents, agentName = 'AI', op
         });
         // Free tier: 6s gap between successful calls
         await sleep(6000);
-        return typeof resp.text === 'function' ? resp.text() : resp.text;
+        const text = typeof resp.text === 'function' ? resp.text() : resp.text;
+        if (!text) {
+          console.log(`   ⚠️ [${agentName}] Model returned empty response. Retrying...`);
+          continue;
+        }
+        return text;
       } catch (err) {
         const errStr = String(err.status || err.message || '').toLowerCase();
         const elapsed = Date.now() - startTime;

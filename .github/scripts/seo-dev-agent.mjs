@@ -236,6 +236,10 @@ IMPORTANT:
 Return ONLY the raw TSX code. No markdown formatting. No explanation.`, 'Page Builder', { json: false });
 
   // Clean up
+  if (!raw) {
+    console.log('   ❌ Page Builder returned empty response.');
+    return null;
+  }
   let code = raw.trim();
   if (code.startsWith('```')) {
     code = code.replace(/^```[a-z]*\n/, '').replace(/\n```$/, '');
