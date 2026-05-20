@@ -218,7 +218,7 @@ async function pageBuilder(scanResult, design) {
   
   const models = await getModelsForRole('builder');
   
-  const raw = await smartCall(models, `You are a senior React developer building a production landing page component.
+  const raw = await smartCall(models, `You are a senior React developer building a production landing page that MUST match the existing site's design system.
 
 PAGE DESIGN:
 ${JSON.stringify(design, null, 2)}
@@ -226,35 +226,74 @@ ${JSON.stringify(design, null, 2)}
 ROUTE: ${scanResult.route}
 COMPONENT NAME: ${scanResult.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}
 
-TECHNICAL REQUIREMENTS:
-1. React functional component with TypeScript
-2. Use Tailwind CSS for styling (dark theme — bg-[#020617] base)
-3. Import from: react, lucide-react, react-helmet-async
-4. Include SEO component with meta title, description, schema
-5. Responsive design (mobile-first)
-6. Smooth scroll animations (use CSS only, no framer-motion import)
-7. Include FAQ schema as JSON-LD in a <script> tag
-8. Include Service schema as JSON-LD
-9. All sections from the design brief
-10. Professional, premium look matching an enterprise agency
+═══ MANDATORY STRUCTURE (Follow this EXACTLY) ═══
 
-STYLE GUIDE:
-- Background: dark (#020617 to #0f172a gradient)
-- Text: white/slate-100 for headings, slate-300/400 for body
-- Accent: Use gold/amber (#eab308) for CTAs and highlights
-- Cards: glass effect (bg-white/5 border border-white/10 backdrop-blur)
-- Spacing: generous padding (py-20 to py-32 for sections)
-- Typography: font-bold for headings, font-light for body
-- CTAs: bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl
+The component MUST follow this pattern:
 
-IMPORTANT:
-- Export as default
-- Do NOT import any external packages not listed above
-- Do NOT use any images (use icons from lucide-react instead)
-- Include the Helmet component for SEO meta tags
-- Make it production-ready — no placeholders, no TODOs
+\`\`\`
+import { useEffect, useState, useRef } from 'react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { useScrollLock } from '@/components/SmoothScroll';
+import SEO from '@/components/SEO';
+import { motion, useInView } from 'framer-motion';
+import { [icons from lucide-react] } from 'lucide-react';
 
-Return ONLY the raw TSX code. No markdown formatting. No explanation.`, 'Page Builder', { json: false });
+export default function ComponentName() {
+  const [navVisible, setNavVisible] = useState(false);
+  const { setScrollLocked } = useScrollLock();
+
+  useEffect(() => {
+    setNavVisible(true);
+    setScrollLocked(false);
+  }, [setScrollLocked]);
+
+  // Animation variants
+  const fadeUpVariant = {
+    hidden: { opacity: 0, y: 30, filter: 'blur(8px)' },
+    visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+  };
+
+  // Section components here...
+
+  return (
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
+      <SEO title="..." description="..." />
+      <Navbar visible={navVisible} />
+      <main>
+        {/* All sections here */}
+      </main>
+      <Footer />
+    </div>
+  );
+}
+\`\`\`
+
+═══ DESIGN SYSTEM (Use these classes) ═══
+- Background: bg-background (dark), bg-black/40 for alternate sections
+- Text: text-foreground (light), text-muted-foreground (gray)
+- Headings: font-display text-4xl md:text-5xl font-bold
+- Gradient text: className="text-gradient"
+- Primary color: text-primary (gold/amber)
+- Cards: className="glass-card" with p-8 rounded-2xl
+- Buttons: bg-primary text-primary-foreground rounded-xl with glow-box
+- CTA links: href="/#contact"
+- Spacing: py-24 px-6 lg:px-12 for sections
+- Max width: max-w-7xl mx-auto
+- Animations: Use motion.div with fadeUpVariant and useInView
+
+═══ IMPORTANT RULES ═══
+1. MUST import and use Navbar, Footer, SEO, useScrollLock
+2. MUST use framer-motion for animations
+3. MUST use the site's CSS classes (text-gradient, glass-card, glow-box, font-display)
+4. MUST have proper SEO component with title and description
+5. MUST link CTAs to "/#contact"
+6. DO NOT use custom colors — only use the design system tokens
+7. The page MUST look like it belongs on the same website
+8. Include at least 5 sections: Hero, Problem, Solution, Features, CTA
+9. Include FAQ section with schema markup
+
+Return ONLY the complete TSX code. No markdown. No explanation. Must be at least 3000 characters.`, 'Page Builder', { json: false });
 
   // Clean up
   if (!raw) {
