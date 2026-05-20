@@ -439,7 +439,10 @@ async function main() {
   const verification = verifyBuild(code, componentName);
   
   if (!verification.passed) {
-    console.log('\n⚠️ Build verification failed. Submitting anyway for manual review.');
+    console.log('\n❌ Build verification FAILED. NOT submitting broken code.');
+    await logActivity('❌', 'structural', `Page build failed verification (${verification.score * 100}% checks passed). Not submitting.`, 'error');
+    await closeMemory();
+    return;
   }
 
   // Phase 5: Submit

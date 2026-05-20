@@ -373,8 +373,12 @@ app.post('/api/staging/:id/review', async (req, res) => {
     res.json({ success: true, item });
 
     if (verdict === 'approved') {
-      const publisher = spawn('node', ['.github/scripts/publisher.mjs'], { stdio: 'ignore' });
-      publisher.unref();
+      // Trigger publisher via API endpoint (works on Render)
+      console.log('   🚀 Triggering publisher...');
+      try {
+        // Call our own publish endpoint
+        fetch(`http://localhost:${PORT}/api/publish`, { method: 'POST' }).catch(() => {});
+      } catch {}
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1060,6 +1064,111 @@ app.post('/api/social/posts/:id/generate', async (req, res) => {
   const child = spawn('node', [script, id], { stdio: 'inherit' });
   
   res.json({ success: true, message: "Visual generation dispatched. View progress in logs." });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// POST /api/publish — Run publisher logic in-process (GitHub API)
+// ═══════════════════════════════════════════════════════════════════════
+app.post('/api/publish', async (req, res) => {
+  console.log('\n🚀 PUBLISH: Triggered via API...');
+  
+  try {
+    // Dynamic import of github-api module
+    const { githubGetFile, githubCommitMultiple } = await import('./github-api.mjs');
+    
+    const approved = await prisma.stagingItem.findMany({ where: { status: 'approved' } });
+    if (approved.length === 0) {
+      return res.json({ success: true, message: 'No items to publish' });
+    }
+
+    const filesToCommit = [];
+    let publishedCount = 0;
+
+    for (const item of approved) {
+      try {
+        if (item.type === 'blog_post') {
+          // Blog → DB only
+          const content = item.content || '';
+          const slug = content.match(/slug:\s*'([^']+)'/)?.[1] || `post-${Date.now()}`;
+          const title = content.match(/title:\s*'([^']+)'/)?.[1] || item.title;
+          const excerpt = content.match(/excerpt:\s*'([^']+)'/)?.[1] || '';
+          const date = content.match(/date:\s*'([^']+)'/)?.[1] || new Date().toISOString().split('T')[0];
+          const htmlContent = content.match(/content:\s*`([\s\S]*)`/)?.[1]?.trim() || content;
+
+          if (htmlContent.length >= 200) {
+            await prisma.blogPost.upsert({
+              where: { slug },
+              update: { title, excerpt, content: htmlContent, isLive: true },
+              create: { slug, title, excerpt, date, readTime: '5 min read', category: 'Engineering', author: 'FouriqTech Engineering', content: htmlContent, isLive: true }
+            });
+          }
+
+        } else if (item.type === 'landing_page' || item.type === 'structural_page') {
+          // Landing page → DB + GitHub push
+          const payload = JSON.parse(item.content || '{}');
+          const slug = payload.route?.replace('/services/', '') || `page-${Date.now()}`;
+          const componentName = payload.component_name || slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+          let code = payload.code || '';
+          try { const inner = JSON.parse(code); code = inner.content || inner.code || code; } catch {}
+
+          if (code.length >= 100) {
+            await prisma.servicePage.upsert({
+              where: { slug },
+              update: { component: code, isLive: true },
+              create: { slug, title: item.title, component: code, route: payload.route || `/services/${slug}`, isLive: true }
+            });
+
+            // Queue file for GitHub
+            const targetFile = payload.target_file || `src/pages/services/${componentName}.tsx`;
+            filesToCommit.push({ path: targetFile, content: code });
+
+            // Update App.tsx with route
+            const appFile = await githubGetFile('src/App.tsx');
+            if (appFile.exists && !appFile.content.includes(`path="${payload.route}"`)) {
+              let appCode = appFile.content;
+              const importLine = `import ${componentName} from "./pages/services/${componentName}";\n`;
+              const lines = appCode.split('\n');
+              let lastImport = 0;
+              for (let i = 0; i < lines.length; i++) { if (lines[i].trimStart().startsWith('import ')) lastImport = i; }
+              if (!appCode.includes(componentName)) { lines.splice(lastImport + 1, 0, importLine); appCode = lines.join('\n'); }
+              const route = `              <Route path="${payload.route}" element={<${componentName} />} />`;
+              appCode = appCode.replace(/(\s*<Route\s+path="\*")/, `${route}\n$1`);
+              filesToCommit.push({ path: 'src/App.tsx', content: appCode });
+            }
+          }
+
+        } else if (item.type === 'technical_patch') {
+          const payload = JSON.parse(item.content || '{}');
+          if (payload.target_file && payload.code) {
+            const targetFile = payload.target_file.startsWith('/') ? payload.target_file.slice(1) : payload.target_file;
+            filesToCommit.push({ path: targetFile, content: payload.code });
+          }
+        }
+
+        await prisma.stagingItem.update({ where: { id: item.id }, data: { status: 'published', publishedAt: new Date() } });
+        publishedCount++;
+      } catch (e) {
+        console.error(`   ❌ Failed: ${item.id} — ${e.message}`);
+      }
+    }
+
+    // Push all files in one atomic commit
+    if (filesToCommit.length > 0) {
+      const result = await githubCommitMultiple(filesToCommit, `[AI-PUBLISH] Deployed ${publishedCount} improvement(s)`);
+      if (result.success) {
+        await logActivity('🐙', 'publisher', `Pushed ${filesToCommit.length} files → ${result.sha?.substring(0, 7)}`, 'publish');
+        console.log(`   ✅ GitHub push: ${result.sha?.substring(0, 7)}`);
+      } else {
+        await logActivity('❌', 'publisher', `Push failed: ${result.error}`, 'error');
+      }
+    }
+
+    await logActivity('🚀', 'publisher', `Published ${publishedCount} items`, 'publish');
+    res.json({ success: true, published: publishedCount, pushed: filesToCommit.length });
+  } catch (e) {
+    console.error('Publisher error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════
