@@ -73,6 +73,7 @@ const DEPARTMENTS = {
   content: '.github/scripts/seo-auto-poster.mjs',
   structural: '.github/scripts/seo-dev-agent.mjs',
   technical: '.github/scripts/technical-seo-agent.mjs',
+  backlinks: '.github/scripts/backlink-agent.mjs',
 };
 
 // Track running tasks

@@ -25,6 +25,7 @@ const DEPARTMENTS = {
   content:    '.github/scripts/seo-auto-poster.mjs',
   structural: '.github/scripts/seo-dev-agent.mjs',
   technical:  '.github/scripts/technical-seo-agent.mjs',
+  backlinks:  '.github/scripts/backlink-agent.mjs',
 };
 
 // DB connection
@@ -137,7 +138,7 @@ ${sitrep.recentDecisions?.map(d => `${new Date(d.date).toLocaleDateString()}: ${
 
 ═══ YOUR TASK ═══
 Based on ALL the context above, decide:
-1. Which department should run? (content | structural | technical)
+1. Which department should run? (content | structural | technical | backlinks)
 2. What specific orders should they follow?
 3. Should you run a quality audit? (randomly ~30% of the time)
 4. Any cross-department coordination needed?
@@ -152,7 +153,7 @@ DECISION RULES:
 
 Return JSON:
 {
-  "department": "content" | "structural" | "technical",
+  "department": "content" | "structural" | "technical" | "backlinks",
   "orders": "Specific instructions for the team (2-3 sentences)",
   "run_quality_audit": true/false,
   "cross_dept_orders": "string or null",
