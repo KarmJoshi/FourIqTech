@@ -1,7 +1,7 @@
-import { Crown, PenTool, Wrench, Globe, Mail, Instagram, MessageCircle, LogOut, Zap, Activity, ChevronLeft, ChevronRight } from "lucide-react";
+import { Crown, PenTool, Wrench, Globe, Mail, Instagram, MessageCircle, LogOut, Zap, Activity, ChevronLeft, ChevronRight, Link2 } from "lucide-react";
 import { useState } from "react";
 
-type DeptId = "director" | "content" | "techseo" | "landing" | "outreach" | "instagram";
+type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram";
 
 interface SidebarProps {
   activeDept: DeptId;
@@ -17,6 +17,7 @@ const NAV_ITEMS: { id: DeptId; label: string; icon: any }[] = [
   { id: "content", label: "Content Studio", icon: PenTool },
   { id: "techseo", label: "Technical SEO", icon: Wrench },
   { id: "landing", label: "Landing Pages", icon: Globe },
+  { id: "backlinks", label: "Backlinks", icon: Link2 },
   { id: "instagram", label: "Social Media", icon: Instagram },
   { id: "outreach", label: "Outreach", icon: Mail },
 ];

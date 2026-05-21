@@ -1,6 +1,6 @@
 import { Activity, Bell, Play, Loader2 } from "lucide-react";
 
-type DeptId = "director" | "content" | "techseo" | "landing" | "outreach" | "instagram";
+type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram";
 
 interface TopBarProps {
   activeDept: DeptId;
@@ -15,6 +15,7 @@ const DEPT_META: Record<DeptId, { title: string; subtitle: string }> = {
   content: { title: "Content Studio", subtitle: "AI-powered blog generation and publishing" },
   techseo: { title: "Technical SEO", subtitle: "Site health, performance, and Core Web Vitals" },
   landing: { title: "Landing Pages", subtitle: "High-conversion service page generation" },
+  backlinks: { title: "Backlinks", subtitle: "Guest posts, broken link building, and outreach" },
   instagram: { title: "Social Media", subtitle: "Content brainstorming and visual generation" },
   outreach: { title: "Outreach", subtitle: "Lead acquisition and email campaigns" },
 };

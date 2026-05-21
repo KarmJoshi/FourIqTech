@@ -27,6 +27,7 @@ import { ContentHubDepartment } from "./components/ContentHubDepartment";
 import { TechSeoDepartment } from "./components/TechSeoDepartment";
 import { LandingPagesDepartment } from "./components/LandingPagesDepartment";
 import { InstagramDepartment } from "./components/InstagramDepartment";
+import { BacklinksDepartment } from "./components/BacklinksDepartment";
 
 
 // Constants & Types
@@ -49,7 +50,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
     ? "https://fouriqtech.onrender.com"
     : "http://localhost:3848");
 
-type DeptId = "director" | "content" | "techseo" | "landing" | "outreach" | "instagram";
+type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram";
 
 
 export default function AgentManager() {
@@ -754,6 +755,11 @@ No extra words. Just the niche string.`;
 
           {/* ── INSTAGRAM ── */}
           {activeDept === "instagram" && <InstagramDepartment />}
+
+          {/* ── BACKLINKS ── */}
+          {activeDept === "backlinks" && (
+            <BacklinksDepartment activityFeed={activityFeed} runningTasks={runningTasks} dispatchDepartment={dispatchDepartment} isDispatching={isDispatching} />
+          )}
 
           {/* ── OUTREACH ── */}
           {activeDept === "outreach" && (

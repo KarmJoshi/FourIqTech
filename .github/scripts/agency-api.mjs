@@ -604,6 +604,20 @@ app.get('/api/staging/:id/content', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// 🔗 GET /api/backlinks — Fetch link opportunities
+// ═══════════════════════════════════════════════════════════════════════
+app.get('/api/backlinks', async (req, res) => {
+  try {
+    const opportunities = await prisma.$queryRawUnsafe(
+      'SELECT * FROM "LinkOpportunity" ORDER BY "foundAt" DESC LIMIT 50'
+    );
+    res.json({ opportunities });
+  } catch (err) {
+    res.json({ opportunities: [] });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
 // (Settings endpoints moved to bottom — see /api/config section)
 // ═══════════════════════════════════════════════════════════════════════
 
