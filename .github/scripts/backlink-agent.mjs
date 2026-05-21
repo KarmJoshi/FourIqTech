@@ -164,15 +164,43 @@ TOPIC: ${opportunity.suggestedTopic || 'React/Next.js best practices'}
 PITCH ANGLE: ${opportunity.pitchAngle}
 AUTHOR: Karm Joshi, Founder of FourIQ Tech (${WEBSITE_URL})
 
-REQUIREMENTS:
-- 800-1200 words
-- Professional, technical, valuable content
-- Include 1-2 natural mentions of FourIQ Tech with link to ${WEBSITE_URL}
-- Match the tone of a technical blog
-- Include actionable tips, code examples if relevant
-- End with a brief author bio
+═══ WRITING STYLE (CRITICAL — READ THIS CAREFULLY) ═══
 
-Return the full article text (no JSON, just the content).`;
+You are NOT an AI writing an article. You are Karm Joshi — a real founder who has shipped production code, debugged 3am outages, and learned hard lessons building enterprise apps. Write like it.
+
+VOICE RULES:
+- First person throughout ("I", "we", "our team")
+- Start with a real-sounding story or problem you faced (make it specific — project type, team size, what went wrong)
+- Use contractions (don't, we've, it's, can't)
+- Short paragraphs (2-3 sentences max)
+- Mix sentence lengths — some punchy, some longer
+- Casual transitions ("Here's the thing.", "So what happened next?", "Look,")
+- Include 1-2 moments of self-deprecation or honesty ("I'll admit, we got this wrong at first")
+- End sections with a takeaway, not a summary
+- NO phrases: "In today's", "It's crucial", "paramount", "leverage", "robust", "In this article we will", "Let's dive in"
+- NO perfect bullet point lists with exactly 4 items each
+- Vary structure — some sections have code, some have stories, some are just 3 sentences
+
+TECHNICAL DEPTH:
+- Include 1-2 real code snippets (not hello-world — production-level)
+- Mention specific tools/versions (not "a popular library" — say "TanStack Query v5" or "Next.js 15 App Router")
+- Include a number or metric ("reduced bundle size by 340KB", "cut TTFB from 1.2s to 180ms")
+- One "what NOT to do" section — mistakes you've seen
+
+STRUCTURE:
+- 1000-1500 words
+- NO formal introduction paragraph. Start mid-story or mid-thought.
+- 4-6 sections with H2 headings (informal, not academic)
+- Include 1 link to ${WEBSITE_URL} that feels natural (in context, not forced)
+- Author bio at the end (2-3 sentences, casual)
+
+EXAMPLE OF GOOD OPENING:
+"Last month, one of our enterprise clients hit us with a Slack message at 11pm: 'Dashboard is unusable. Every click takes 4 seconds.' Their React app had grown from a prototype to serving 200+ internal users, and nobody noticed the performance cliff until it was too late. Here's how we fixed it — and what I wish we'd done differently from day one."
+
+EXAMPLE OF BAD OPENING (DO NOT DO THIS):
+"In today's rapidly evolving digital landscape, performance optimization has become a crucial aspect of modern web development. This article explores best practices for..."
+
+Write the full article now.`;
   } else if (opportunity.type === 'broken_link') {
     prompt = `Create a replacement article for a broken link.
 
@@ -181,11 +209,14 @@ REPLACEMENT TOPIC: ${opportunity.replacementTopic || 'Web development best pract
 TARGET SITE: ${opportunity.targetDomain}
 
 Write a 600-1000 word article that could serve as a replacement for the dead link.
-Make it high-quality, technical, and include a natural link to ${WEBSITE_URL}.
 
-Return the full article text.`;
+STYLE: Write as Karm Joshi, founder of FourIQ Tech. First person, conversational, technically deep. Include code examples. Start with a story or problem, not a formal intro. Use contractions. No AI-tell phrases.
+
+Include one natural link to ${WEBSITE_URL}.
+
+Write the full article now.`;
   } else {
-    return null; // Resource pages don't need content
+    return null;
   }
 
   const content = await smartCall(models, prompt, 'Content Creator', { json: false });
