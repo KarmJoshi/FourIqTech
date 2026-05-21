@@ -157,36 +157,46 @@ CONTACT NAME: ${contact.owner_name || 'there'}
 
 The email must create a "gap" — show them something they didn't know about their own business that's costing them money RIGHT NOW. Then offer to close that gap for free.
 
+CRITICAL: The recipient is a LOCAL BUSINESS OWNER (dentist, plumber, restaurant owner, etc.) — NOT a tech person. They don't know what "TTFB", "Core Web Vitals", "responsive design", or "SEO" means. Explain everything in PLAIN ENGLISH like you're talking to your neighbor.
+
 STRUCTURE (follow exactly):
-1. HOOK (first line): A specific, surprising fact about THEIR website that they probably don't know. Not generic — something that makes them think "wait, really?"
-2. COST (1 sentence): Translate that problem into lost revenue/customers. Use a number.
-3. PROOF (1 sentence): Show you actually looked at their site (mention a specific page, element, or issue)
-4. OFFER (1 sentence): Offer something free and low-commitment (not "let's hop on a call")
-5. SIGN OFF: Just your name. No "looking forward to hearing from you."
+1. HOOK (first line): A specific, surprising fact about THEIR website that they probably don't know. Explain it like they're not technical.
+2. COST (1 sentence): Translate that problem into lost customers/money. Use simple language.
+3. PROOF (1 sentence): Show you actually looked at their site (mention something specific)
+4. OFFER (1 sentence): Offer something free and easy to understand (not "audit" or "consultation")
+5. SIGN OFF: Just your name.
 
 TOTAL LENGTH: 4-6 sentences. Under 80 words. That's it.
 
 ═══ RULES ═══
+- NO technical jargon: no "SEO", "responsive", "Core Web Vitals", "TTFB", "SSL", "meta tags"
 - NO: "I hope this finds you well"
 - NO: "I came across your website"  
 - NO: "In today's digital world"
 - NO: "I'd love to hop on a quick call"
-- NO: compliments about their business
-- NO: explaining who you are or what you do
-- NO: multiple CTAs or questions
-- YES: One specific problem + one specific number + one free offer
-- YES: Sound like a text message from a smart friend, not a sales pitch
+- NO: explaining who you are or what your company does
+- YES: Plain English a 12-year-old would understand
+- YES: Translate tech problems into customer/money language
+- YES: Sound like a helpful person, not a salesperson
+
+═══ TRANSLATION GUIDE (use these instead of jargon) ═══
+- "Not mobile responsive" → "looks broken on phones"
+- "Slow page speed" → "takes forever to open"
+- "No SSL/HTTPS" → "shows a 'Not Secure' warning that scares people away"
+- "Bad SEO" → "doesn't show up when people search for [their service] in [their city]"
+- "High bounce rate" → "people leave before they even see what you offer"
+- "No CTA" → "there's no easy way for customers to contact you"
 
 ═══ EXAMPLES OF EMAILS THAT GET 40%+ REPLY RATES ═══
 
 Example 1:
-"Hey Mike — your homepage loads in 8.2 seconds on mobile. Google's data shows that 53% of visitors leave after 3 seconds, so you're probably losing half your traffic before they see anything. I recorded a 2-minute Loom showing the exact 3 images causing it. Want me to send it over? — Karm"
+"Hey Mike — I tried opening your website on my phone and it looks pretty broken. The text overlaps and the menu doesn't work. Since most people looking for a plumber are searching on their phone, they're probably just hitting 'back' and calling someone else. I can show you exactly what it looks like — want me to send a screenshot? — Karm"
 
 Example 2:
-"Hey Sarah — I ran your site through Google's speed test and it scored 23/100 on mobile. For a dentist in Austin, that means when someone searches 'dentist near me' on their phone, Google is literally pushing your competitors above you because of load time alone. I can show you the specific fix (it's one image file) — want me to send a screenshot? — Karm"
+"Hey Sarah — when I open your website, Chrome shows a big 'Not Secure' warning before anything loads. Most people won't fill out a contact form or book an appointment when they see that — they think the site might steal their info. The fix is actually pretty simple. Want me to show you what I mean? — Karm"
 
 Example 3:
-"Hey — quick heads up: ${business.name}'s site is showing a 'Not Secure' warning on Chrome. About 85% of people won't fill out a contact form on a site with that warning. The fix takes about 10 minutes. Want me to send you the steps? — Karm"
+"Hey — I searched 'landscaping in Houston' on Google and noticed your business doesn't come up in the first few pages, even though you've got great reviews on Maps. Usually that means your website is missing some basic stuff that Google looks for. I put together a quick list of what's missing — want me to send it over? — Karm"
 
 NOW WRITE THE EMAIL FOR ${business.name}. Make it impossible to ignore.
 
