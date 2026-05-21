@@ -141,73 +141,106 @@ Return JSON:
 // ═══════════════════════════════════════════════════════════════════════
 // PHASE 4: DRAFT EMAIL — Personalized, human, data-driven
 // ═══════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 4: DRAFT EMAIL — Professional HTML email with visual audit
+// ═══════════════════════════════════════════════════════════════════════
 async function draftEmail(business, audit, contact) {
   const models = await getModelsForRole('link_pitcher');
-  const raw = await smartCall(models, `You are writing a cold email that MUST get a reply. Not a "nice" email — a COMPELLING one.
+  
+  // Generate the email copy (plain text version for the AI to write)
+  const raw = await smartCall(models, `Write a cold email for a local business owner. Keep it simple.
 
-YOU ARE: Karm Joshi, founder of FourIQ Tech — we build high-performance websites for businesses.
 TARGET: ${business.name} (${business.niche}) in ${business.location}
-THEIR WEBSITE: ${business.website}
-THEIR BIGGEST PROBLEM: ${audit.top_problem || 'slow/outdated website'}
-MONEY THEY'RE LOSING: ${audit.business_impact || 'losing customers to competitors'}
-THEIR AUDIT SCORE: ${audit.score || '?'}/100
-CONTACT NAME: ${contact.owner_name || 'there'}
+WEBSITE: ${business.website}
+PROBLEM: ${audit.top_problem || 'website issues'}
+IMPACT: ${audit.business_impact || 'losing customers'}
+SCORE: ${audit.score || '?'}/100
+CONTACT: ${contact.owner_name || 'there'}
 
-═══ THE PSYCHOLOGY OF EMAILS THAT GET REPLIES ═══
-
-The email must create a "gap" — show them something they didn't know about their own business that's costing them money RIGHT NOW. Then offer to close that gap for free.
-
-CRITICAL: The recipient is a LOCAL BUSINESS OWNER (dentist, plumber, restaurant owner, etc.) — NOT a tech person. They don't know what "TTFB", "Core Web Vitals", "responsive design", or "SEO" means. Explain everything in PLAIN ENGLISH like you're talking to your neighbor.
-
-STRUCTURE (follow exactly):
-1. HOOK (first line): A specific, surprising fact about THEIR website that they probably don't know. Explain it like they're not technical.
-2. COST (1 sentence): Translate that problem into lost customers/money. Use simple language.
-3. PROOF (1 sentence): Show you actually looked at their site (mention something specific)
-4. OFFER (1 sentence): Offer something free and easy to understand (not "audit" or "consultation")
-5. SIGN OFF: Just your name.
-
-TOTAL LENGTH: 4-6 sentences. Under 80 words. That's it.
-
-═══ RULES ═══
-- NO technical jargon: no "SEO", "responsive", "Core Web Vitals", "TTFB", "SSL", "meta tags"
-- NO: "I hope this finds you well"
-- NO: "I came across your website"  
-- NO: "In today's digital world"
-- NO: "I'd love to hop on a quick call"
-- NO: explaining who you are or what your company does
-- YES: Plain English a 12-year-old would understand
-- YES: Translate tech problems into customer/money language
-- YES: Sound like a helpful person, not a salesperson
-
-═══ TRANSLATION GUIDE (use these instead of jargon) ═══
-- "Not mobile responsive" → "looks broken on phones"
-- "Slow page speed" → "takes forever to open"
-- "No SSL/HTTPS" → "shows a 'Not Secure' warning that scares people away"
-- "Bad SEO" → "doesn't show up when people search for [their service] in [their city]"
-- "High bounce rate" → "people leave before they even see what you offer"
-- "No CTA" → "there's no easy way for customers to contact you"
-
-═══ EXAMPLES OF EMAILS THAT GET 40%+ REPLY RATES ═══
-
-Example 1:
-"Hey Mike — I tried opening your website on my phone and it looks pretty broken. The text overlaps and the menu doesn't work. Since most people looking for a plumber are searching on their phone, they're probably just hitting 'back' and calling someone else. I can show you exactly what it looks like — want me to send a screenshot? — Karm"
-
-Example 2:
-"Hey Sarah — when I open your website, Chrome shows a big 'Not Secure' warning before anything loads. Most people won't fill out a contact form or book an appointment when they see that — they think the site might steal their info. The fix is actually pretty simple. Want me to show you what I mean? — Karm"
-
-Example 3:
-"Hey — I searched 'landscaping in Houston' on Google and noticed your business doesn't come up in the first few pages, even though you've got great reviews on Maps. Usually that means your website is missing some basic stuff that Google looks for. I put together a quick list of what's missing — want me to send it over? — Karm"
-
-NOW WRITE THE EMAIL FOR ${business.name}. Make it impossible to ignore.
+RULES:
+- 3-4 sentences only
+- Plain English (they're not tech people)
+- Mention ONE specific problem you noticed on their site
+- Explain how it costs them customers (not technical terms)
+- Offer a free report showing what to fix
+- NO jargon: no "SEO", "responsive", "SSL", "Core Web Vitals"
+- Sound professional but friendly
 
 Return JSON:
-{ "subject": "short, curiosity-driven subject (under 6 words, no caps lock, no emoji)", "body": "the email body" }`, 'Email Drafter');
+{ "subject": "short subject (under 8 words)", "body": "plain text email body", "problem_summary": "1 sentence problem for the visual card" }`, 'Email Drafter');
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { subject: `Quick note about ${business.name}`, body: raw || '' };
-  }
+  let emailData = { subject: '', body: '', problem_summary: '' };
+  try { emailData = JSON.parse(raw); } catch { emailData = { subject: `About ${business.name}'s website`, body: raw || '', problem_summary: audit.top_problem || '' }; }
+
+  // Build professional HTML email
+  const score = audit.score || 40;
+  const scoreColor = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+  const scoreLabel = score >= 70 ? 'Fair' : score >= 40 ? 'Needs Work' : 'Poor';
+  
+  const issues = [
+    audit.speed_issue && audit.speed_issue !== 'OK' ? `⚠️ ${audit.speed_issue}` : null,
+    audit.design_issue && audit.design_issue !== 'OK' ? `⚠️ ${audit.design_issue}` : null,
+    audit.mobile_issue && audit.mobile_issue !== 'OK' ? `⚠️ ${audit.mobile_issue}` : null,
+    audit.seo_issue && audit.seo_issue !== 'OK' ? `⚠️ ${audit.seo_issue}` : null,
+  ].filter(Boolean).slice(0, 3);
+
+  const htmlBody = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f8f9fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:20px;">
+
+<!-- Header -->
+<div style="background:#111;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
+  <h1 style="margin:0;color:#fff;font-size:20px;font-weight:600;">FourIQ Tech</h1>
+  <p style="margin:4px 0 0;color:#888;font-size:12px;">Web Performance & Design Experts</p>
+</div>
+
+<!-- Body -->
+<div style="background:#fff;padding:32px;border:1px solid #e5e7eb;border-top:none;">
+  
+  <p style="color:#333;font-size:15px;line-height:1.6;margin:0 0 20px;">Hi ${contact.owner_name || 'there'},</p>
+  
+  <p style="color:#333;font-size:15px;line-height:1.6;margin:0 0 24px;">${emailData.body}</p>
+
+  <!-- Score Card -->
+  <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin:24px 0;">
+    <p style="margin:0 0 8px;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Website Health Score — ${business.name}</p>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <span style="font-size:36px;font-weight:700;color:${scoreColor};">${score}</span>
+      <span style="font-size:14px;color:#666;">/100 — <strong style="color:${scoreColor};">${scoreLabel}</strong></span>
+    </div>
+    <div style="background:#e5e7eb;border-radius:99px;height:8px;overflow:hidden;">
+      <div style="background:${scoreColor};height:100%;width:${score}%;border-radius:99px;"></div>
+    </div>
+    ${issues.length > 0 ? `<div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">${issues.map(i => `<p style="margin:6px 0;color:#555;font-size:13px;">${i}</p>`).join('')}</div>` : ''}
+  </div>
+
+  <p style="color:#333;font-size:15px;line-height:1.6;margin:24px 0 0;">I've put together a free one-page report showing exactly what to fix and how it'll help you get more customers. No strings attached.</p>
+
+  <p style="color:#333;font-size:15px;line-height:1.6;margin:16px 0 0;"><strong>Want me to send it over?</strong></p>
+
+</div>
+
+<!-- Footer -->
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;padding:24px 32px;">
+  <p style="margin:0;color:#333;font-size:14px;font-weight:600;">Karm Joshi</p>
+  <p style="margin:2px 0 0;color:#666;font-size:13px;">Founder, FourIQ Tech</p>
+  <p style="margin:8px 0 0;color:#888;font-size:12px;">
+    🌐 <a href="https://www.fouriqtech.com" style="color:#2563eb;text-decoration:none;">fouriqtech.com</a> &nbsp;|&nbsp; 📞 +91 81403 71710
+  </p>
+</div>
+
+</div>
+</body>
+</html>`;
+
+  return { 
+    subject: emailData.subject, 
+    body: emailData.body, // Plain text version
+    htmlBody, // Rich HTML version
+    problem_summary: emailData.problem_summary 
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -247,7 +280,7 @@ async function storeLead(business, audit, contact, email) {
           subject: email.subject || 'Website improvement opportunity',
           angle: audit.top_problem || 'general',
           sentFrom: 'hello@fouriqtech.com',
-          body: email.body || '',
+          body: email.htmlBody || email.body || '',
           deliveryStatus: 'draft',
         }
       });

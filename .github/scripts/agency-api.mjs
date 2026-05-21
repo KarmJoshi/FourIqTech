@@ -513,7 +513,7 @@ app.post('/api/run-task', (req, res) => {
 
 app.post('/api/send-email', async (req, res) => {
   try {
-    const { to, subject, body: emailBody, fromName, leadId } = req.body;
+    const { to, subject, body: emailBody, htmlBody, fromName, leadId } = req.body;
     console.log(`[Email] Sending to: ${to} via Resend`);
 
     // Use Resend API (works from Render — no SMTP blocking)
@@ -521,15 +521,22 @@ app.post('/api/send-email', async (req, res) => {
     
     if (RESEND_KEY) {
       // Resend API
+      const emailPayload = {
+        from: `${fromName || 'Karm Joshi'} <hello@fouriqtech.com>`,
+        to: [to],
+        subject,
+      };
+      // Send HTML if available, otherwise plain text
+      if (htmlBody && htmlBody.includes('<html')) {
+        emailPayload.html = htmlBody;
+      } else {
+        emailPayload.text = emailBody || htmlBody;
+      }
+
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: `${fromName || 'Karm Joshi'} <hello@fouriqtech.com>`,
-          to: [to],
-          subject,
-          text: emailBody,
-        })
+        body: JSON.stringify(emailPayload)
       });
 
       const data = await response.json();
