@@ -143,43 +143,60 @@ Return JSON:
 // ═══════════════════════════════════════════════════════════════════════
 async function draftEmail(business, audit, contact) {
   const models = await getModelsForRole('link_pitcher');
-  const raw = await smartCall(models, `Write a cold outreach email for a web development agency.
+  const raw = await smartCall(models, `You are writing a cold email that MUST get a reply. Not a "nice" email — a COMPELLING one.
 
-YOU ARE: Karm Joshi, founder of FourIQ Tech — a web design & development agency.
+YOU ARE: Karm Joshi, founder of FourIQ Tech — we build high-performance websites for businesses.
 TARGET: ${business.name} (${business.niche}) in ${business.location}
 THEIR WEBSITE: ${business.website}
-THEIR PROBLEM: ${audit.top_problem || 'outdated website'}
-BUSINESS IMPACT: ${audit.business_impact || 'losing potential customers'}
+THEIR BIGGEST PROBLEM: ${audit.top_problem || 'slow/outdated website'}
+MONEY THEY'RE LOSING: ${audit.business_impact || 'losing customers to competitors'}
+THEIR AUDIT SCORE: ${audit.score || '?'}/100
 CONTACT NAME: ${contact.owner_name || 'there'}
 
-═══ EMAIL RULES ═══
-- Subject line: Short, specific to THEIR business (not generic)
-- Under 120 words total
-- Open with a specific observation about THEIR site (not "I hope you're well")
-- Mention ONE specific problem you noticed
-- Explain the business cost in 1 sentence
-- Offer a free quick fix or audit (low commitment)
-- Sign off casually
-- NO: "I hope this finds you well", "I came across your website", "In today's digital age"
-- NO: fake urgency, buzzwords, or salesy language
-- TONE: Like a helpful neighbor who happens to be a web expert
+═══ THE PSYCHOLOGY OF EMAILS THAT GET REPLIES ═══
 
-EXAMPLE OF GOOD EMAIL:
-"Hey [Name],
+The email must create a "gap" — show them something they didn't know about their own business that's costing them money RIGHT NOW. Then offer to close that gap for free.
 
-I was looking at [business].com and noticed your homepage takes about 6 seconds to load on mobile. For a [niche] in [city], that probably means 40-50% of people searching for you on their phone are leaving before they even see your services.
+STRUCTURE (follow exactly):
+1. HOOK (first line): A specific, surprising fact about THEIR website that they probably don't know. Not generic — something that makes them think "wait, really?"
+2. COST (1 sentence): Translate that problem into lost revenue/customers. Use a number.
+3. PROOF (1 sentence): Show you actually looked at their site (mention a specific page, element, or issue)
+4. OFFER (1 sentence): Offer something free and low-commitment (not "let's hop on a call")
+5. SIGN OFF: Just your name. No "looking forward to hearing from you."
 
-Quick fix: compressing your hero image alone would cut that in half. Happy to show you how if you want — takes 5 minutes.
+TOTAL LENGTH: 4-6 sentences. Under 80 words. That's it.
 
-— Karm"
+═══ RULES ═══
+- NO: "I hope this finds you well"
+- NO: "I came across your website"  
+- NO: "In today's digital world"
+- NO: "I'd love to hop on a quick call"
+- NO: compliments about their business
+- NO: explaining who you are or what you do
+- NO: multiple CTAs or questions
+- YES: One specific problem + one specific number + one free offer
+- YES: Sound like a text message from a smart friend, not a sales pitch
+
+═══ EXAMPLES OF EMAILS THAT GET 40%+ REPLY RATES ═══
+
+Example 1:
+"Hey Mike — your homepage loads in 8.2 seconds on mobile. Google's data shows that 53% of visitors leave after 3 seconds, so you're probably losing half your traffic before they see anything. I recorded a 2-minute Loom showing the exact 3 images causing it. Want me to send it over? — Karm"
+
+Example 2:
+"Hey Sarah — I ran your site through Google's speed test and it scored 23/100 on mobile. For a dentist in Austin, that means when someone searches 'dentist near me' on their phone, Google is literally pushing your competitors above you because of load time alone. I can show you the specific fix (it's one image file) — want me to send a screenshot? — Karm"
+
+Example 3:
+"Hey — quick heads up: ${business.name}'s site is showing a 'Not Secure' warning on Chrome. About 85% of people won't fill out a contact form on a site with that warning. The fix takes about 10 minutes. Want me to send you the steps? — Karm"
+
+NOW WRITE THE EMAIL FOR ${business.name}. Make it impossible to ignore.
 
 Return JSON:
-{ "subject": "short subject line", "body": "email body" }`, 'Email Drafter');
+{ "subject": "short, curiosity-driven subject (under 6 words, no caps lock, no emoji)", "body": "the email body" }`, 'Email Drafter');
 
   try {
     return JSON.parse(raw);
   } catch {
-    return { subject: `Quick note about ${business.name}'s website`, body: raw || '' };
+    return { subject: `Quick note about ${business.name}`, body: raw || '' };
   }
 }
 
