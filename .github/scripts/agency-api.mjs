@@ -486,7 +486,8 @@ const TASK_SCRIPTS = {
   writer: 'seo-auto-poster.mjs',
   auditor: 'seo-dev-agent.mjs',
   outreach: 'seo-outreach-agent.mjs',
-  lead_hunter: 'lead-hunter.mjs'
+  lead_hunter: 'lead-hunter.mjs',
+  outreach_engine: 'outreach-engine.mjs'
 };
 
 app.post('/api/run-task', (req, res) => {
