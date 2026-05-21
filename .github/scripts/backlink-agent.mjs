@@ -36,7 +36,7 @@ const COMPANY_NAME = 'FourIQ Tech';
 async function findOpportunities(strategy, memory) {
   console.log(`\n🔍 PHASE 1: Finding ${strategy} opportunities...`);
   
-  const models = await getModelsForRole('researcher');
+  const models = await getModelsForRole('link_finder');
   
   // Get existing opportunities to avoid duplicates
   const existing = await prisma.$queryRawUnsafe(
@@ -154,7 +154,7 @@ Return JSON:
 async function createContent(opportunity) {
   console.log(`\n✍️ PHASE 2: Creating content for ${opportunity.targetDomain}...`);
   
-  const models = await getModelsForRole('writer');
+  const models = await getModelsForRole('link_writer');
   
   let prompt;
   if (opportunity.type === 'guest_post') {
@@ -199,7 +199,7 @@ Return the full article text.`;
 async function draftOutreach(opportunity, content) {
   console.log(`\n📧 PHASE 3: Drafting outreach for ${opportunity.targetDomain}...`);
   
-  const models = await getModelsForRole('writer');
+  const models = await getModelsForRole('link_pitcher');
   
   const templates = {
     guest_post: `Write a short, personalized outreach email to pitch a guest post.

@@ -27,20 +27,24 @@ const DEPARTMENTS = [
   { id: "content", label: "SEO Content Team" },
   { id: "landing_pages", label: "Landing Page Factory" },
   { id: "technical", label: "Technical SEO" },
+  { id: "backlinks", label: "Backlink Building" },
   { id: "outreach", label: "Outreach & Revenue" }
 ];
 
 const ROLES = [
-  { id: "manager", dept: "management", label: "Agency Director (CEO)", recommended: "gemini-3.1-pro-preview", desc: "Orchestrates all departments and costs." },
-  { id: "content_manager", dept: "content", label: "Content Strategist", recommended: "gemini-3-pro-preview", desc: "Creates the brief and snippet strategy." },
-  { id: "researcher", dept: "content", label: "SERP Researcher", recommended: "gemini-3.1-flash-lite-preview", desc: "Audits top 10 results and PAA gaps." },
-  { id: "writer", dept: "content", label: "Content Writer", recommended: "gemini-3-flash-preview", desc: "Generates technical blog posts." },
-  { id: "qa", dept: "content", label: "QA Inspector", recommended: "gemini-3.1-pro-preview", desc: "Validates technical accuracy and tone." },
-  { id: "scanner", dept: "outreach", label: "Revenue Scanner", recommended: "gemini-3.1-flash-lite-preview", desc: "Finds commercial niches and lead info." },
-  { id: "architect", dept: "landing_pages", label: "Page Architect", recommended: "gemini-3-pro-preview", desc: "Blueprints landing page structures." },
-  { id: "builder", dept: "landing_pages", label: "Page Builder", recommended: "gemini-3.1-pro-preview", desc: "Writes production React/Tailwind code." },
-  { id: "auditor", dept: "technical", label: "Code Auditor", recommended: "gemini-3.1-pro-preview", desc: "Scans for SEO and performance risks." },
-  { id: "browser", dept: "technical", label: "Digital Scout", recommended: "gemini-3-flash-preview", desc: "Executes automated site scraping." }
+  { id: "manager", dept: "management", label: "Agency Director (CEO)", recommended: "gemini-3.5-flash", desc: "Orchestrates all departments and costs." },
+  { id: "content_manager", dept: "content", label: "Content Strategist", recommended: "gemini-3.5-flash", desc: "Creates the brief and snippet strategy." },
+  { id: "researcher", dept: "content", label: "SERP Researcher", recommended: "gemini-3.5-flash", desc: "Audits top 10 results and PAA gaps." },
+  { id: "writer", dept: "content", label: "Content Writer", recommended: "gemini-3.5-flash", desc: "Generates technical blog posts." },
+  { id: "qa", dept: "content", label: "QA Inspector", recommended: "gemini-3.5-flash", desc: "Validates technical accuracy and tone." },
+  { id: "architect", dept: "landing_pages", label: "Page Architect", recommended: "gemini-3.5-flash", desc: "Blueprints landing page structures." },
+  { id: "builder", dept: "landing_pages", label: "Page Builder", recommended: "gemini-3.5-flash", desc: "Writes production React/Tailwind code." },
+  { id: "auditor", dept: "technical", label: "Code Auditor", recommended: "gemini-3.5-flash", desc: "Scans for SEO and performance risks." },
+  { id: "browser", dept: "technical", label: "Digital Scout", recommended: "gemini-3.5-flash", desc: "Executes automated site scraping." },
+  { id: "link_finder", dept: "backlinks", label: "Link Opportunity Finder", recommended: "gemini-3.5-flash", desc: "Discovers guest post targets and broken links." },
+  { id: "link_writer", dept: "backlinks", label: "Guest Post Writer", recommended: "gemini-3.5-flash", desc: "Writes guest articles for external blogs." },
+  { id: "link_pitcher", dept: "backlinks", label: "Outreach Pitcher", recommended: "gemini-3.5-flash", desc: "Crafts personalized pitch emails." },
+  { id: "scanner", dept: "outreach", label: "Revenue Scanner", recommended: "gemini-3.5-flash", desc: "Finds commercial niches and lead info." },
 ];
 
 export function ModelSelectionMatrix({ currentModels, onUpdate, isUpdating }: ModelSelectionMatrixProps) {

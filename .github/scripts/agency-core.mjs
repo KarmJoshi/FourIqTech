@@ -106,6 +106,9 @@ export const MODELS = {
   builder:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   auditor:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   browser:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'],
+  link_finder:     ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
+  link_writer:     ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
+  link_pitcher:    ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
 };
 
 const SETTINGS_PATH = path.join(CWD, '.github/staging/system-settings.json');
