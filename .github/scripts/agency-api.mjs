@@ -514,42 +514,59 @@ app.post('/api/run-task', (req, res) => {
 app.post('/api/send-email', async (req, res) => {
   try {
     const { to, subject, body: emailBody, fromName, leadId } = req.body;
-    console.log(`[Unified API] SENDING EMAIL TO: ${to}`);
+    console.log(`[Email] Sending to: ${to} via Resend`);
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '465'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-    });
-
-    const info = await transporter.sendMail({
-      from: `"${fromName || 'FourIqTech Team'}" <${process.env.SMTP_USER}>`,
-      to,
-      subject,
-      text: emailBody
-    });
-
-    // Persistent Status Update in Database
-    if (leadId) {
-      await prisma.lead.update({
-        where: { id: leadId },
-        data: { 
-          status: 'sent', 
-          lastTouchedAt: new Date(),
-          contactEmail: to // Preserve the corrected email
-        }
+    // Use Resend API (works from Render — no SMTP blocking)
+    const RESEND_KEY = process.env.RESEND_API_KEY;
+    
+    if (RESEND_KEY) {
+      // Resend API
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: `${fromName || 'Karm Joshi'} <hello@fouriqtech.com>`,
+          to: [to],
+          subject,
+          text: emailBody,
+        })
       });
-      await prisma.draftEmail.update({
-        where: { leadId: leadId },
-        data: { deliveryStatus: 'sent', sentAt: new Date() }
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || `Resend error: ${response.status}`);
+      
+      // Update DB
+      if (leadId) {
+        await prisma.lead.update({ where: { id: leadId }, data: { status: 'sent', lastTouchedAt: new Date(), contactEmail: to } }).catch(() => {});
+        await prisma.draftEmail.update({ where: { leadId }, data: { deliveryStatus: 'sent', sentAt: new Date() } }).catch(() => {});
+      }
+
+      logActivity('📧', 'outreach', `Email sent to ${to} via Resend`, 'info');
+      res.json({ success: true, messageId: data.id });
+    } else {
+      // Fallback to SMTP (for local testing)
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '465'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
       });
+
+      const info = await transporter.sendMail({
+        from: `"${fromName || 'Karm Joshi'}" <${process.env.SMTP_USER}>`,
+        to, subject, text: emailBody
+      });
+
+      if (leadId) {
+        await prisma.lead.update({ where: { id: leadId }, data: { status: 'sent', lastTouchedAt: new Date(), contactEmail: to } }).catch(() => {});
+        await prisma.draftEmail.update({ where: { leadId }, data: { deliveryStatus: 'sent', sentAt: new Date() } }).catch(() => {});
+      }
+
+      logActivity('📧', 'outreach', `Email sent to ${to} via SMTP`, 'info');
+      res.json({ success: true, messageId: info.messageId });
     }
-
-    logActivity('📧', 'outreach', `Email successfully sent to ${to}`, 'info');
-    res.json({ success: true, messageId: info.messageId });
   } catch (e) {
-    console.error(`[Unified API] ERROR SENDING EMAIL: ${e.message}`);
+    console.error(`[Email] ERROR: ${e.message}`);
     logActivity('❌', 'outreach', `Failed to send email: ${e.message}`, 'error');
     res.status(500).json({ success: false, error: e.message });
   }
