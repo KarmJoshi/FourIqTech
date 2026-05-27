@@ -78,7 +78,8 @@ export default function AgentManager() {
     isAutoPilot: false,
     startTime: "10:00",
     cyclesPerDay: 1,
-    lastRunAt: null
+    lastRunAt: null,
+    apiMode: typeof window !== "undefined" ? localStorage.getItem("fouriq_api_mode") || "free" : "free"
   });
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   const [draftStartTime, setDraftStartTime] = useState<string | null>(null);
@@ -174,7 +175,14 @@ export default function AgentManager() {
 
         if (tasksRes?.ok) setRunningTasks(await tasksRes.json());
         if (intelligenceRes?.ok) setIntelligence(await intelligenceRes.json());
-        if (settingsRes?.ok) setScheduleSettings(await settingsRes.json());
+        if (settingsRes?.ok) {
+          const settingsData = await settingsRes.json();
+          const localApiMode = localStorage.getItem("fouriq_api_mode");
+          setScheduleSettings({
+            ...settingsData,
+            apiMode: localApiMode || settingsData.apiMode || "free"
+          });
+        }
       } catch (e) {
         setApiOnline(false);
         console.error("API Sync Error", e);
@@ -215,6 +223,9 @@ export default function AgentManager() {
 
   const updateScheduleSettings = async (updates: any) => {
     setIsUpdatingSettings(true);
+    if (updates.apiMode) {
+      localStorage.setItem("fouriq_api_mode", updates.apiMode);
+    }
     // Optimistic Update: Set values immediately to prevent "flicker" during polling
     setScheduleSettings(prev => ({ ...prev, ...updates }));
     
@@ -227,14 +238,25 @@ export default function AgentManager() {
       });
       if (res.ok) {
         const data = await res.json();
-        setScheduleSettings(data.settings);
+        const localApiMode = localStorage.getItem("fouriq_api_mode");
+        setScheduleSettings({
+          ...data.settings,
+          apiMode: localApiMode || data.settings.apiMode || "free"
+        });
       }
     } catch (e) {
       console.error("Settings Update Error", e);
       // Rollback on error
       const fetchSettings = async () => {
          const res = await fetch(`${API_BASE_URL}/api/settings`);
-         if(res.ok) setScheduleSettings(await res.json());
+         if(res.ok) {
+           const data = await res.json();
+           const localApiMode = localStorage.getItem("fouriq_api_mode");
+           setScheduleSettings({
+             ...data,
+             apiMode: localApiMode || data.apiMode || "free"
+           });
+         }
       };
       fetchSettings();
     } finally {
@@ -635,7 +657,11 @@ No extra words. Just the niche string.`;
                       <Zap className={`h-4 w-4 ${(scheduleSettings as any).isAutoPilot ? "text-emerald-400" : "text-slate-600"}`} />
                       Auto-Pilot
                     </h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Autonomous strategic cycles on schedule</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {(scheduleSettings as any).isAutoPilot
+                        ? `✅ Active — Runs automatically at ${(scheduleSettings as any).startTime || "10:00"} IST (${(scheduleSettings as any).cyclesPerDay || 1}×/day)`
+                        : "Autonomous strategic cycles on schedule"}
+                    </p>
                   </div>
                   <div className="flex items-center gap-4">
                     {/* API Mode Toggle */}
@@ -650,13 +676,18 @@ No extra words. Just the niche string.`;
                       </button>
                       <span className={`text-[10px] font-semibold ${(scheduleSettings as any).apiMode === 'paid' ? 'text-amber-400' : 'text-slate-600'}`}>PAID</span>
                     </div>
-                    <button
-                      onClick={() => updateScheduleSettings({ isAutoPilot: !(scheduleSettings as any).isAutoPilot })}
-                      disabled={isUpdatingSettings}
-                      className={`h-6 w-11 rounded-full transition-all relative ${(scheduleSettings as any).isAutoPilot ? "bg-emerald-500" : "bg-slate-700"}`}
-                    >
-                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-sm ${(scheduleSettings as any).isAutoPilot ? "right-0.5" : "left-0.5"}`} />
-                    </button>
+                    {/* Auto-Pilot Toggle */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08]">
+                      <span className={`text-[10px] font-semibold ${(scheduleSettings as any).isAutoPilot ? 'text-emerald-400' : 'text-slate-600'}`}>AUTO</span>
+                      <button
+                        onClick={() => updateScheduleSettings({ isAutoPilot: !(scheduleSettings as any).isAutoPilot })}
+                        disabled={isUpdatingSettings}
+                        className={`h-5 w-9 rounded-full transition-all relative ${(scheduleSettings as any).isAutoPilot ? "bg-emerald-500" : "bg-slate-700"}`}
+                      >
+                        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-sm ${(scheduleSettings as any).isAutoPilot ? "right-0.5" : "left-0.5"}`} />
+                      </button>
+                      <span className={`text-[10px] font-semibold ${(scheduleSettings as any).isAutoPilot ? 'text-emerald-400' : 'text-slate-600'}`}>{(scheduleSettings as any).isAutoPilot ? "ON" : "OFF"}</span>
+                    </div>
                     <button
                       onClick={() => updateScheduleSettings({ isAutoCommit: !(scheduleSettings as any).isAutoCommit })}
                       disabled={isUpdatingSettings}

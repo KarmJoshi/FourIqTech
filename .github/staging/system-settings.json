@@ -1,5 +1,5 @@
 {
-  "isAutoCommit": false,
+  "isAutoCommit": true,
   "apiMode": "free",
   "lastRunAt": "2026-04-22T17:05:16.848Z",
   "isAutoPilot": false,
@@ -8,43 +8,68 @@
   "agentModels": {
     "qa": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "writer": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "auditor": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "browser": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "builder": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "manager": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "scanner": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "architect": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "researcher": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
+    ],
+    "link_finder": [
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
+    ],
+    "link_writer": [
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
+    ],
+    "link_pitcher": [
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ],
     "content_manager": [
       "gemini-3-flash-preview",
-      "gemini-2.5-flash"
+      "gemini-2.5-flash",
+      "gemini-2.0-flash"
     ]
   }
 }

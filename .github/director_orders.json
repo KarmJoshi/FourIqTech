@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-20T06:30:08.885Z",
-  "department": "technical",
-  "reasoning": "Manager dispatched technical team via command center",
-  "cross_department_orders": "Manager dispatched technical team via command center",
+  "timestamp": "2026-05-21T13:36:53.708Z",
+  "department": "backlinks",
+  "reasoning": "Manager dispatched backlinks team via command center",
+  "cross_department_orders": "Manager dispatched backlinks team via command center",
   "agency_health_score": 7,
   "source": "chat_manager"
 }

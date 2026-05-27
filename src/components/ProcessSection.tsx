@@ -123,7 +123,7 @@ export default function ProcessSection() {
             duration: 0.7,
             stagger: 0.08,
             ease: 'power3.out',
-            scrollTrigger: { trigger: '.proc-header', start: 'top 84%' },
+            scrollTrigger: { trigger: '.proc-header', start: 'top 50%' },
           }
         );
       }
@@ -137,8 +137,8 @@ export default function ProcessSection() {
             ease: 'none',
             scrollTrigger: {
               trigger: '.proc-timeline',
-              start: 'top 62%',
-              end: 'bottom 42%',
+              start: 'top 50%',
+              end: 'bottom 50%',
               scrub: 0.6,
             },
           }
@@ -162,7 +162,7 @@ export default function ProcessSection() {
               opacity: 1,
               duration: 0.45,
               ease: 'power2.out',
-              scrollTrigger: { trigger: row, start: 'top 86%' },
+              scrollTrigger: { trigger: row, start: 'top 50%' },
             }
           );
         }
@@ -176,7 +176,7 @@ export default function ProcessSection() {
               y: 0,
               duration: 0.4,
               ease: 'power2.out',
-              scrollTrigger: { trigger: row, start: 'top 86%' },
+              scrollTrigger: { trigger: row, start: 'top 50%' },
             }
           );
         }
@@ -190,7 +190,7 @@ export default function ProcessSection() {
               opacity: 1,
               duration: 0.55,
               ease: 'power2.out',
-              scrollTrigger: { trigger: row, start: 'top 86%' },
+              scrollTrigger: { trigger: row, start: 'top 50%' },
             }
           );
         }
@@ -205,7 +205,7 @@ export default function ProcessSection() {
               duration: 0.4,
               stagger: 0.05,
               ease: 'power2.out',
-              scrollTrigger: { trigger: row, start: 'top 86%' },
+              scrollTrigger: { trigger: row, start: 'top 50%' },
             }
           );
         }
@@ -218,7 +218,7 @@ export default function ProcessSection() {
               scaleX: 1,
               duration: 0.35,
               ease: 'power2.out',
-              scrollTrigger: { trigger: row, start: 'top 86%' },
+              scrollTrigger: { trigger: row, start: 'top 50%' },
             }
           );
         }
@@ -271,11 +271,14 @@ export default function ProcessSection() {
       <div className="proc-timeline relative max-w-5xl mx-auto px-6 pb-32 z-10">
 
         {/* Center spine — positioned to sit behind the flex rows */}
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-36 w-[4px] bg-white/10 hidden md:block pointer-events-none shadow-[0_0_10px_rgba(255,255,255,0.1)] z-0" />
+        <div className="absolute left-1/2 -translate-x-1/2 top-[28px] bottom-36 w-[4px] bg-white/10 hidden md:block pointer-events-none shadow-[0_0_10px_rgba(255,255,255,0.1)] z-0" />
         <div
           ref={spineRef}
-          className="absolute left-1/2 -translate-x-1/2 top-0 bottom-36 w-[4px] hidden md:block pointer-events-none shadow-[0_0_20px_rgba(234,179,8,0.5)] z-0"
-          style={{ background: 'linear-gradient(180deg, hsl(42 85% 55%), hsl(260 60% 65%), hsl(200 80% 60%), hsl(20 90% 62%), hsl(145 60% 52%))' }}
+          className="absolute left-1/2 -translate-x-1/2 top-[28px] bottom-36 w-[4px] hidden md:block pointer-events-none shadow-[0_0_20px_rgba(234,179,8,0.5)] z-0 origin-top"
+          style={{ 
+            background: 'linear-gradient(180deg, hsl(42 85% 55%), hsl(260 60% 65%), hsl(200 80% 60%), hsl(20 90% 62%), hsl(145 60% 52%))',
+            transformOrigin: 'top center'
+          }}
         />
 
         {steps.map((step, i) => {

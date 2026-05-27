@@ -10,27 +10,16 @@ import SmoothScroll from "./components/SmoothScroll";
 
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Services from "./pages/Services";
+
 import CustomSaasPlatformDevelopment from "./pages/services/CustomSaasPlatformDevelopment";
-import LegacyWebApplicationModernization from "./pages/services/LegacyWebApplicationModernization";
-import EnterpriseHeadlessCommerceDevelopment from "./pages/services/EnterpriseHeadlessCommerceDevelopment";
-import EnterpriseRevenueAcceleration from "./pages/services/EnterpriseRevenueAcceleration";
-import EnterpriseReactPerformanceOptimization from "./pages/services/EnterpriseReactPerformanceOptimization";
-import EnterpriseUiUxDesignServices from "./pages/services/EnterpriseUiUxDesignServices";
+import EnterpriseNextjsDevelopmentAgency from "./pages/services/EnterpriseNextjsDevelopmentAgency";
 import AgentManager from "./pages/AgentManager/index";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import EnterpriseReactNextjsConsulting from "./pages/services/EnterpriseReactNextjsConsulting";
-import EnterpriseWebsiteRedesign from "./pages/services/EnterpriseWebsiteRedesign";
-import EnterpriseNextjsDevelopmentAgency from "./pages/services/EnterpriseNextjsDevelopmentAgency";
-import EnterpriseFramerMotionDevelopment from "./pages/services/EnterpriseFramerMotionDevelopment";
-import AutomatedTestService from "./pages/services/AutomatedTestService";
-import TriggerLiveDeploy from "./pages/services/TriggerLiveDeploy";
-import EnterpriseWebApplicationDevelopment from "./pages/services/EnterpriseWebApplicationDevelopment";
-import NextjsSeoServices from "./pages/services/NextjsSeoServices";
-import CoreWebVitalsOptimizationServices from "./pages/services/CoreWebVitalsOptimizationServices";
-
-
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -48,25 +37,13 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/services" element={<Services />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="/services/enterprise-react-performance-optimization" element={<EnterpriseReactPerformanceOptimization />} />
-              <Route path="/services/enterprise-revenue-acceleration" element={<EnterpriseRevenueAcceleration />} />
               <Route path="/services/custom-saas-platform-development" element={<CustomSaasPlatformDevelopment />} />
-              <Route path="/services/legacy-web-application-modernization" element={<LegacyWebApplicationModernization />} />
-              <Route path="/services/enterprise-headless-commerce-development" element={<EnterpriseHeadlessCommerceDevelopment />} />
+              <Route path="/services/enterprise-nextjs-development-agency" element={<EnterpriseNextjsDevelopmentAgency />} />
               <Route path="/agent-manager" element={<AgentManager />} />
-              <Route path="/services/enterprise-ui-ux-design-services" element={<EnterpriseUiUxDesignServices />} />
-              <Route path="/services/enterprise-react-nextjs-consulting" element={<EnterpriseReactNextjsConsulting />} />              <Route path="/services/enterprise-website-redesign" element={<EnterpriseWebsiteRedesign />} />              <Route path="/services/enterprise-nextjs-development-agency" element={<EnterpriseNextjsDevelopmentAgency />} />              <Route path="/services/enterprise-framer-motion-development" element={<EnterpriseFramerMotionDevelopment />} />              <Route path="/services/automated-test-verification" element={<AutomatedTestService />} />              <Route path="/services/trigger-live-deploy" element={<TriggerLiveDeploy />} />              <Route path="/services/enterprise-web-application-development" element={<EnterpriseWebApplicationDevelopment />} />              <Route path="/services/nextjs-seo-services" element={<NextjsSeoServices />} />              <Route path="/services/core-web-vitals-optimization-services" element={<CoreWebVitalsOptimizationServices />} />
-
-
-
-
-
-
-
-
-
-
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

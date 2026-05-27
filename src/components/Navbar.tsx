@@ -5,11 +5,13 @@ import { Link } from 'react-router-dom';
 
 const navItems = [
   { name: 'Home', path: '/' },
-  { name: 'Services', path: '/#services' },
-  { name: 'About', path: '/#about' },
-  { name: 'Contact', path: '/#contact' },
+  { name: 'Services', path: '/services' },
+  { name: 'About', path: '/about' },
+  { name: 'Contact', path: '/contact' },
   { name: 'Blog', path: '/blog' }
 ];
+
+const MotionLink = motion(Link);
 
 interface NavbarProps {
   isVisible?: boolean;
@@ -42,9 +44,9 @@ export default function Navbar({ isVisible = true }: NavbarProps) {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item, i) => (
-              <motion.a
+              <MotionLink
                 key={item.name}
-                href={item.path}
+                to={item.path}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * i + 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -52,10 +54,10 @@ export default function Navbar({ isVisible = true }: NavbarProps) {
                 className="px-4 py-2 text-sm font-heading font-medium text-muted-foreground transition-colors duration-300 rounded-xl hover:bg-primary/[0.06]"
               >
                 {item.name}
-              </motion.a>
+              </MotionLink>
             ))}
-            <motion.a
-              href="/#contact"
+            <MotionLink
+              to="/contact"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.9, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -64,7 +66,7 @@ export default function Navbar({ isVisible = true }: NavbarProps) {
               className="ml-2 px-5 py-2 text-sm font-heading font-semibold bg-primary text-primary-foreground rounded-xl transition-all duration-300"
             >
               Get Started
-            </motion.a>
+            </MotionLink>
           </div>
 
           {/* Mobile menu button */}
@@ -87,9 +89,9 @@ export default function Navbar({ isVisible = true }: NavbarProps) {
               className="md:hidden mt-2 glass-strong rounded-2xl p-4 flex flex-col gap-2"
             >
               {navItems.map((item, i) => (
-                <motion.a
+                <MotionLink
                   key={item.name}
-                  href={item.path}
+                  to={item.path}
                   onClick={() => setIsOpen(false)}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -97,7 +99,7 @@ export default function Navbar({ isVisible = true }: NavbarProps) {
                   className="px-4 py-3 text-sm font-heading font-medium text-muted-foreground hover:text-primary transition-colors duration-300 rounded-xl hover:bg-primary/[0.06]"
                 >
                   {item.name}
-                </motion.a>
+                </MotionLink>
               ))}
             </motion.div>
           )}

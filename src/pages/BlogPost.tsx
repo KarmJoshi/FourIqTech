@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useScrollLock } from '@/components/SmoothScroll';
@@ -173,7 +174,12 @@ export default function BlogPost() {
         </Link>
         
         <article>
-          <header className="mb-16">
+          <motion.header 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-16"
+          >
             <span className="inline-block px-3 py-1 bg-white/5 rounded-full text-xs font-medium text-primary mb-6 border border-white/10 uppercase tracking-widest">
               {post.category}
             </span>
@@ -193,9 +199,12 @@ export default function BlogPost() {
                 <Clock size={16} className="text-primary" /> {post.readTime}
               </span>
             </div>
-          </header>
+          </motion.header>
           
-          <div 
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
             className="prose prose-invert lg:prose-xl max-w-none 
               prose-headings:font-display prose-headings:font-bold prose-headings:text-zinc-100 prose-headings:tracking-tight
               prose-h1:text-4xl prose-h1:mt-12 prose-h1:mb-8

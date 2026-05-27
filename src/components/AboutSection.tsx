@@ -1,6 +1,6 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { Lightbulb, Rocket, Handshake, Globe } from 'lucide-react';
+import { Lightbulb, Rocket, Handshake, Globe, Cpu } from 'lucide-react';
 
 const highlights = [
   { icon: Lightbulb, title: 'Visionary Strategy', desc: 'Transforming ideas into scalable digital realities.' },
@@ -63,6 +63,20 @@ export default function AboutSection() {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            </div>
+
+            <div className="mt-8 p-6 rounded-2xl border border-primary/20 bg-primary/5 relative overflow-hidden flex items-start gap-4">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-xl pointer-events-none" />
+              <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                <Cpu size={20} className="animate-pulse" />
+              </div>
+              <div>
+                <span className="text-primary text-[10px] font-heading font-bold uppercase tracking-widest block mb-1">● Autonomous Live Status: Active</span>
+                <h4 className="font-heading font-bold text-sm text-foreground">Self-Optimizing Agent System</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  This entire website, its SEO indexes, and landing structures are operated and automatically written by our custom <strong className="text-foreground font-semibold">Autonomous SEO Agent</strong>.
+                </p>
               </div>
             </div>
           </motion.div>
