@@ -3,26 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Code2, Smartphone, Cpu, RefreshCw, ShoppingCart, Gauge, Palette, ArrowUpRight } from 'lucide-react';
 
-const services = [
-  {
-    icon: Code2,
-    title: 'Custom SaaS Development',
-    path: '/services/custom-saas-platform-development',
-    description:
-      'Engineering high-performance, future-proof SaaS architectures tailored precisely to your specific business logic and scaling goals.',
-    index: '01',
-    badge: 'Flagship'
-  },
-  {
-    icon: Cpu,
-    title: 'Enterprise Next.js Development',
-    path: '/services/enterprise-nextjs-development-agency',
-    description:
-      'Engineering complex, SSR-enabled Next.js platforms optimized for high indexing and absolute stability.',
-    index: '02',
-    badge: 'Modern'
-  }
-];
+const services: any[] = [];
 
 export default function ServicesSection() {
   const containerRef = useRef<HTMLDivElement>(null);

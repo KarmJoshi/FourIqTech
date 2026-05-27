@@ -14,8 +14,6 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Services from "./pages/Services";
 
-import CustomSaasPlatformDevelopment from "./pages/services/CustomSaasPlatformDevelopment";
-import EnterpriseNextjsDevelopmentAgency from "./pages/services/EnterpriseNextjsDevelopmentAgency";
 import AgentManager from "./pages/AgentManager/index";
 
 import { gsap } from "gsap";
@@ -41,8 +39,6 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />
               <Route path="/services" element={<Services />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="/services/custom-saas-platform-development" element={<CustomSaasPlatformDevelopment />} />
-              <Route path="/services/enterprise-nextjs-development-agency" element={<EnterpriseNextjsDevelopmentAgency />} />
               <Route path="/agent-manager" element={<AgentManager />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

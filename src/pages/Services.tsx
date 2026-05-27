@@ -7,22 +7,7 @@ import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Code2, RefreshCw, ShoppingCart, Zap, Gauge, Palette, Users2, LayoutTemplate, Activity, Sparkles, AlertCircle } from 'lucide-react';
 
-const serviceCatalog = [
-  {
-    icon: Code2,
-    title: 'Custom SaaS Platform Development',
-    path: '/services/custom-saas-platform-development',
-    desc: 'Engineering high-performance, future-proof SaaS architectures tailored precisely to your specific business logic and scaling goals.',
-    badge: 'Flagship'
-  },
-  {
-    icon: Sparkles,
-    title: 'Enterprise Next.js Development Agency',
-    path: '/services/enterprise-nextjs-development-agency',
-    desc: 'Engineering complex, SSR-enabled Next.js platforms optimized for high indexing and absolute stability.',
-    badge: 'Modern'
-  }
-];
+const serviceCatalog: any[] = [];
 
 export default function Services() {
   const [navVisible, setNavVisible] = useState(false);
