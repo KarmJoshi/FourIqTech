@@ -5,9 +5,16 @@ import { useScrollLock } from '@/components/SmoothScroll';
 import SEO from '@/components/SEO';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Code2, RefreshCw, ShoppingCart, Zap, Gauge, Palette, Users2, LayoutTemplate, Activity, Sparkles, AlertCircle } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import { services as serviceCatalogData } from '@/data/services';
 
-const serviceCatalog: any[] = [];
+const serviceCatalog = serviceCatalogData.map((s) => ({
+  icon: s.icon,
+  badge: s.badge,
+  title: s.title,
+  desc: s.description,
+  path: s.path,
+}));
 
 export default function Services() {
   const [navVisible, setNavVisible] = useState(false);

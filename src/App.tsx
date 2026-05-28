@@ -14,6 +14,12 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Services from "./pages/Services";
 
+import WebsiteDevelopment from "./pages/services/WebsiteDevelopment";
+import AppDevelopment from "./pages/services/AppDevelopment";
+import UiUxDesign from "./pages/services/UiUxDesign";
+import SeoDigitalMarketing from "./pages/services/SeoDigitalMarketing";
+import Consulting from "./pages/services/Consulting";
+
 import AgentManager from "./pages/AgentManager/index";
 
 import { gsap } from "gsap";
@@ -38,6 +44,11 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/services" element={<Services />} />
+              <Route path="/services/website-development" element={<WebsiteDevelopment />} />
+              <Route path="/services/app-development" element={<AppDevelopment />} />
+              <Route path="/services/ui-ux-design" element={<UiUxDesign />} />
+              <Route path="/services/seo-digital-marketing" element={<SeoDigitalMarketing />} />
+              <Route path="/services/consulting" element={<Consulting />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="/agent-manager" element={<AgentManager />} />
               <Route path="*" element={<NotFound />} />

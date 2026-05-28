@@ -1,9 +1,8 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Code2, Smartphone, Cpu, RefreshCw, ShoppingCart, Gauge, Palette, ArrowUpRight } from 'lucide-react';
-
-const services: any[] = [];
+import { ArrowUpRight } from 'lucide-react';
+import { services } from '@/data/services';
 
 export default function ServicesSection() {
   const containerRef = useRef<HTMLDivElement>(null);
