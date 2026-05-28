@@ -193,6 +193,36 @@ async function publishApprovedItems() {
   }
 
   // ═══════════════════════════════════════════════════════════════════
+  // SYNC live_posts.json — Static fallback for when API is unreachable
+  // ═══════════════════════════════════════════════════════════════════
+  if (publishedCount > 0) {
+    try {
+      console.log(`\n📄 SYNC: Generating live_posts.json fallback...`);
+      const allLivePosts = await prisma.blogPost.findMany({
+        where: { isLive: true },
+        orderBy: { date: 'desc' }
+      });
+      const livePostsJson = JSON.stringify({
+        posts: allLivePosts.map(p => ({
+          slug: p.slug,
+          title: p.title,
+          excerpt: p.excerpt,
+          date: p.date,
+          readTime: p.readTime,
+          category: p.category,
+          author: p.author,
+          content: p.content
+        })),
+        updated_at: new Date().toISOString()
+      }, null, 2);
+      filesToCommit.push({ path: 'public/live_posts.json', content: livePostsJson });
+      console.log(`   ✅ live_posts.json queued with ${allLivePosts.length} posts`);
+    } catch (e) {
+      console.error(`   ⚠️ live_posts.json sync failed: ${e.message}`);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
   // PUSH TO GITHUB — Single atomic commit for all file changes
   // ═══════════════════════════════════════════════════════════════════
   if (filesToCommit.length > 0) {
@@ -200,7 +230,7 @@ async function publishApprovedItems() {
     
     const result = await githubCommitMultiple(
       filesToCommit,
-      `[AI-PUBLISH] Deployed ${publishedCount} improvement(s)`
+      `[AI-PUBLISH] Deployed ${publishedCount} improvement(s) + synced live_posts.json`
     );
     
     if (result.success) {

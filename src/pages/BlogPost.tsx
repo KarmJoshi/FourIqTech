@@ -8,7 +8,10 @@ import { getPostBySlug } from '@/data/blogPosts';
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import SEO from '@/components/SEO';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || 
+  (typeof window !== "undefined" && window.location.hostname !== "localhost"
+    ? "https://fouriqtech.onrender.com"
+    : "");
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();

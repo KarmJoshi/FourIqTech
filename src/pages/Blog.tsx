@@ -8,7 +8,10 @@ import { blogPosts } from '@/data/blogPosts';
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
 import SEO from '@/components/SEO';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || 
+  (typeof window !== "undefined" && window.location.hostname !== "localhost"
+    ? "https://fouriqtech.onrender.com"
+    : "");
 
 export default function Blog() {
   const [navVisible, setNavVisible] = useState(false);
@@ -22,8 +25,11 @@ export default function Blog() {
 
     async function loadPosts() {
       try {
-        // Try DB API first
-        const dbRes = await fetch(`${API_BASE}/api/blogs`);
+        // Try DB API first (with timeout for Render cold starts)
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        const dbRes = await fetch(`${API_BASE}/api/blogs`, { signal: controller.signal });
+        clearTimeout(timeout);
         const dbData = await dbRes.json();
         const dbPosts = dbData.posts || [];
 
