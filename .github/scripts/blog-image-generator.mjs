@@ -1,30 +1,35 @@
 import { getAiClient, rotateKey, sleep } from './agency-core.mjs';
+import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 dotenv.config();
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🎨 BLOG IMAGE GENERATOR — Automatic Cover Image Generation
 // ═══════════════════════════════════════════════════════════════════════
-// Uses Google Imagen (via @google/genai SDK) to generate blog cover images
-// and uploads them to Supabase Storage for public URL access.
+// Uses Google Imagen 4 (via @google/genai SDK) to generate blog cover images
+// and uploads them to ImgBB for permanent public URL access.
 //
 // Flow:
 //   1. Takes blog title + category + keyword
-//   2. Generates a professional cover image via Imagen
-//   3. Uploads to Supabase Storage bucket "blog-images"
+//   2. Generates a professional cover image via Imagen 4
+//   3. Uploads to ImgBB (free, permanent hosting)
 //   4. Returns the public URL
 // ═══════════════════════════════════════════════════════════════════════
 
-const SUPABASE_PROJECT_ID = process.env.SUPABASE_PROJECT_ID || 'qdagkfmlvjkjtpljnkpc';
-const SUPABASE_URL = process.env.SUPABASE_URL || `https://${SUPABASE_PROJECT_ID}.supabase.co`;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const STORAGE_BUCKET = 'blog-images';
+const IMGBB_API_KEY = process.env.IMGBB_API_KEY || '';
 
-// Imagen model to use (free tier compatible)
-const IMAGEN_MODEL = 'imagen-3.0-generate-002';
+// Imagen 4 Fast — best balance of speed + quality
+const IMAGEN_MODEL = 'imagen-4.0-fast-generate-001';
+
+// Gemini 2.5 Flash Image (Nano Banana) — fallback
+const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
+
+// Use paid key for image generation
+const PAID_KEY = process.env.GEMINI_PAID_KEY || process.env.GEMINI_FREE_KEY || '';
+const imageAiClient = PAID_KEY ? new GoogleGenAI({ apiKey: PAID_KEY }) : null;
 
 /**
- * Generate a blog cover image using Google Imagen
+ * Generate a blog cover image using Google Imagen 4
  * @param {object} params - { title, category, keyword, slug }
  * @returns {string|null} - Public URL of the uploaded image, or null on failure
  */
@@ -32,15 +37,15 @@ export async function generateBlogImage({ title, category, keyword, slug }) {
   console.log(`\n🎨 IMAGE GENERATOR: Creating cover image for "${title}"...`);
 
   try {
-    // Step 1: Generate the image with Imagen
+    // Step 1: Generate the image with Imagen 4
     const imageBase64 = await generateWithImagen(title, category, keyword);
     if (!imageBase64) {
       console.log('   ⚠️ Image generation failed, skipping cover image.');
       return null;
     }
 
-    // Step 2: Upload to Supabase Storage
-    const publicUrl = await uploadToSupabase(imageBase64, slug);
+    // Step 2: Upload to ImgBB
+    const publicUrl = await uploadToImgBB(imageBase64, slug);
     if (!publicUrl) {
       console.log('   ⚠️ Image upload failed, skipping cover image.');
       return null;
@@ -56,20 +61,18 @@ export async function generateBlogImage({ title, category, keyword, slug }) {
 }
 
 /**
- * Generate image using Google Imagen via @google/genai SDK
+ * Generate image using Google Imagen 4 via @google/genai SDK
  */
 async function generateWithImagen(title, category, keyword) {
-  const ai = getAiClient();
+  const ai = imageAiClient;
   if (!ai) {
-    console.log('   ⚠️ No AI client available for image generation.');
+    console.log('   ⚠️ No AI client available for image generation (no paid key found).');
     return null;
   }
 
-  // Craft a professional prompt for blog cover images
   const prompt = buildImagePrompt(title, category, keyword);
   console.log(`   📝 Prompt: "${prompt.substring(0, 120)}..."`);
 
-  // Try Imagen first, fall back to Gemini image generation
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const response = await ai.models.generateImages({
@@ -77,64 +80,58 @@ async function generateWithImagen(title, category, keyword) {
         prompt: prompt,
         config: {
           numberOfImages: 1,
-          aspectRatio: '16:9',  // Wide format for blog covers
+          aspectRatio: '16:9',
         },
       });
 
       if (response?.generatedImages?.[0]?.image?.imageBytes) {
-        console.log(`   ✅ Imagen generated image (attempt ${attempt + 1})`);
+        console.log(`   ✅ Imagen 4 generated image (attempt ${attempt + 1})`);
         return response.generatedImages[0].image.imageBytes;
       }
 
-      // If filtered, try with a safer prompt
       if (response?.generatedImages?.[0]?.filteredReason) {
-        console.log(`   ⚠️ Image filtered: ${response.generatedImages[0].filteredReason}. Retrying with safer prompt...`);
+        console.log(`   ⚠️ Image filtered: ${response.generatedImages[0].filteredReason}. Retrying...`);
         await sleep(2000);
         continue;
       }
 
     } catch (err) {
       if (err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
-        console.log(`   ⏳ Rate limited, rotating key and retrying...`);
-        rotateKey();
+        console.log(`   ⏳ Rate limited, waiting and retrying...`);
         await sleep(6000);
         continue;
       }
       
       if (err.message?.includes('not found') || err.message?.includes('not supported')) {
-        // Imagen model not available, try Gemini native image generation
-        console.log(`   🔄 Imagen not available, trying Gemini image generation...`);
+        console.log(`   🔄 Imagen 4 not available, trying Gemini fallback...`);
         return await generateWithGemini(title, category, keyword);
       }
 
       console.log(`   ⚠️ Imagen attempt ${attempt + 1} failed: ${err.message}`);
-      if (attempt < 2) {
-        rotateKey();
-        await sleep(3000);
-      }
+      if (attempt < 2) await sleep(3000);
     }
   }
 
-  // Final fallback: Gemini native image generation
+  // Final fallback
   return await generateWithGemini(title, category, keyword);
 }
 
 /**
- * Fallback: Generate image using Gemini's native image generation (gemini-2.0-flash with image output)
+ * Fallback: Generate image using Gemini 2.5 Flash Image (Nano Banana)
  */
 async function generateWithGemini(title, category, keyword) {
-  const ai = getAiClient();
+  const ai = imageAiClient;
   if (!ai) return null;
 
-  console.log(`   🔄 Attempting Gemini native image generation...`);
+  console.log(`   🔄 Attempting Gemini 2.5 Flash Image (Nano Banana)...`);
   const prompt = buildImagePrompt(title, category, keyword);
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: GEMINI_IMAGE_MODEL,
       contents: prompt,
       config: {
-        responseModalities: ['image', 'text'],
+        responseModalities: ['IMAGE', 'TEXT'],
       },
     });
 
@@ -174,7 +171,6 @@ function buildImagePrompt(title, category, keyword) {
     category?.toLowerCase().includes(key.toLowerCase())
   )?.[1] || 'Abstract technology patterns, modern digital aesthetics, professional and clean.';
 
-  // Create a concise, descriptive prompt
   const topicHint = keyword 
     ? `Visual metaphor representing "${keyword}" in the context of web technology.`
     : `Visual metaphor for the concept: "${title.substring(0, 80)}".`;
@@ -183,92 +179,41 @@ function buildImagePrompt(title, category, keyword) {
 }
 
 /**
- * Upload base64 image to Supabase Storage
+ * Upload base64 image to ImgBB
  * @param {string} base64Data - Base64 encoded image data
- * @param {string} slug - Blog post slug (used as filename)
+ * @param {string} slug - Blog post slug (used as image name)
  * @returns {string|null} - Public URL or null
  */
-async function uploadToSupabase(base64Data, slug) {
-  if (!SUPABASE_SERVICE_KEY) {
-    console.log('   ⚠️ No Supabase service key found. Set SUPABASE_SERVICE_ROLE_KEY in .env');
-    // Fallback: save as data URL (works but not ideal for production)
-    return `data:image/png;base64,${base64Data.substring(0, 100)}...`;
+async function uploadToImgBB(base64Data, slug) {
+  if (!IMGBB_API_KEY) {
+    console.log('   ⚠️ No ImgBB API key found. Set IMGBB_API_KEY in .env');
+    return null;
   }
 
-  const fileName = `${slug}-${Date.now()}.png`;
-  const filePath = `covers/${fileName}`;
-
   try {
-    // Ensure bucket exists (create if not)
-    await ensureBucketExists();
+    const formData = new URLSearchParams();
+    formData.append('key', IMGBB_API_KEY);
+    formData.append('image', base64Data);
+    formData.append('name', slug);
 
-    // Upload the image
-    const imageBuffer = Buffer.from(base64Data, 'base64');
-    
-    const uploadRes = await fetch(
-      `${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${filePath}`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'Content-Type': 'image/png',
-          'x-upsert': 'true',
-        },
-        body: imageBuffer,
-      }
-    );
+    const res = await fetch('https://api.imgbb.com/1/upload', {
+      method: 'POST',
+      body: formData,
+    });
 
-    if (!uploadRes.ok) {
-      const errText = await uploadRes.text();
-      console.log(`   ⚠️ Upload failed (${uploadRes.status}): ${errText}`);
+    const data = await res.json();
+
+    if (data.success && data.data?.url) {
+      console.log(`   📤 Uploaded to ImgBB: ${data.data.url}`);
+      return data.data.url;
+    } else {
+      console.log(`   ⚠️ ImgBB upload failed: ${JSON.stringify(data.error || data)}`);
       return null;
     }
 
-    // Return public URL
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${filePath}`;
-    return publicUrl;
-
   } catch (err) {
-    console.log(`   ⚠️ Supabase upload error: ${err.message}`);
+    console.log(`   ⚠️ ImgBB upload error: ${err.message}`);
     return null;
-  }
-}
-
-/**
- * Ensure the storage bucket exists, create if not
- */
-async function ensureBucketExists() {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/storage/v1/bucket/${STORAGE_BUCKET}`, {
-      headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}` },
-    });
-
-    if (res.status === 404) {
-      // Create the bucket
-      const createRes = await fetch(`${SUPABASE_URL}/storage/v1/bucket`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: STORAGE_BUCKET,
-          name: STORAGE_BUCKET,
-          public: true,  // Public bucket for blog images
-          file_size_limit: 5242880,  // 5MB max
-          allowed_mime_types: ['image/png', 'image/jpeg', 'image/webp'],
-        }),
-      });
-
-      if (createRes.ok) {
-        console.log(`   📦 Created storage bucket: ${STORAGE_BUCKET}`);
-      } else {
-        const err = await createRes.text();
-        console.log(`   ⚠️ Bucket creation failed: ${err}`);
-      }
-    }
-  } catch (err) {
-    console.log(`   ⚠️ Bucket check error: ${err.message}`);
   }
 }
 
