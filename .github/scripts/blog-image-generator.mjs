@@ -152,30 +152,68 @@ async function generateWithGemini(title, category, keyword) {
 }
 
 /**
- * Build a professional image prompt based on blog metadata
+ * Build a topic-specific image prompt based on blog metadata
  */
 function buildImagePrompt(title, category, keyword) {
-  const styleGuide = `Professional, modern, minimalist tech blog cover image. Dark background with subtle gradient. Abstract geometric shapes or tech-inspired patterns. No text or words in the image. Clean, editorial quality. 16:9 aspect ratio.`;
+  // Extract the core concept from the title for a more specific visual
+  const topic = keyword || title.substring(0, 60);
 
-  const categoryStyles = {
-    'Engineering': 'Abstract code patterns, circuit board aesthetics, flowing data streams, deep blue and gold accents.',
-    'Architecture': 'Architectural blueprints, structural diagrams, interconnected nodes, clean geometric lines.',
-    'Performance': 'Speed lines, optimization graphs, lightning bolts, dynamic motion blur effects.',
-    'Design': 'UI wireframes, color palettes, design tools, creative workspace elements.',
-    'Strategy': 'Chess pieces, strategic maps, growth charts, compass and navigation elements.',
-    'SEO': 'Search magnifying glass, ranking charts, web connections, digital marketing visuals.',
-    'Development': 'Code editor aesthetics, terminal windows, development workflow, modern IDE colors.',
+  const categoryVisuals = {
+    'Engineering': {
+      style: 'Isometric 3D illustration',
+      palette: 'Deep navy blue, electric cyan, warm amber highlights',
+      elements: 'interconnected system components, glowing data pipelines, modular blocks assembling together',
+    },
+    'Architecture': {
+      style: 'Detailed isometric 3D technical illustration',
+      palette: 'Dark slate, bright teal, golden accents',
+      elements: 'layered system architecture diagram, connected microservices, flowing data between components',
+    },
+    'Performance': {
+      style: 'Dynamic 3D render',
+      palette: 'Dark background, neon green speed trails, orange energy bursts',
+      elements: 'speedometer at max, rocket launching, lightning fast data streams, performance graphs going up',
+    },
+    'Design': {
+      style: 'Clean modern 3D illustration',
+      palette: 'Soft gradients, purple to blue, white accents',
+      elements: 'UI components floating in space, design system tokens, color swatches, responsive layouts',
+    },
+    'Strategy': {
+      style: 'Cinematic 3D render',
+      palette: 'Deep purple, gold, dark background',
+      elements: 'chess board with glowing pieces, strategic roadmap, growth trajectory arrows',
+    },
+    'SEO': {
+      style: 'Vibrant 3D illustration',
+      palette: 'Deep blue, bright green growth indicators, white',
+      elements: 'search bar with magnifying glass, ranking positions climbing up, web of connected pages, analytics dashboard',
+    },
+    'Development': {
+      style: 'Stylized 3D render',
+      palette: 'Dark editor theme colors, syntax highlighting greens and purples, warm amber',
+      elements: 'floating code blocks, terminal windows, git branches merging, deployment pipeline',
+    },
   };
 
-  const categoryStyle = Object.entries(categoryStyles).find(([key]) => 
+  const match = Object.entries(categoryVisuals).find(([key]) => 
     category?.toLowerCase().includes(key.toLowerCase())
-  )?.[1] || 'Abstract technology patterns, modern digital aesthetics, professional and clean.';
+  );
 
-  const topicHint = keyword 
-    ? `Visual metaphor representing "${keyword}" in the context of web technology.`
-    : `Visual metaphor for the concept: "${title.substring(0, 80)}".`;
+  const visual = match?.[1] || {
+    style: 'Modern 3D illustration',
+    palette: 'Dark navy, electric blue, warm gold accents',
+    elements: 'abstract technology concept, connected nodes, flowing data',
+  };
 
-  return `${styleGuide} ${categoryStyle} ${topicHint} High quality, 4K resolution, suitable for a premium tech company blog.`;
+  return `${visual.style} representing the concept of "${topic}". 
+Color palette: ${visual.palette}. 
+Scene includes: ${visual.elements}. 
+The image should clearly communicate the topic of ${topic} to a viewer. 
+Make it visually striking and unique — not generic. 
+No text, no words, no letters, no watermarks in the image. 
+Professional quality, suitable for a premium tech blog header. 
+16:9 wide format, high detail, depth of field, subtle lighting effects.`;
 }
 
 /**
