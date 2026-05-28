@@ -241,6 +241,7 @@ async function main() {
     `ALTER TABLE "BlogPost" ADD COLUMN IF NOT EXISTS "cluster" TEXT`,
     `ALTER TABLE "BlogPost" ADD COLUMN IF NOT EXISTS "qaScore" INTEGER`,
     `ALTER TABLE "BlogPost" ADD COLUMN IF NOT EXISTS "structure" TEXT`,
+    `ALTER TABLE "BlogPost" ADD COLUMN IF NOT EXISTS "imageUrl" TEXT`,
     `ALTER TABLE "ServicePage" ADD COLUMN IF NOT EXISTS "targetKeyword" TEXT`,
 
     // Indexes

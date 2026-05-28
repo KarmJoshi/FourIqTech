@@ -114,6 +114,7 @@ async function publishApprovedItems() {
         const category = content.match(/category:\s*'([^']+)'/)?.[1] || 'Engineering';
         const author = content.match(/author:\s*'([^']+)'/)?.[1] || 'FouriqTech Engineering';
         const readTime = content.match(/readTime:\s*'([^']+)'/)?.[1] || '5 min read';
+        const imageUrl = content.match(/imageUrl:\s*'([^']+)'/)?.[1] || null;
         const htmlContent = content.match(/content:\s*`([\s\S]*)`/)?.[1]?.trim() || content;
 
         // Validation
@@ -124,8 +125,8 @@ async function publishApprovedItems() {
 
         await prisma.blogPost.upsert({
           where: { slug },
-          update: { title, excerpt, content: htmlContent, isLive: true },
-          create: { slug, title, excerpt, date, readTime, category, author, content: htmlContent, isLive: true }
+          update: { title, excerpt, content: htmlContent, imageUrl, isLive: true },
+          create: { slug, title, excerpt, date, readTime, category, author, content: htmlContent, imageUrl, isLive: true }
         });
 
         console.log(`   ✅ Blog "${title}" → DB (isLive: true)`);

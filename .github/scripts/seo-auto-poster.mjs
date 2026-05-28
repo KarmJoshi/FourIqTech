@@ -3,6 +3,7 @@ import path from 'path';
 import yaml from 'js-yaml';
 import crypto from 'crypto';
 import { submitToStaging, logActivity, getModelsForRole, smartCall as coreSmartCall, healedCall, sleep, getApiKeyCount } from './agency-core.mjs';
+import { generateBlogImage } from './blog-image-generator.mjs';
 import { spawn } from 'child_process';
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1227,6 +1228,19 @@ async function engine() {
   if (qa.passed) {
     console.log('\n📦 PUBLISHING approved content...');
 
+    // 🎨 Generate cover image for the blog post
+    let coverImageUrl = null;
+    try {
+      coverImageUrl = await generateBlogImage({
+        title: draft.title,
+        category: draft.category,
+        keyword: brief.keyword,
+        slug: draft.slug,
+      });
+    } catch (imgErr) {
+      console.log(`   ⚠️ Image generation skipped: ${imgErr.message}`);
+    }
+
     // Inject schema
     draft.content = injectSchemaMarkup(draft);
     draft.keyword = brief.keyword;
@@ -1235,11 +1249,12 @@ async function engine() {
     draft.content = spiderForwardLink(draft.content, brief, blogDataFile);
 
     const safe = s => (s || '').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\${/g, '\\${');
+    const imageUrlLine = coverImageUrl ? `\n    imageUrl: '${safe(coverImageUrl)}',` : '';
     const newPost = `
   {
     slug: '${safe(draft.slug)}',
     title: '${safe(draft.title)}',
-    excerpt: '${safe(draft.excerpt)}',
+    excerpt: '${safe(draft.excerpt)}',${imageUrlLine}
     date: '${new Date().toISOString().split('T')[0]}',
     readTime: '${Math.ceil(draft.wordCount / 200)} min read',
     category: '${safe(draft.category)}',

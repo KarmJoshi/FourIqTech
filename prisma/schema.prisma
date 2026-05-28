@@ -331,6 +331,7 @@ model BlogPost {
   slug       String   @unique
   title      String
   excerpt    String
+  imageUrl   String?  // Cover image URL for the blog post
   date       String
   readTime   String   @default("5 min read")
   category   String   @default("Engineering")

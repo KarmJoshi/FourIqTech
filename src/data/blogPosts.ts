@@ -2,6 +2,7 @@ export interface BlogPost {
   slug: string;
   title: string;
   excerpt: string;
+  imageUrl?: string;
   date: string;
   readTime: string;
   category: string;

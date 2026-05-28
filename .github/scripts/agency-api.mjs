@@ -888,14 +888,15 @@ async function publishApprovedItem(item) {
       const category = content.match(/category:\s*'([^']+)'/)?.[1] || 'Engineering';
       const author = content.match(/author:\s*'([^']+)'/)?.[1] || 'FouriqTech Engineering';
       const readTime = content.match(/readTime:\s*'([^']+)'/)?.[1] || '5 min read';
+      const imageUrl = content.match(/imageUrl:\s*'([^']+)'/)?.[1] || null;
       const htmlContent = content.match(/content:\s*`([\s\S]*)`/)?.[1]?.trim() || content;
 
       await prisma.blogPost.upsert({
         where: { slug },
-        update: { title, excerpt, content: htmlContent, isLive: true },
+        update: { title, excerpt, content: htmlContent, imageUrl, isLive: true },
         create: {
           slug, title, excerpt, date, readTime,
-          category, author, content: htmlContent, isLive: true,
+          category, author, content: htmlContent, imageUrl, isLive: true,
         }
       });
       console.log(`   📦 Blog → DB: "${title}" (isLive: true)`);
@@ -935,7 +936,7 @@ app.get('/api/blogs', async (req, res) => {
       where: { isLive: true },
       orderBy: { createdAt: 'desc' },
       select: {
-        id: true, slug: true, title: true, excerpt: true,
+        id: true, slug: true, title: true, excerpt: true, imageUrl: true,
         date: true, readTime: true, category: true, author: true,
         metaTitle: true, metaDesc: true, createdAt: true
       }
@@ -1133,13 +1134,14 @@ app.post('/api/publish', async (req, res) => {
           const title = content.match(/title:\s*'([^']+)'/)?.[1] || item.title;
           const excerpt = content.match(/excerpt:\s*'([^']+)'/)?.[1] || '';
           const date = content.match(/date:\s*'([^']+)'/)?.[1] || new Date().toISOString().split('T')[0];
+          const imageUrl = content.match(/imageUrl:\s*'([^']+)'/)?.[1] || null;
           const htmlContent = content.match(/content:\s*`([\s\S]*)`/)?.[1]?.trim() || content;
 
           if (htmlContent.length >= 200) {
             await prisma.blogPost.upsert({
               where: { slug },
-              update: { title, excerpt, content: htmlContent, isLive: true },
-              create: { slug, title, excerpt, date, readTime: '5 min read', category: 'Engineering', author: 'FouriqTech Engineering', content: htmlContent, isLive: true }
+              update: { title, excerpt, content: htmlContent, imageUrl, isLive: true },
+              create: { slug, title, excerpt, date, readTime: '5 min read', category: 'Engineering', author: 'FouriqTech Engineering', content: htmlContent, imageUrl, isLive: true }
             });
           }
 
