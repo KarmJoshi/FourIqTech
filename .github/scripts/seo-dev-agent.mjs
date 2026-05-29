@@ -563,6 +563,39 @@ Return ONLY the complete fixed TSX code. No markdown fences. No explanation. The
   console.log(`║  📦 Status: Submitted to staging`);
   console.log('╚═══════════════════════════════════════════════════════════╝');
 
+  // Trigger Publisher to push to GitHub (if auto-commit is on)
+  try {
+    const settingsPath = path.join(process.cwd(), '.github/staging/system-settings.json');
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      if (settings.isAutoCommit === true) {
+        console.log('\n🚀 AUTO-COMMIT: Triggering Publisher to push to GitHub...');
+        const { spawn } = await import('child_process');
+        const pub = spawn('node', ['--env-file=.env', '.github/scripts/publisher.mjs'], {
+          cwd: process.cwd(),
+          stdio: 'inherit',
+          detached: false,
+        });
+        await new Promise((resolve) => {
+          pub.on('close', (code) => {
+            if (code === 0) {
+              console.log('   ✅ Publisher completed — code pushed to GitHub.');
+            } else {
+              console.log(`   ⚠️ Publisher exited with code ${code}`);
+            }
+            resolve();
+          });
+          pub.on('error', (err) => {
+            console.log(`   ⚠️ Publisher spawn error: ${err.message}`);
+            resolve();
+          });
+        });
+      }
+    }
+  } catch (pubErr) {
+    console.log(`   ⚠️ Publisher trigger failed: ${pubErr.message}`);
+  }
+
   await closeMemory();
 }
 
