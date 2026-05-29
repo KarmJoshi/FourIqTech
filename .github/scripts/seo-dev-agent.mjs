@@ -473,13 +473,74 @@ async function main() {
     return;
   }
 
-  // Phase 4: Build Verify
+  // Phase 4: Build Verify (with self-healing repair loop)
   const componentName = scanResult.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
-  const verification = verifyBuild(code, componentName);
+  let verification = verifyBuild(code, componentName);
   
+  // Self-healing: If verification fails, ask AI to fix the code (up to 2 repair attempts)
   if (!verification.passed) {
-    console.log('\n❌ Build verification FAILED. NOT submitting broken code.');
-    await logActivity('❌', 'structural', `Page build failed verification (${verification.score * 100}% checks passed). Not submitting.`, 'error');
+    console.log('\n🔧 Build verification failed — attempting AI self-repair...');
+    
+    for (let repairAttempt = 1; repairAttempt <= 2; repairAttempt++) {
+      console.log(`   🔧 Repair attempt ${repairAttempt}/2...`);
+      
+      const failedChecks = verification.checks.filter(c => !c.pass).map(c => c.check).join(', ');
+      
+      const repairPrompt = `You are a React/TypeScript code repair specialist. The following TSX component has build errors that need fixing.
+
+ERRORS FOUND:
+${failedChecks}
+
+BROKEN CODE:
+\`\`\`tsx
+${code}
+\`\`\`
+
+FIX ALL THE ERRORS:
+1. If "Missing JSX return" — ensure there is a \`return (\` statement with JSX inside the main component function.
+2. If "Braces imbalanced" — count all { and } braces and fix any unclosed or extra braces. Make sure every { has a matching }.
+3. If "Missing default export" — add \`export default ComponentName;\` at the end or use \`export default function ComponentName()\`.
+4. If "Missing React import" — add \`import React from 'react';\` or ensure React/hooks are imported.
+5. If "Code too short" — the code was likely truncated. Complete the component properly.
+
+Return ONLY the complete fixed TSX code. No markdown fences. No explanation. The code must be syntactically valid.`;
+
+      await sleep(4000);
+      
+      const models = await getModelsForRole('builder');
+      const repaired = await smartCall(models, repairPrompt, 'Code Repair', { json: false });
+      
+      if (!repaired || repaired.length < 500) {
+        console.log(`   ⚠️ Repair attempt ${repairAttempt} returned empty/short code.`);
+        continue;
+      }
+      
+      // Clean up repaired code
+      let fixedCode = repaired.trim();
+      if (fixedCode.startsWith('```')) {
+        fixedCode = fixedCode.replace(/^```[a-z]*\n/, '').replace(/\n```$/, '');
+      }
+      
+      // Re-verify
+      const reVerification = verifyBuild(fixedCode, componentName);
+      
+      if (reVerification.passed) {
+        console.log(`   ✅ Self-repair SUCCESS on attempt ${repairAttempt}!`);
+        code = fixedCode;
+        verification = reVerification;
+        await logActivity('🔧', 'structural', `Self-healed code after ${repairAttempt} repair attempt(s). All checks pass.`, 'success');
+        break;
+      } else {
+        console.log(`   ⚠️ Repair attempt ${repairAttempt} still has issues: ${reVerification.checks.filter(c => !c.pass).map(c => c.check).join(', ')}`);
+        code = fixedCode; // Use the partially fixed code for next attempt
+      }
+    }
+  }
+  
+  // Final check after all repair attempts
+  if (!verification.passed) {
+    console.log('\n❌ Build verification FAILED after self-repair attempts. NOT submitting broken code.');
+    await logActivity('❌', 'structural', `Page build failed verification after 2 repair attempts (${(verification.score * 100).toFixed(0)}% checks passed). Not submitting.`, 'error');
     await closeMemory();
     return;
   }
