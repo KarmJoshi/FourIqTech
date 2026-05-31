@@ -25,6 +25,7 @@ import AgentManager from "./pages/AgentManager/index";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import MultiTenantSaasDevelopment from "./pages/services/MultiTenantSaasDevelopment";
+import LegacyApplicationModernization from "./pages/services/LegacyApplicationModernization";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -51,7 +52,8 @@ const App = () => (
               <Route path="/services/seo-digital-marketing" element={<SeoDigitalMarketing />} />
               <Route path="/services/consulting" element={<Consulting />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="/agent-manager" element={<AgentManager />} />              <Route path="/services/multi-tenant-saas-development" element={<MultiTenantSaasDevelopment />} />
+              <Route path="/agent-manager" element={<AgentManager />} />              <Route path="/services/multi-tenant-saas-development" element={<MultiTenantSaasDevelopment />} />              <Route path="/services/legacy-application-modernization" element={<LegacyApplicationModernization />} />
+
 
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -4,16 +4,129 @@ import Footer from '@/components/Footer';
 import { useScrollLock } from '@/components/SmoothScroll';
 import SEO from '@/components/SEO';
 import { motion, useInView } from 'framer-motion';
-import { Bug, Cloud, Rocket, Workflow, ShieldCheck, Database, Lightbulb, ChevronDown } from 'lucide-react';
+import {
+  Sparkles,
+  AlertCircle,
+  Lightbulb,
+  Zap,
+  Shield,
+  Cloud,
+  Monitor,
+  ClipboardPen,
+  LayoutList,
+  RefreshCcw,
+  CheckCircle2,
+  Award,
+  ChevronDown,
+  ArrowRight
+} from 'lucide-react';
+
+const PAGE_DESIGN = {
+  "page_title": "Legacy Web Application Modernization Services | FourIQ Tech",
+  "meta_description": "Transform outdated systems with FourIQ Tech’s Legacy Web Application Modernization Services. We eliminate technical debt and optimize enterprise performance.",
+  "h1": "Future-Proof Your Enterprise with Legacy Web Application Modernization Services",
+  "sections": [
+    {
+      "type": "hero",
+      "heading": "Modernize Your Legacy Stack Without the Operational Downtime",
+      "content_brief": "FourIQ Tech helps global enterprises migrate monolithic architectures to scalable, cloud-native environments. We bridge the gap between outdated codebases and modern user expectations through strategic re-engineering.",
+      "cta_text": "Schedule a Modernization Audit"
+    },
+    {
+      "type": "problem",
+      "heading": "The Hidden Cost of Stagnant Software",
+      "content_brief": "Legacy applications often suffer from performance bottlenecks, security vulnerabilities, and mounting technical debt. These systems drain resources and prevent rapid deployment of new features, as detailed in our analysis of React Heap issues in enterprise CI/CD.",
+      "cta_text": "Calculate Your Technical Debt"
+    },
+    {
+      "type": "solution",
+      "heading": "Strategic Modernization for the Modern Web",
+      "content_brief": "We don't just rewrite code; we transform business logic into resilient architectures. From component-level versioning to edge injection for multi-tenant systems, we apply enterprise-grade solutions to your legacy challenges.",
+      "cta_text": "View Our Tech Stack"
+    },
+    {
+      "type": "features",
+      "heading": "Key Benefits of Modernizing with FourIQ",
+      "content_brief": "Our services focus on four pillars: Performance Optimization, Security Hardening, Cloud Scalability, and UI/UX Revitalization. We utilize advanced techniques like optimizing dashboard rerenders to ensure your new application is fast and responsive.",
+      "cta_text": "Explore Features"
+    },
+    {
+      "type": "process",
+      "heading": "Our 4-Step Modernization Framework",
+      "content_brief": "We follow a rigorous process: 1. Deep Infrastructure Audit, 2. Strategy & Roadmap Design, 3. Incremental Migration/Refactoring, and 4. Continuous Deployment & Testing. This ensures zero-latency transitions and high reliability.",
+      "cta_text": "See Our Methodology"
+    },
+    {
+      "type": "proof",
+      "heading": "Proven Results for Global Enterprises",
+      "content_brief": "We helped a Fortune 500 SaaS provider reduce cloud infrastructure costs by 35% while improving application load times by 60%. Our approach to scaling React design systems ensures long-term maintainability without global breakages.",
+      "cta_text": "Read Case Studies"
+    },
+    {
+      "type": "faq",
+      "heading": "Frequently Asked Questions",
+      "content_brief": "Common questions regarding our Legacy Web Application Modernization Services, timelines, and technical requirements.",
+      "cta_text": "Contact an Expert"
+    },
+    {
+      "type": "cta",
+      "heading": "Ready to Reclaim Your Technical Edge?",
+      "content_brief": "Don't let legacy code hold your business back. Partner with FourIQ Tech to modernize your infrastructure, improve security, and deliver a world-class user experience.",
+      "cta_text": "Get Your Free Quote"
+    }
+  ],
+  "faq_items": [
+    {
+      "question": "What is legacy web application modernization?",
+      "answer": "It is the process of updating older software systems to modern architectures, such as cloud-native or microservices, to improve performance, security, and scalability while preserving core business logic."
+    },
+    {
+      "question": "How long does a modernization project take?",
+      "answer": "Timelines vary based on complexity, but most enterprise projects range from 3 to 9 months. We utilize incremental migration to ensure value is delivered throughout the process."
+    },
+    {
+      "question": "Will there be downtime during the migration?",
+      "answer": "No. We utilize strategies like blue-green deployments and edge-side injection to ensure that your existing users experience zero downtime while we transition to the modernized system."
+    },
+    {
+      "question": "How do you handle data integrity during the move?",
+      "answer": "We implement strict ETL (Extract, Transform, Load) protocols and automated testing suites to ensure that all legacy data is accurately mapped and migrated to the new database schema."
+    },
+    {
+      "question": "Can you modernize only specific parts of our application?",
+      "answer": "Yes, we often perform 'modular modernization' where we target high-impact areas like the frontend dashboard or specific API layers to solve immediate bottlenecks first."
+    }
+  ],
+  "internal_links": [
+    "/blog/optimizing-react-dashboard-rerenders-enterprise-saas",
+    "/blog/react-design-system-versioning-enterprise-scale",
+    "/blog/react-heap-out-of-memory-case-study",
+    "/blog/multi-tenant-design-system-architecture-edge-injection"
+  ],
+  "schema_type": "Service",
+  "target_keyword": "Legacy Web Application Modernization Services",
+  "secondary_keywords": [
+    "Software Re-engineering",
+    "Application Refactoring",
+    "Cloud Migration Strategy",
+    "Technical Debt Management",
+    "Enterprise SaaS Optimization"
+  ]
+};
 
 export default function LegacyApplicationModernization() {
   const [navVisible, setNavVisible] = useState(false);
   const { setScrollLocked } = useScrollLock();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     setNavVisible(true);
     setScrollLocked(false);
   }, [setScrollLocked]);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   // Animation variants
   const fadeUpVariant = {
@@ -21,324 +134,277 @@ export default function LegacyApplicationModernization() {
     visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
   };
 
-  const sectionsData = {
-    "page_title": "Legacy Application Modernization Services | FourIQ Tech",
-    "meta_description": "Future-proof your business with our legacy application modernization services. Transform outdated tech into scalable, high-performance web apps. Get a free audit.",
-    "h1": "Scale Your Enterprise with Expert Legacy Application Modernization Services",
-    "sections": [
-      {
-        "type": "hero",
-        "heading": "Stop Managing Technical Debt. Start Driving Innovation.",
-        "content_brief": "Transform your brittle, high-maintenance legacy systems into agile, cloud-native web applications. FourIQ Tech combines deep architectural expertise with modern frameworks to ensure your infrastructure evolves at the speed of your business.",
-        "cta_text": "Request a Technical Audit"
-      },
-      {
-        "type": "problem",
-        "heading": "The Hidden Costs of Legacy Software",
-        "content_brief": "Outdated applications aren't just slow—they are security risks that drain your ROI. From prohibitive maintenance costs and lack of integration to the 'React Heap Out of Memory' errors common in aging enterprise CI/CD pipelines, your legacy stack is a bottleneck to growth.",
-        "cta_text": null
-      },
-      {
-        "type": "solution",
-        "heading": "Precision Engineering for Modern Architectures",
-        "content_brief": "We don't just 'reskin' apps; we re-architect them. Our approach focuses on breaking down monoliths into manageable microservices and implementing multi-tenant design systems that achieve zero-latency white labeling at the edge.",
-        "cta_text": "View Our Methodology"
-      },
-      {
-        "type": "features",
-        "heading": "Modernization Strategies That Scale",
-        "content_brief": "We provide comprehensive modernization including Re-platforming (moving to cloud), Re-factoring (optimizing code), and Re-architecting (shifting to microservices). We specialize in solving complex issues like component-level versioning to prevent global breakages during enterprise scaling.",
-        "cta_text": "Explore Features"
-      },
-      {
-        "type": "process",
-        "heading": "Our 4-Step Modernization Framework",
-        "content_brief": "1. Discovery & Audit: Identifying bottlenecks and security gaps. 2. Strategy & Blueprint: Choosing the right stack (Next.js, Node, Cloud-native). 3. Iterative Execution: Low-risk, phased migration. 4. Optimization & Support: Continuous performance monitoring.",
-        "cta_text": "How We Work"
-      },
-      {
-        "type": "proof",
-        "heading": "Real Results for Global Enterprises",
-        "content_brief": "Our modernization projects consistently deliver a 40% reduction in infrastructure costs and 2x faster deployment cycles. By implementing sophisticated design systems and solving memory leaks in CI/CD, we turn technical liabilities into competitive advantages.",
-        "cta_text": "Read Case Studies"
-      },
-      {
-        "type": "faq",
-        "heading": "Legacy Application Modernization: Frequently Asked Questions",
-        "content_brief": "Common questions regarding the timeline, cost, and technical risks of modernizing enterprise software.",
-        "cta_text": null
-      },
-      {
-        "type": "cta",
-        "heading": "Ready to Eliminate Your Technical Debt?",
-        "content_brief": "Don't let outdated technology stall your digital transformation. Partner with FourIQ Tech to build a resilient, scalable, and modern application ecosystem.",
-        "cta_text": "Schedule a Consultation"
-      }
-    ],
-    "faq_items": [
-      {
-        "question": "What are legacy application modernization services?",
-        "answer": "Legacy application modernization services involve the process of updating older software systems to modern tech stacks, cloud environments, and architectures to improve performance, security, and scalability while reducing maintenance costs."
-      },
-      {
-        "question": "How long does the modernization process take?",
-        "answer": "The timeline varies based on the complexity of the monolith, but typically ranges from 3 to 9 months. We use an iterative approach to ensure your business remains operational throughout the migration."
-      },
-      {
-        "question": "Will modernizing my app cause downtime?",
-        "answer": "No. We utilize strategies like the Strangler Fig pattern and edge injection to migrate functionality incrementally, ensuring zero-latency transitions and high availability for your users."
-      },
-      {
-        "question": "Why choose FourIQ Tech for modernization?",
-        "answer": "We specialize in solving high-level enterprise challenges, such as React heap memory issues and complex design system versioning, ensuring your new architecture is built for long-term stability."
-      }
-    ],
-    "internal_links": [
-      "/blog/react-design-system-versioning-enterprise-scale",
-      "/blog/react-heap-out-of-memory-case-study",
-      "/blog/multi-tenant-design-system-architecture-edge-injection"
-    ],
-    "schema_type": "Service",
-    "target_keyword": "legacy application modernization services",
-    "secondary_keywords": [
-      "application re-architecture",
-      "cloud migration services",
-      "enterprise software modernization",
-      "technical debt reduction"
-    ]
-  };
-
-  const getSection = (type) => sectionsData.sections.find(sec => sec.type === type);
-
   const HeroSection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px 0px" });
-    const section = getSection("hero");
+    const section = PAGE_DESIGN.sections.find(s => s.type === 'hero');
+    if (!section) return null;
+
     return (
-      <section ref={ref} className="py-24 px-6 lg:px-12 max-w-7xl mx-auto text-center">
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={fadeUpVariant}
-        >
-          <h1 className="font-display text-4xl md:text-6xl font-bold text-gradient mb-6 leading-tight">
-            {sectionsData.h1}
+      <motion.section
+        ref={ref}
+        variants={fadeUpVariant}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className="py-24 px-6 lg:px-12 text-center bg-background min-h-[80vh] flex items-center justify-center"
+      >
+        <div className="max-w-7xl mx-auto">
+          <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-gradient">
+            {PAGE_DESIGN.h1}
           </h1>
-          <h2 className="font-display text-3xl md:text-5xl font-bold mb-8">
-            {section.heading}
-          </h2>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             {section.content_brief}
           </p>
           <motion.a
             href="/#contact"
-            className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground rounded-xl glow-box text-lg font-semibold hover:scale-105 transition-transform duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground text-lg rounded-xl font-semibold glow-box transition-transform duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            {section.cta_text}
+            {section.cta_text} <ArrowRight className="ml-2 h-5 w-5" />
           </motion.a>
-        </motion.div>
-      </section>
+        </div>
+      </motion.section>
     );
   };
 
   const ProblemSection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px 0px" });
-    const section = getSection("problem");
+    const section = PAGE_DESIGN.sections.find(s => s.type === 'problem');
+    if (!section) return null;
+
     return (
-      <section ref={ref} className="py-24 px-6 lg:px-12 max-w-7xl mx-auto bg-black/40 rounded-3xl my-16">
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={fadeUpVariant}
-          className="text-center"
-        >
-          <Bug className="h-16 w-16 text-primary mx-auto mb-6" />
-          <h3 className="font-display text-4xl md:text-5xl font-bold mb-8">
+      <motion.section
+        ref={ref}
+        variants={fadeUpVariant}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className="py-24 px-6 lg:px-12 bg-black/40 text-foreground"
+      >
+        <div className="max-w-7xl mx-auto text-center">
+          <AlertCircle className="h-16 w-16 text-primary mx-auto mb-6" />
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             {section.heading}
-          </h3>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          </h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-4xl mx-auto">
             {section.content_brief}
           </p>
-        </motion.div>
-      </section>
+          <motion.a
+            href="/#contact"
+            className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold glow-box transition-transform duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {section.cta_text}
+          </motion.a>
+        </div>
+      </motion.section>
     );
   };
 
   const SolutionSection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px 0px" });
-    const section = getSection("solution");
+    const section = PAGE_DESIGN.sections.find(s => s.type === 'solution');
+    if (!section) return null;
+
     return (
-      <section ref={ref} className="py-24 px-6 lg:px-12 max-w-7xl mx-auto">
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={fadeUpVariant}
-          className="text-center"
-        >
-          <Rocket className="h-16 w-16 text-primary mx-auto mb-6" />
-          <h3 className="font-display text-4xl md:text-5xl font-bold mb-8">
+      <motion.section
+        ref={ref}
+        variants={fadeUpVariant}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className="py-24 px-6 lg:px-12 bg-background text-foreground"
+      >
+        <div className="max-w-7xl mx-auto text-center">
+          <Lightbulb className="h-16 w-16 text-primary mx-auto mb-6" />
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             {section.heading}
-          </h3>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
+          </h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-4xl mx-auto">
             {section.content_brief}
           </p>
-          {section.cta_text && (
-            <motion.a
-              href="/#contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground rounded-xl glow-box text-lg font-semibold hover:scale-105 transition-transform duration-300"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {section.cta_text}
-            </motion.a>
-          )}
-        </motion.div>
-      </section>
+          <motion.a
+            href="/#contact"
+            className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold glow-box transition-transform duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {section.cta_text}
+          </motion.a>
+        </div>
+      </motion.section>
     );
   };
 
   const FeaturesSection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px 0px" });
-    const section = getSection("features");
-    const featureItems = [
-      { icon: Cloud, title: "Re-platforming", description: "Seamless migration of your applications to robust cloud environments for enhanced scalability and reliability." },
-      { icon: Database, title: "Re-factoring", description: "Optimizing existing codebases to improve performance, maintainability, and align with modern coding standards." },
-      { icon: Workflow, title: "Re-architecting", description: "Transforming monolithic applications into agile microservices architectures for increased flexibility and independent deployment." },
-      { icon: ShieldCheck, title: "Component Versioning", description: "Solving complex component-level versioning to prevent global breakages during enterprise scaling and updates." }
+    const section = PAGE_DESIGN.sections.find(s => s.type === 'features');
+    if (!section) return null;
+
+    const featurePillars = [
+      { name: "Performance Optimization", icon: Zap },
+      { name: "Security Hardening", icon: Shield },
+      { name: "Cloud Scalability", icon: Cloud },
+      { name: "UI/UX Revitalization", icon: Monitor },
     ];
 
     return (
-      <section ref={ref} className="py-24 px-6 lg:px-12 max-w-7xl mx-auto bg-black/40 rounded-3xl my-16">
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={fadeUpVariant}
-          className="text-center"
-        >
-          <h3 className="font-display text-4xl md:text-5xl font-bold mb-8">
+      <motion.section
+        ref={ref}
+        variants={fadeUpVariant}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className="py-24 px-6 lg:px-12 bg-black/40 text-foreground"
+      >
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             {section.heading}
-          </h3>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-12">
+          </h2>
+          <p className="text-lg text-muted-foreground mb-12 max-w-4xl mx-auto">
             {section.content_brief}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {featureItems.map((item, index) => (
-              <div key={index} className="glass-card p-8 rounded-2xl flex flex-col items-center text-center">
-                <item.icon className="h-12 w-12 text-primary mb-4" />
-                <h4 className="text-2xl font-semibold mb-3">{item.title}</h4>
-                <p className="text-muted-foreground">{item.description}</p>
-              </div>
+            {featurePillars.map((pillar, index) => (
+              <motion.div
+                key={index}
+                className="glass-card p-8 rounded-2xl flex flex-col items-center text-center"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={inView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <pillar.icon className="h-12 w-12 text-primary mb-4" />
+                <h3 className="text-2xl font-semibold text-foreground mb-2">
+                  {pillar.name}
+                </h3>
+                <p className="text-muted-foreground">
+                  {/* Detailed description could go here if available */}
+                </p>
+              </motion.div>
             ))}
           </div>
-          {section.cta_text && (
-            <motion.a
-              href="/#contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground rounded-xl glow-box text-lg font-semibold hover:scale-105 transition-transform duration-300"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {section.cta_text}
-            </motion.a>
-          )}
-        </motion.div>
-      </section>
+          <motion.a
+            href="/#contact"
+            className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold glow-box transition-transform duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {section.cta_text}
+          </motion.a>
+        </div>
+      </motion.section>
     );
   };
 
   const ProcessSection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px 0px" });
-    const section = getSection("process");
-    const processSteps = section.content_brief.split('. ').map(step => step.trim()).filter(step => step);
+    const section = PAGE_DESIGN.sections.find(s => s.type === 'process');
+    if (!section) return null;
 
-    const stepIcons = [Lightbulb, Workflow, Rocket, ShieldCheck];
+    const processSteps = [
+      { name: "Deep Infrastructure Audit", icon: ClipboardPen },
+      { name: "Strategy & Roadmap Design", icon: LayoutList },
+      { name: "Incremental Migration/Refactoring", icon: RefreshCcw },
+      { name: "Continuous Deployment & Testing", icon: CheckCircle2 },
+    ];
 
     return (
-      <section ref={ref} className="py-24 px-6 lg:px-12 max-w-7xl mx-auto">
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={fadeUpVariant}
-          className="text-center"
-        >
-          <h3 className="font-display text-4xl md:text-5xl font-bold mb-8">
+      <motion.section
+        ref={ref}
+        variants={fadeUpVariant}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className="py-24 px-6 lg:px-12 bg-background text-foreground"
+      >
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             {section.heading}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 mt-12">
-            {processSteps.map((step, index) => {
-              const Icon = stepIcons[index % stepIcons.length];
-              return (
-                <div key={index} className="glass-card p-8 rounded-2xl flex flex-col items-center text-center">
-                  <Icon className="h-12 w-12 text-primary mb-4" />
-                  <h4 className="text-xl font-semibold mb-2">{step.split(':')}</h4>
-                  <p className="text-muted-foreground">{step.split(':')}</p>
+          </h2>
+          <p className="text-lg text-muted-foreground mb-12 max-w-4xl mx-auto">
+            {section.content_brief}
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {processSteps.map((step, index) => (
+              <motion.div
+                key={index}
+                className="glass-card p-8 rounded-2xl flex flex-col items-center text-center"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={inView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <div className="relative mb-4">
+                  <span className="absolute -top-4 -left-4 bg-primary text-primary-foreground rounded-full h-10 w-10 flex items-center justify-center text-xl font-bold">
+                    {index + 1}
+                  </span>
+                  <step.icon className="h-16 w-16 text-primary" />
                 </div>
-              );
-            })}
+                <h3 className="text-2xl font-semibold text-foreground mb-2">
+                  {step.name}
+                </h3>
+              </motion.div>
+            ))}
           </div>
-          {section.cta_text && (
-            <motion.a
-              href="/#contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground rounded-xl glow-box text-lg font-semibold hover:scale-105 transition-transform duration-300"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {section.cta_text}
-            </motion.a>
-          )}
-        </motion.div>
-      </section>
+          <motion.a
+            href="/#contact"
+            className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold glow-box transition-transform duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {section.cta_text}
+          </motion.a>
+        </div>
+      </motion.section>
     );
   };
 
   const ProofSection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px 0px" });
-    const section = getSection("proof");
+    const section = PAGE_DESIGN.sections.find(s => s.type === 'proof');
+    if (!section) return null;
+
     return (
-      <section ref={ref} className="py-24 px-6 lg:px-12 max-w-7xl mx-auto bg-black/40 rounded-3xl my-16">
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={fadeUpVariant}
-          className="text-center"
-        >
-          <h3 className="font-display text-4xl md:text-5xl font-bold mb-8">
+      <motion.section
+        ref={ref}
+        variants={fadeUpVariant}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className="py-24 px-6 lg:px-12 bg-black/40 text-foreground"
+      >
+        <div className="max-w-7xl mx-auto text-center">
+          <Award className="h-16 w-16 text-primary mx-auto mb-6" />
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             {section.heading}
-          </h3>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
+          </h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-4xl mx-auto">
             {section.content_brief}
           </p>
-          {section.cta_text && (
-            <motion.a
-              href="/#contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground rounded-xl glow-box text-lg font-semibold hover:scale-105 transition-transform duration-300"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {section.cta_text}
-            </motion.a>
-          )}
-        </motion.div>
-      </section>
+          <motion.a
+            href="/#contact"
+            className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold glow-box transition-transform duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {section.cta_text}
+          </motion.a>
+        </div>
+      </motion.section>
     );
   };
 
   const FAQSection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px 0px" });
-    const section = getSection("faq");
-    const [openQuestion, setOpenQuestion] = useState(null);
+    const section = PAGE_DESIGN.sections.find(s => s.type === 'faq');
+    if (!section) return null;
 
     const faqSchema = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "mainEntity": sectionsData.faq_items.map(item => ({
+      "mainEntity": PAGE_DESIGN.faq_items.map(item => ({
         "@type": "Question",
         "name": item.question,
         "acceptedAnswer": {
@@ -349,93 +415,108 @@ export default function LegacyApplicationModernization() {
     };
 
     return (
-      <section ref={ref} className="py-24 px-6 lg:px-12 max-w-7xl mx-auto">
+      <motion.section
+        ref={ref}
+        variants={fadeUpVariant}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className="py-24 px-6 lg:px-12 bg-background text-foreground"
+      >
         <SEO
-          title={sectionsData.page_title}
-          description={sectionsData.meta_description}
+          title={PAGE_DESIGN.page_title}
+          description={PAGE_DESIGN.meta_description}
           schema={faqSchema}
         />
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={fadeUpVariant}
-          className="text-center"
-        >
-          <h3 className="font-display text-4xl md:text-5xl font-bold mb-8">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="font-display text-4xl md:text-5xl font-bold text-center mb-4">
             {section.heading}
-          </h3>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-12">
+          </h2>
+          <p className="text-lg text-muted-foreground text-center mb-12">
             {section.content_brief}
           </p>
-          <div className="max-w-3xl mx-auto text-left">
-            {sectionsData.faq_items.map((item, index) => (
-              <div key={index} className="glass-card p-6 rounded-xl mb-4 cursor-pointer" onClick={() => setOpenQuestion(openQuestion === index ? null : index)}>
-                <div className="flex justify-between items-center">
-                  <h4 className="text-xl font-semibold text-foreground">{item.question}</h4>
+          <div className="space-y-4">
+            {PAGE_DESIGN.faq_items.map((item, index) => (
+              <div key={index} className="glass-card rounded-xl p-6 cursor-pointer">
+                <button
+                  className="flex justify-between items-center w-full text-left"
+                  onClick={() => toggleFaq(index)}
+                >
+                  <h3 className="text-xl font-semibold text-foreground">
+                    {item.question}
+                  </h3>
+                  <ChevronDown
+                    className={`h-6 w-6 text-primary transition-transform duration-300 ${
+                      openFaq === index ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {openFaq === index && (
                   <motion.div
-                    initial={false}
-                    animate={{ rotate: openQuestion === index ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDown className="h-6 w-6 text-primary" />
-                  </motion.div>
-                </div>
-                {openQuestion === index && (
-                  <motion.p
                     initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
+                    animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="mt-4 text-muted-foreground"
+                    transition={{ duration: 0.3 }}
+                    className="mt-4 text-muted-foreground border-t border-gray-700 pt-4"
                   >
-                    {item.answer}
-                  </motion.p>
+                    <p>{item.answer}</p>
+                  </motion.div>
                 )}
               </div>
             ))}
           </div>
-        </motion.div>
-      </section>
+          <div className="text-center mt-12">
+            <motion.a
+              href="/#contact"
+              className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold glow-box transition-transform duration-300 hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {section.cta_text}
+            </motion.a>
+          </div>
+        </div>
+      </motion.section>
     );
   };
 
   const CtaSection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px 0px" });
-    const section = getSection("cta");
+    const section = PAGE_DESIGN.sections.find(s => s.type === 'cta');
+    if (!section) return null;
+
     return (
-      <section ref={ref} className="py-24 px-6 lg:px-12 max-w-7xl mx-auto bg-black/40 rounded-3xl my-16">
-        <motion.div
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          variants={fadeUpVariant}
-          className="text-center"
-        >
-          <h3 className="font-display text-4xl md:text-5xl font-bold text-gradient mb-8">
+      <motion.section
+        ref={ref}
+        variants={fadeUpVariant}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className="py-24 px-6 lg:px-12 bg-black/40 text-foreground"
+      >
+        <div className="max-w-7xl mx-auto text-center glass-card p-12 rounded-3xl">
+          <Sparkles className="h-16 w-16 text-primary mx-auto mb-6" />
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             {section.heading}
-          </h3>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
+          </h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-4xl mx-auto">
             {section.content_brief}
           </p>
-          {section.cta_text && (
-            <motion.a
-              href="/#contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground rounded-xl glow-box text-lg font-semibold hover:scale-105 transition-transform duration-300"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {section.cta_text}
-            </motion.a>
-          )}
-        </motion.div>
-      </section>
+          <motion.a
+            href="/#contact"
+            className="inline-flex items-center justify-center px-8 py-4 bg-primary text-primary-foreground text-lg rounded-xl font-semibold glow-box transition-transform duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {section.cta_text} <ArrowRight className="ml-2 h-5 w-5" />
+          </motion.a>
+        </div>
+      </motion.section>
     );
   };
 
-
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
-      <SEO title={sectionsData.page_title} description={sectionsData.meta_description} />
+      <SEO title={PAGE_DESIGN.page_title} description={PAGE_DESIGN.meta_description} />
       <Navbar visible={navVisible} />
       <main>
         <HeroSection />
