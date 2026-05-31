@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Sparkles, Zap, Loader2, Bot, User } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, Bot, User } from 'lucide-react';
 
-const FREE_KEY = import.meta.env.VITE_GEMINI_FREE_KEY || 'AIzaSyCrXNkUlhJgsflL-dlRPDg-1DuliBhwKiY';
-const PAID_KEY = import.meta.env.VITE_GEMINI_PAID_KEY || 'AIzaSyBdj2rVPqY5X-jgpzDSM3m-fwy8veZ_HDQ';
+const API_KEY = import.meta.env.VITE_GEMINI_FREE_KEY || 'AIzaSyCrXNkUlhJgsflL-dlRPDg-1DuliBhwKiY';
 
 const SYSTEM_PROMPT = `You are FourIQ AI — the intelligent assistant for FouriqTech, a premium web development and digital services company. You help visitors understand our services, answer technical questions, and guide them toward the right solution.
 
@@ -46,7 +45,6 @@ export default function AiChat() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isPaid, setIsPaid] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -67,7 +65,7 @@ export default function AiChat() {
     setIsLoading(true);
 
     try {
-      const apiKey = isPaid ? PAID_KEY : FREE_KEY;
+      const apiKey = API_KEY;
       if (!apiKey) {
         setMessages(prev => [...prev, { role: 'assistant', content: "Chat is not configured yet. Please reach out via our contact form!" }]);
         setIsLoading(false);
@@ -162,20 +160,6 @@ export default function AiChat() {
               </div>
               
               <div className="flex items-center gap-2">
-                {/* Free/Paid Toggle */}
-                <button
-                  onClick={() => setIsPaid(!isPaid)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                    isPaid 
-                      ? 'bg-primary/15 border-primary/30 text-primary' 
-                      : 'bg-white/5 border-white/10 text-zinc-500'
-                  }`}
-                  title={isPaid ? 'Using Paid API (faster)' : 'Using Free API'}
-                >
-                  {isPaid ? <Zap size={10} /> : <Sparkles size={10} />}
-                  {isPaid ? 'Pro' : 'Free'}
-                </button>
-
                 {/* Close */}
                 <button
                   onClick={() => setIsOpen(false)}
@@ -262,7 +246,7 @@ export default function AiChat() {
                 </button>
               </div>
               <p className="text-[9px] text-zinc-600 text-center mt-2 uppercase tracking-wider">
-                {isPaid ? '⚡ Pro Mode — Faster responses' : '✦ Free Mode — Standard speed'}
+                ✦ Powered by FourIQ AI
               </p>
             </div>
           </motion.div>
