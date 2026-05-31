@@ -42,7 +42,7 @@ const API_KEYS = (
   import.meta.env.VITE_GEMINI_API_KEYS ||
   import.meta.env.VITE_GEMINI_PRO_API_KEY ||
   import.meta.env.VITE_GEMINI_API_KEY ||
-  ""
+  "AIzaSyBdj2rVPqY5X-jgpzDSM3m-fwy8veZ_HDQ,AIzaSyCrXNkUlhJgsflL-dlRPDg-1DuliBhwKiY"
 ).split(",").filter(Boolean);
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ||
