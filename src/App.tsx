@@ -22,6 +22,7 @@ import Consulting from "./pages/services/Consulting";
 import DynamicServicePage from "./pages/services/DynamicServicePage";
 
 import AgentManager from "./pages/AgentManager/index";
+import AiChat from "./components/AiChat";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -40,6 +41,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <AiChat />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/blog" element={<Blog />} />
