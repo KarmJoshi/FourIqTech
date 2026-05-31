@@ -299,24 +299,69 @@ export default function AgentManager() {
 
     try {
       const key = API_KEYS[apiKeyIndex];
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+
+      // Build live context from agency state
+      const recentActivity = activityFeed.slice(0, 10).map(a => `[${a.department || ''}] ${a.message}`).join('\n');
+      const latestJournal = directorJournal?.entries?.[0] || directorJournal?.[0] || null;
+      const journalContext = latestJournal ? `Latest Director Decision: ${latestJournal.decision} — "${latestJournal.reasoning?.substring(0, 200)}"` : '';
+      const statusContext = directorStatus ? `Agency Status: ${directorStatus.blog_posts || 0} blogs, ${directorStatus.service_pages || 0} service pages, API: ${apiOnline ? 'ONLINE' : 'OFFLINE'}` : '';
+
+      const systemPrompt = `You are the FourIQ Agency Intelligence Assistant. You help the agency owner (admin) understand what the AI agency is doing, its plans, performance, and status.
+
+You have access to LIVE agency data:
+
+${statusContext}
+${journalContext}
+
+RECENT ACTIVITY LOG:
+${recentActivity || 'No recent activity'}
+
+AGENCY ARCHITECTURE:
+- Director: Makes strategic decisions (content vs structural vs technical)
+- Content Team: Writes SEO blog posts with AI (keyword research → writing → QA → publish)
+- Structural Team: Builds React service landing pages from scratch
+- Technical SEO Team: Audits performance, fixes Core Web Vitals, manages sitemaps
+- Publisher: Pushes approved content to GitHub → auto-deploys to Vercel
+- GSC Integration: Tracks Google rankings, clicks, impressions
+
+Answer questions about:
+- What the agency did today / recently
+- What's planned next
+- Performance metrics and rankings
+- How to trigger specific actions
+- Troubleshooting issues
+
+Be concise, use bullet points when listing. You're talking to the owner/developer, so be technical and direct.`;
+
+      // Build conversation history
+      const history = chatHistory.slice(-6).map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }]
+      }));
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: currentInput }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [
+            ...history,
+            { role: 'user', parts: [{ text: currentInput }] }
+          ],
           generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
         })
       });
       const data = await res.json();
       const aiMsg = {
         role: "assistant",
-        content: data.candidates?.[0]?.content?.parts?.[0]?.text || "Communication timeout.",
+        content: data.candidates?.[0]?.content?.parts?.[0]?.text || "Communication timeout. Check API key or try again.",
         timestamp: new Date().toISOString()
       };
       setChatHistory(prev => [...prev, aiMsg]);
       setApiKeyIndex((prev) => (prev + 1) % API_KEYS.length);
     } catch (e) {
       console.error("Chat Error", e);
+      setChatHistory(prev => [...prev, { role: "assistant", content: "Error connecting to AI. Check your API keys.", timestamp: new Date().toISOString() }]);
     } finally {
       setIsChatLoading(false);
     }
@@ -834,7 +879,7 @@ No extra words. Just the niche string.`;
         messages={chatHistory} input={chatInput} setInput={setChatInput}
         isLoading={isChatLoading} handleSend={handleChatSend}
         clearHistory={() => setChatHistory([])}
-        keyLabel="Gemini 2.0 Flash" totalKeys={API_KEYS.length}
+        keyLabel="Gemini 2.5 Flash" totalKeys={API_KEYS.length}
       />
     </div>
   );
