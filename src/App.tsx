@@ -19,6 +19,7 @@ import AppDevelopment from "./pages/services/AppDevelopment";
 import UiUxDesign from "./pages/services/UiUxDesign";
 import SeoDigitalMarketing from "./pages/services/SeoDigitalMarketing";
 import Consulting from "./pages/services/Consulting";
+import DynamicServicePage from "./pages/services/DynamicServicePage";
 
 import AgentManager from "./pages/AgentManager/index";
 
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/services/ui-ux-design" element={<UiUxDesign />} />
               <Route path="/services/seo-digital-marketing" element={<SeoDigitalMarketing />} />
               <Route path="/services/consulting" element={<Consulting />} />
+              <Route path="/services/:slug" element={<DynamicServicePage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="/agent-manager" element={<AgentManager />} />              <Route path="/services/multi-tenant-saas-development" element={<MultiTenantSaasDevelopment />} />              <Route path="/services/legacy-application-modernization" element={<LegacyApplicationModernization />} />
 

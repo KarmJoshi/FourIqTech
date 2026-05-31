@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { githubGetFile, githubPutFile, githubCommitMultiple } from './github-api.mjs';
+import { batchSubmitUrls } from './gsc-url-manager.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════
 // 🚀 PUBLISHER v4 — GitHub API Powered (Works from ANY server)
@@ -247,6 +248,30 @@ async function publishApprovedItems() {
   }
 
   console.log(`\n🎉 PUBLISHER: Done. ${publishedCount}/${approvedItems.length} deployed.`);
+
+  // ═══════════════════════════════════════════════════════════════════
+  // NOTIFY GOOGLE — Submit new URLs to GSC for indexing
+  // ═══════════════════════════════════════════════════════════════════
+  if (publishedCount > 0) {
+    try {
+      const urlsToSubmit = [];
+      for (const item of approvedItems) {
+        if (item.type === 'blog_post') {
+          const slug = (item.content || '').match(/slug:\s*'([^']+)'/)?.[1];
+          if (slug) urlsToSubmit.push(`https://www.fouriqtech.com/blog/${slug}`);
+        } else if (item.type === 'landing_page' || item.type === 'structural_page') {
+          const payload = JSON.parse(item.content || '{}');
+          const route = payload.route || '';
+          if (route) urlsToSubmit.push(`https://www.fouriqtech.com${route}`);
+        }
+      }
+      if (urlsToSubmit.length > 0) {
+        await batchSubmitUrls(urlsToSubmit);
+      }
+    } catch (gscErr) {
+      console.log(`   ⚠️ GSC notification failed (non-critical): ${gscErr.message}`);
+    }
+  }
 }
 
 publishApprovedItems()
