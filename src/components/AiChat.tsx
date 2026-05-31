@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Loader2, Bot, User } from 'lucide-react';
 
-const API_KEY = import.meta.env.VITE_GEMINI_FREE_KEY || 'AIzaSyCrXNkUlhJgsflL-dlRPDg-1DuliBhwKiY';
+const API_KEY = import.meta.env.VITE_GEMINI_FREE_KEY || '';
 
 const SYSTEM_PROMPT = `You are FourIQ AI — the intelligent assistant for FouriqTech, a premium web development and digital services company. You help visitors understand our services, answer technical questions, and guide them toward the right solution.
 
