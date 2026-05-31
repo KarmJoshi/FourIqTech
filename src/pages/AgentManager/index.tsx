@@ -301,37 +301,34 @@ export default function AgentManager() {
       const key = API_KEYS[apiKeyIndex];
 
       // Build live context from agency state
-      const recentActivity = activityFeed.slice(0, 10).map(a => `[${a.department || ''}] ${a.message}`).join('\n');
-      const latestJournal = directorJournal?.entries?.[0] || directorJournal?.[0] || null;
-      const journalContext = latestJournal ? `Latest Director Decision: ${latestJournal.decision} — "${latestJournal.reasoning?.substring(0, 200)}"` : '';
-      const statusContext = directorStatus ? `Agency Status: ${directorStatus.blog_posts || 0} blogs, ${directorStatus.service_pages || 0} service pages, API: ${apiOnline ? 'ONLINE' : 'OFFLINE'}` : '';
+      const recentActivity = activityFeed.slice(0, 15).map(a => `- ${a.message}`).join('\n');
+      const latestJournal = directorJournal?.entries?.slice(0, 3) || (Array.isArray(directorJournal) ? directorJournal.slice(0, 3) : []);
+      const journalContext = latestJournal.map((j: any) => `Decision: ${j.decision?.toUpperCase()} | Reason: ${j.reasoning?.substring(0, 150)}`).join('\n');
+      const statusContext = directorStatus ? `Blogs: ${directorStatus.blog_posts || 0} | Service Pages: ${directorStatus.service_pages || 0} | GSC Clicks: ${directorStatus.gsc_clicks || 0} | API: ${apiOnline ? 'ONLINE' : 'OFFLINE'}` : 'Status unavailable';
 
-      const systemPrompt = `You are the FourIQ Agency Intelligence Assistant. You help the agency owner (admin) understand what the AI agency is doing, its plans, performance, and status.
+      const systemPrompt = `You are the Agency Manager for FourIQ Tech. You report directly to the owner. Speak like a real manager giving a status update — clear, direct, no fluff.
 
-You have access to LIVE agency data:
+RULES:
+- Give SHORT, CLEAR answers. No essays.
+- Use bullet points for lists.
+- Report facts from the data below. Don't make things up.
+- If you don't have data for something, say "I don't have that data right now."
+- Don't explain what SEO is or how things work unless asked. The owner already knows.
+- Format: Status → What happened → What's next.
 
+LIVE DATA:
 ${statusContext}
-${journalContext}
 
-RECENT ACTIVITY LOG:
-${recentActivity || 'No recent activity'}
+LAST 3 DIRECTOR DECISIONS:
+${journalContext || 'No journal data available'}
 
-AGENCY ARCHITECTURE:
-- Director: Makes strategic decisions (content vs structural vs technical)
-- Content Team: Writes SEO blog posts with AI (keyword research → writing → QA → publish)
-- Structural Team: Builds React service landing pages from scratch
-- Technical SEO Team: Audits performance, fixes Core Web Vitals, manages sitemaps
-- Publisher: Pushes approved content to GitHub → auto-deploys to Vercel
-- GSC Integration: Tracks Google rankings, clicks, impressions
+RECENT ACTIVITY (what actually happened):
+${recentActivity || 'No recent activity logged'}
 
-Answer questions about:
-- What the agency did today / recently
-- What's planned next
-- Performance metrics and rankings
-- How to trigger specific actions
-- Troubleshooting issues
-
-Be concise, use bullet points when listing. You're talking to the owner/developer, so be technical and direct.`;
+When asked "what did you do?" → Report from the activity log above.
+When asked "what's the plan?" → Report from the Director decisions above.
+When asked about performance → Report the numbers from status.
+When asked to do something → Explain which endpoint to hit or which team to dispatch.`;
 
       // Build conversation history
       const history = chatHistory.slice(-6).map(m => ({
