@@ -1,6 +1,6 @@
 import { Activity, Bell, Play, Loader2 } from "lucide-react";
 
-type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram";
+type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram" | "gsc";
 
 interface TopBarProps {
   activeDept: DeptId;
@@ -12,6 +12,7 @@ interface TopBarProps {
 
 const DEPT_META: Record<DeptId, { title: string; subtitle: string }> = {
   director: { title: "Command Center", subtitle: "Strategic oversight and autonomous operations" },
+  gsc: { title: "GSC Analytics", subtitle: "Google Search Console performance and insights" },
   content: { title: "Content Studio", subtitle: "AI-powered blog generation and publishing" },
   techseo: { title: "Technical SEO", subtitle: "Site health, performance, and Core Web Vitals" },
   landing: { title: "Landing Pages", subtitle: "High-conversion service page generation" },

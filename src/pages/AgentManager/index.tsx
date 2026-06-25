@@ -28,6 +28,7 @@ import { TechSeoDepartment } from "./components/TechSeoDepartment";
 import { LandingPagesDepartment } from "./components/LandingPagesDepartment";
 import { InstagramDepartment } from "./components/InstagramDepartment";
 import { BacklinksDepartment } from "./components/BacklinksDepartment";
+import { GscAnalytics } from "./components/GscAnalytics";
 
 
 // Constants & Types
@@ -50,7 +51,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
     ? "https://fouriqtech.onrender.com"
     : "http://localhost:3848");
 
-type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram";
+type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram" | "gsc";
 
 
 export default function AgentManager() {
@@ -556,6 +557,7 @@ No extra words. Just the niche string.`;
 
   const departments: { id: DeptId; label: string; icon: any; color: string; desc: string }[] = [
     { id: "director", label: "Agency Director", icon: Crown, color: "text-ai-primary", desc: "Strategic Command" },
+    { id: "gsc", label: "GSC Analytics", icon: TrendingUp, color: "text-emerald-400", desc: "Search Performance" },
     { id: "content", label: "Content Hub", icon: PenTool, color: "text-ai-purple", desc: "Blog & Articles" },
     { id: "techseo", label: "Tech SEO", icon: Wrench, color: "text-ai-tertiary", desc: "Site Integrity" },
     { id: "landing", label: "Landing Pages", icon: Globe, color: "text-ai-blue", desc: "Service Pages" },
@@ -814,6 +816,11 @@ No extra words. Just the niche string.`;
           {/* ── CONTENT ── */}
           {activeDept === "content" && (
             <ContentHubDepartment intelligence={intelligence} activityFeed={activityFeed} runningTasks={runningTasks} />
+          )}
+
+          {/* ── GSC ANALYTICS ── */}
+          {activeDept === "gsc" && (
+            <GscAnalytics />
           )}
 
           {/* ── TECH SEO ── */}

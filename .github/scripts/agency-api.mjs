@@ -818,6 +818,91 @@ app.post('/api/leads/sync-scraper', async (req, res) => {
 function startScheduler() {
   console.log(`[Scheduler] Strategic heartbeat initialized (Interval: 1m, Source: PostgreSQL)`);
 
+  // ── GSC Auto-Sync: Runs every 6 hours ──
+  async function autoSyncGsc() {
+    const GSC_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+    const GSC_CLIENT_SECRET_VAL = process.env.GSC_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+    const GSC_REFRESH_TOKEN = process.env.GSC_REFRESH_TOKEN;
+    const SITE_URL = process.env.WEBSITE_URL || 'https://www.fouriqtech.com';
+
+    if (!GSC_REFRESH_TOKEN || !GSC_CLIENT_ID || !GSC_CLIENT_SECRET_VAL) return;
+
+    try {
+      const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ client_id: GSC_CLIENT_ID, client_secret: GSC_CLIENT_SECRET_VAL, refresh_token: GSC_REFRESH_TOKEN, grant_type: 'refresh_token' }),
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.access_token) return;
+
+      // Pull last 4 weeks in weekly chunks
+      const today = new Date();
+      let pulled = 0;
+      for (let i = 0; i < 4; i++) {
+        const endDate = new Date(today.getTime() - (i * 7 + 3) * 24 * 60 * 60 * 1000);
+        const startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const start = startDate.toISOString().split('T')[0];
+        const end = endDate.toISOString().split('T')[0];
+
+        const pageRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['page'], rowLimit: 1000 })
+        });
+        const pageRows = (await pageRes.json()).rows || [];
+
+        const queryRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['query'], rowLimit: 1000 })
+        });
+        const queryRows = (await queryRes.json()).rows || [];
+
+        if (pageRows.length === 0 && queryRows.length === 0) continue;
+
+        const totalClicks = pageRows.reduce((s, r) => s + r.clicks, 0);
+        const totalImpressions = pageRows.reduce((s, r) => s + r.impressions, 0);
+        const avgPosition = pageRows.length > 0 ? pageRows.reduce((s, r) => s + r.position, 0) / pageRows.length : 0;
+        const avgCtr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
+
+        await prisma.gscDailySnapshot.upsert({
+          where: { date: new Date(end) },
+          update: { totalClicks, totalImpressions, avgPosition, avgCtr, pageCount: pageRows.length, topPages: pageRows.slice(0, 20), topQueries: queryRows.slice(0, 20) },
+          create: { date: new Date(end), totalClicks, totalImpressions, avgPosition, avgCtr, pageCount: pageRows.length, topPages: pageRows.slice(0, 20), topQueries: queryRows.slice(0, 20) },
+        });
+
+        for (const row of pageRows) {
+          const pageUrl = row.keys?.[0] || '';
+          if (!pageUrl) continue;
+          await prisma.gscPageMetric.upsert({
+            where: { date_pageUrl: { date: new Date(end), pageUrl } },
+            update: { clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+            create: { date: new Date(end), pageUrl, clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+          }).catch(() => {});
+        }
+
+        for (const row of queryRows) {
+          const query = row.keys?.[0] || '';
+          if (!query) continue;
+          await prisma.gscQueryMetric.upsert({
+            where: { date_query: { date: new Date(end), query } },
+            update: { clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+            create: { date: new Date(end), query, clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+          }).catch(() => {});
+        }
+        pulled++;
+      }
+      if (pulled > 0) console.log(`[GSC Sync] ✅ Pulled ${pulled} weekly snapshots`);
+    } catch (err) {
+      console.error('[GSC Sync] ⚠️ Failed:', err.message);
+    }
+  }
+
+  // Run GSC sync on startup, then every 6 hours
+  autoSyncGsc();
+  setInterval(autoSyncGsc, 6 * 60 * 60 * 1000);
+
   setInterval(async () => {
     let config;
     try {
@@ -1210,6 +1295,207 @@ app.post('/api/publish', async (req, res) => {
   } catch (e) {
     console.error('Publisher error:', e.message);
     res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 📊 GET /api/gsc/analytics — Full GSC analytics data for dashboard graphs
+// ═══════════════════════════════════════════════════════════════════════
+app.get('/api/gsc/analytics', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    // 1. Check if we have fresh data — if not, pull live from GSC
+    const latestSnapshot = await prisma.gscDailySnapshot.findFirst({ orderBy: { date: 'desc' } });
+    const isStale = !latestSnapshot || (Date.now() - new Date(latestSnapshot.date).getTime()) > 24 * 60 * 60 * 1000;
+
+    if (isStale) {
+      // Auto-pull live data from Google Search Console
+      const GSC_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+      const GSC_CLIENT_SECRET_VAL = process.env.GSC_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+      const GSC_REFRESH_TOKEN = process.env.GSC_REFRESH_TOKEN;
+      const SITE_URL = process.env.WEBSITE_URL || 'https://www.fouriqtech.com';
+
+      if (GSC_REFRESH_TOKEN && GSC_CLIENT_ID && GSC_CLIENT_SECRET_VAL) {
+        try {
+          // Get access token
+          const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ client_id: GSC_CLIENT_ID, client_secret: GSC_CLIENT_SECRET_VAL, refresh_token: GSC_REFRESH_TOKEN, grant_type: 'refresh_token' }),
+          });
+          const tokenData = await tokenRes.json();
+
+          if (tokenData.access_token) {
+            // Pull weekly chunks for the requested period
+            const today = new Date();
+            const pullWeeks = Math.ceil(days / 7);
+            
+            for (let i = 0; i < pullWeeks; i++) {
+              const endDate = new Date(today.getTime() - (i * 7 + 3) * 24 * 60 * 60 * 1000);
+              const startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+              const start = startDate.toISOString().split('T')[0];
+              const end = endDate.toISOString().split('T')[0];
+
+              // Check if we already have this snapshot
+              const existing = await prisma.gscDailySnapshot.findUnique({ where: { date: new Date(end) } });
+              if (existing) continue;
+
+              const pageRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['page'], rowLimit: 1000 })
+              });
+              const pageData = await pageRes.json();
+              const pageRows = pageData.rows || [];
+
+              const queryRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['query'], rowLimit: 1000 })
+              });
+              const queryData = await queryRes.json();
+              const queryRows = queryData.rows || [];
+
+              if (pageRows.length === 0 && queryRows.length === 0) continue;
+
+              const totalClicks = pageRows.reduce((s, r) => s + r.clicks, 0);
+              const totalImpressions = pageRows.reduce((s, r) => s + r.impressions, 0);
+              const avgPosition = pageRows.length > 0 ? pageRows.reduce((s, r) => s + r.position, 0) / pageRows.length : 0;
+              const avgCtr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
+
+              await prisma.gscDailySnapshot.upsert({
+                where: { date: new Date(end) },
+                update: { totalClicks, totalImpressions, avgPosition, avgCtr, pageCount: pageRows.length, topPages: pageRows.slice(0, 20), topQueries: queryRows.slice(0, 20) },
+                create: { date: new Date(end), totalClicks, totalImpressions, avgPosition, avgCtr, pageCount: pageRows.length, topPages: pageRows.slice(0, 20), topQueries: queryRows.slice(0, 20) },
+              });
+
+              for (const row of pageRows) {
+                const pageUrl = row.keys?.[0] || '';
+                if (!pageUrl) continue;
+                await prisma.gscPageMetric.upsert({
+                  where: { date_pageUrl: { date: new Date(end), pageUrl } },
+                  update: { clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+                  create: { date: new Date(end), pageUrl, clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+                }).catch(() => {});
+              }
+
+              for (const row of queryRows) {
+                const query = row.keys?.[0] || '';
+                if (!query) continue;
+                await prisma.gscQueryMetric.upsert({
+                  where: { date_query: { date: new Date(end), query } },
+                  update: { clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+                  create: { date: new Date(end), query, clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+                }).catch(() => {});
+              }
+            }
+            console.log(`   📊 GSC auto-pull complete for ${pullWeeks} weeks`);
+          }
+        } catch (gscErr) {
+          console.error('   ⚠️ GSC auto-pull failed (non-critical):', gscErr.message);
+        }
+      }
+    }
+
+    // 2. Now read from DB (freshly populated or cached)
+    const snapshots = await prisma.gscDailySnapshot.findMany({
+      where: { date: { gte: since } },
+      orderBy: { date: 'asc' },
+      select: { date: true, totalClicks: true, totalImpressions: true, avgPosition: true, avgCtr: true, pageCount: true }
+    });
+
+    // 3. Top pages (aggregated over period)
+    const topPages = await prisma.gscPageMetric.groupBy({
+      by: ['pageUrl'],
+      where: { date: { gte: since } },
+      _sum: { clicks: true, impressions: true },
+      _avg: { position: true, ctr: true },
+      orderBy: { _sum: { clicks: 'desc' } },
+      take: 20,
+    });
+
+    // 4. Top queries (aggregated over period)
+    const topQueries = await prisma.gscQueryMetric.groupBy({
+      by: ['query'],
+      where: { date: { gte: since } },
+      _sum: { clicks: true, impressions: true },
+      _avg: { position: true, ctr: true },
+      orderBy: { _sum: { clicks: 'desc' } },
+      take: 20,
+    });
+
+    // 5. Recent insights
+    const insights = await prisma.gscInsight.findMany({
+      where: { generatedAt: { gte: since } },
+      orderBy: { generatedAt: 'desc' },
+      take: 10,
+    });
+
+    // 6. Summary totals
+    const totalClicks = snapshots.reduce((s, r) => s + r.totalClicks, 0);
+    const totalImpressions = snapshots.reduce((s, r) => s + r.totalImpressions, 0);
+    const avgPosition = snapshots.length > 0 ? snapshots.reduce((s, r) => s + r.avgPosition, 0) / snapshots.length : 0;
+    const avgCtr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
+
+    // 7. Comparison with previous period for delta
+    const prevStart = new Date(since.getTime() - days * 24 * 60 * 60 * 1000);
+    const prevSnapshots = await prisma.gscDailySnapshot.findMany({
+      where: { date: { gte: prevStart, lt: since } },
+      select: { totalClicks: true, totalImpressions: true, avgPosition: true }
+    });
+    const prevClicks = prevSnapshots.reduce((s, r) => s + r.totalClicks, 0);
+    const prevImpressions = prevSnapshots.reduce((s, r) => s + r.totalImpressions, 0);
+    const prevPosition = prevSnapshots.length > 0 ? prevSnapshots.reduce((s, r) => s + r.avgPosition, 0) / prevSnapshots.length : 0;
+
+    res.json({
+      period: { days, since: since.toISOString() },
+      summary: {
+        totalClicks,
+        totalImpressions,
+        avgPosition: +avgPosition.toFixed(1),
+        avgCtr: +(avgCtr * 100).toFixed(2),
+        pageCount: snapshots.length > 0 ? snapshots[snapshots.length - 1].pageCount : 0,
+      },
+      delta: {
+        clicks: prevClicks > 0 ? +(((totalClicks - prevClicks) / prevClicks) * 100).toFixed(1) : null,
+        impressions: prevImpressions > 0 ? +(((totalImpressions - prevImpressions) / prevImpressions) * 100).toFixed(1) : null,
+        position: prevPosition > 0 ? +(prevPosition - avgPosition).toFixed(1) : null,
+      },
+      timeSeries: snapshots.map(s => ({
+        date: s.date.toISOString().split('T')[0],
+        clicks: s.totalClicks,
+        impressions: s.totalImpressions,
+        position: +s.avgPosition.toFixed(1),
+        ctr: +(s.avgCtr * 100).toFixed(2),
+      })),
+      topPages: topPages.map(p => ({
+        page: p.pageUrl.replace('https://www.fouriqtech.com', ''),
+        clicks: p._sum.clicks,
+        impressions: p._sum.impressions,
+        position: +(p._avg.position || 0).toFixed(1),
+        ctr: +((p._avg.ctr || 0) * 100).toFixed(2),
+      })),
+      topQueries: topQueries.map(q => ({
+        query: q.query,
+        clicks: q._sum.clicks,
+        impressions: q._sum.impressions,
+        position: +(q._avg.position || 0).toFixed(1),
+        ctr: +((q._avg.ctr || 0) * 100).toFixed(2),
+      })),
+      insights: insights.map(i => ({
+        type: i.type,
+        text: i.insightText,
+        page: i.pageUrl,
+        query: i.query,
+        confidence: i.confidence,
+        date: i.generatedAt.toISOString().split('T')[0],
+      })),
+    });
+  } catch (err) {
+    console.error('GSC Analytics error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 

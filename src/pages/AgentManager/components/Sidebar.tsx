@@ -1,7 +1,7 @@
-import { Crown, PenTool, Wrench, Globe, Mail, Instagram, MessageCircle, LogOut, Zap, Activity, ChevronLeft, ChevronRight, Link2 } from "lucide-react";
+import { Crown, PenTool, Wrench, Globe, Mail, Instagram, MessageCircle, LogOut, Zap, Activity, ChevronLeft, ChevronRight, Link2, BarChart3 } from "lucide-react";
 import { useState } from "react";
 
-type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram";
+type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram" | "gsc";
 
 interface SidebarProps {
   activeDept: DeptId;
@@ -14,6 +14,7 @@ interface SidebarProps {
 
 const NAV_ITEMS: { id: DeptId; label: string; icon: any }[] = [
   { id: "director", label: "Command Center", icon: Crown },
+  { id: "gsc", label: "GSC Analytics", icon: BarChart3 },
   { id: "content", label: "Content Studio", icon: PenTool },
   { id: "techseo", label: "Technical SEO", icon: Wrench },
   { id: "landing", label: "Landing Pages", icon: Globe },
