@@ -98,14 +98,14 @@ export const sleep = ms => new Promise(r => setTimeout(r, ms));
 export const MODELS = {
   manager:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   content_manager: ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
-  researcher:      ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'],
+  researcher:      ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   writer:          ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   architect:       ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   qa:              ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
-  scanner:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'],
+  scanner:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   builder:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   auditor:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
-  browser:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'],
+  browser:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   link_finder:     ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   link_writer:     ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   link_pitcher:    ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
@@ -151,7 +151,7 @@ export async function getModelsForRole(role) {
   }
 
   // Build final model array: user selection first, then hardcoded fallbacks
-  const defaults = MODELS[role] || ['gemini-2.5-flash', 'gemini-2.0-flash'];
+  const defaults = MODELS[role] || ['gemini-2.5-flash', 'gemini-3-flash-preview'];
   
   if (userSelected) {
     // Deduplicate: user's pick first, then defaults (excluding the pick)
