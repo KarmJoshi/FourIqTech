@@ -218,26 +218,25 @@ async function pageBuilder(scanResult, design) {
   
   const models = await getModelsForRole('builder');
   
-  const raw = await smartCall(models, `You are a senior React developer building a production landing page that MUST match the existing site's design system.
+  const raw = await smartCall(models, `You are an elite frontend developer at a premium agency. You write React landing pages that convert visitors into paying clients. Your pages look hand-crafted, never feel AI-generated, and match the quality of top agencies like Vercel, Linear, or Stripe.
 
-PAGE DESIGN:
+PAGE DESIGN BRIEF:
 ${JSON.stringify(design, null, 2)}
 
 ROUTE: ${scanResult.route}
 COMPONENT NAME: ${scanResult.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}
 
-═══ MANDATORY STRUCTURE (Follow this EXACTLY) ═══
+═══ MANDATORY COMPONENT STRUCTURE ═══
 
-The component MUST follow this pattern:
-
-\`\`\`
+\`\`\`tsx
 import { useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useScrollLock } from '@/components/SmoothScroll';
 import SEO from '@/components/SEO';
 import { motion, useInView } from 'framer-motion';
-import { [icons from lucide-react] } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight, ArrowRight, CheckCircle2, [more icons] } from 'lucide-react';
 
 export default function ComponentName() {
   const [navVisible, setNavVisible] = useState(false);
@@ -246,22 +245,35 @@ export default function ComponentName() {
   useEffect(() => {
     setNavVisible(true);
     setScrollLocked(false);
+    window.scrollTo(0, 0);
   }, [setScrollLocked]);
 
-  // Animation variants
-  const fadeUpVariant = {
-    hidden: { opacity: 0, y: 30, filter: 'blur(8px)' },
-    visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+  const fadeUp = {
+    hidden: { opacity: 0, y: 30, filter: 'blur(6px)' },
+    visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
+  };
+  const stagger = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.12 } }
   };
 
-  // Section components here...
+  // Helper component for scroll-triggered animations
+  const SectionRef = ({ children, className = '' }) => {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true, margin: '-80px' });
+    return (
+      <motion.div ref={ref} initial="hidden" animate={isInView ? "visible" : "hidden"} variants={fadeUp} className={className}>
+        {children}
+      </motion.div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden">
-      <SEO title="..." description="..." />
-      <Navbar visible={navVisible} />
-      <main>
-        {/* All sections here */}
+    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/30 selection:text-primary">
+      <SEO title="..." description="..." url="https://fouriqtech.com${scanResult.route}" schema={serviceSchema} />
+      <Navbar isVisible={navVisible} />
+      <main className="flex-1 w-full">
+        {/* SECTIONS HERE */}
       </main>
       <Footer />
     </div>
@@ -269,31 +281,67 @@ export default function ComponentName() {
 }
 \`\`\`
 
-═══ DESIGN SYSTEM (Use these classes) ═══
-- Background: bg-background (dark), bg-black/40 for alternate sections
-- Text: text-foreground (light), text-muted-foreground (gray)
-- Headings: font-display text-4xl md:text-5xl font-bold
-- Gradient text: className="text-gradient"
-- Primary color: text-primary (gold/amber)
-- Cards: className="glass-card" with p-8 rounded-2xl
-- Buttons: bg-primary text-primary-foreground rounded-xl with glow-box
-- CTA links: href="/#contact"
-- Spacing: py-24 px-6 lg:px-12 for sections
-- Max width: max-w-7xl mx-auto
-- Animations: Use motion.div with fadeUpVariant and useInView
+═══ REQUIRED SECTIONS (8 minimum) ═══
 
-═══ IMPORTANT RULES ═══
-1. MUST import and use Navbar, Footer, SEO, useScrollLock
-2. MUST use framer-motion for animations
-3. MUST use the site's CSS classes (text-gradient, glass-card, glow-box, font-display)
-4. MUST have proper SEO component with title and description
-5. MUST link CTAs to "/#contact"
-6. DO NOT use custom colors — only use the design system tokens
-7. The page MUST look like it belongs on the same website
-8. Include at least 5 sections: Hero, Problem, Solution, Features, CTA
-9. Include FAQ section with schema markup
+1. HERO — Left-aligned headline, subtitle, dual CTA buttons (primary gold + outline). Use pt-36 pb-24.
+   - Headline: font-display text-5xl md:text-6xl lg:text-7xl font-bold with <span className="text-gradient">keyword</span>
+   - Subtitle: text-muted-foreground text-lg md:text-xl max-w-2xl
+   - Primary CTA: Link to="/contact" with gold button (bg-primary text-primary-foreground rounded-xl glow-box)
+   - Secondary CTA: Link to="/services" with border button
 
-Return ONLY the complete TSX code. No markdown. No explanation. Must be at least 3000 characters.`, 'Page Builder', { json: false });
+2. RESULTS BAR — 4 impressive metrics in a grid. Numbers that prove competence.
+   - Use font-display text-3xl font-bold text-gradient for numbers
+   - Keep it factual but impressive (response times, uptime, scores, speed improvements)
+
+3. CAPABILITIES — 6 feature cards in a 3-column grid.
+   - Each card: glass-card rounded-2xl p-7 with icon (rounded-xl bg-primary/10 p-3.5 text-primary), title (font-display text-lg font-bold), description
+   - Use motion stagger animation
+
+4. USE CASES — Two-column layout. Left: heading + paragraph + link. Right: list with CheckCircle2 icons.
+   - Show 6 specific use cases this service solves
+
+5. PROCESS — 4 numbered steps in a grid showing how you work.
+   - Each step: glass-card with large faded step number (text-5xl text-primary/10 absolute)
+
+6. WHY US / TRUST — Split layout with 3 icon+text rows on left, summary card on right.
+   - Real reasons to choose you (security, performance, team integration)
+
+7. FAQ — 4-5 questions with expandable answers. Add FAQ schema.
+   - Use details/summary HTML elements for expand/collapse
+
+8. CTA — Full-width closing section with centered headline, subtitle, gold button.
+   - Use relative overflow-hidden with bg-primary/[0.02] and blur background
+
+═══ DESIGN SYSTEM (STRICT — Use ONLY these) ═══
+- Backgrounds: bg-background, bg-white/[0.01] for alternate, glass-card for cards
+- Text: text-foreground, text-muted-foreground, text-primary
+- Gradient text: text-gradient (class, don't inline gradient styles)
+- Headings: font-display font-bold
+- Section labels: text-primary text-sm font-heading font-medium uppercase tracking-[0.2em] with ✦ prefix
+- Cards: glass-card rounded-2xl p-7 (or p-8)
+- CTA buttons: bg-primary text-primary-foreground font-heading font-semibold rounded-xl glow-box
+- Section spacing: py-24 px-6 lg:px-12
+- Container: max-w-7xl mx-auto
+- Section dividers: border-t border-white/5
+- Glow blobs: absolute w-[400px] h-[400px] bg-primary/[0.04] rounded-full blur-[120px] pointer-events-none
+
+═══ WRITING RULES (Critical for quality) ═══
+- Write like a premium agency, NOT like an AI. No filler. No "leveraging". No "harnessing the power of".
+- Be specific and technical. Use real numbers, real metrics, real terminology.
+- Keep copy concise — every sentence earns its place.
+- Headlines should be punchy (4-8 words) with one gradient-highlighted keyword.
+- Descriptions should be 1-2 sentences max per card.
+- The page should make a CTO think "these people know what they're doing."
+
+═══ CRITICAL RULES ═══
+1. MUST use Navbar with isVisible prop, Footer, SEO with schema, useScrollLock
+2. MUST use framer-motion (motion.div, useInView) for scroll animations
+3. MUST use Link from react-router-dom for navigation (to="/contact", to="/services")
+4. MUST include serviceSchema object (JSON-LD) passed to SEO component
+5. DO NOT use any inline color values — only design system tokens
+6. DO NOT use external images or URLs — icons only (lucide-react)
+7. The output MUST be at least 4000 characters of clean TSX code
+8. Return ONLY the complete TSX code. No markdown fences. No explanation.`, 'Page Builder', { json: false });
 
   // Clean up
   if (!raw) {
@@ -461,12 +509,12 @@ async function main() {
   for (let attempt = 1; attempt <= 2; attempt++) {
     console.log(`\n🏗️ PHASE 3: Page Builder (attempt ${attempt}/2)...`);
     code = await pageBuilder(scanResult, design);
-    if (code && code.length >= 500) break;
+    if (code && code.length >= 3000) break;
     console.log(`   ⚠️ Attempt ${attempt}: Code empty or too short (${code?.length || 0} chars). ${attempt < 2 ? 'Retrying...' : ''}`);
     if (attempt < 2) await sleep(5000);
   }
   
-  if (!code || code.length < 500) {
+  if (!code || code.length < 3000) {
     console.log('\n❌ Code generation failed after 2 attempts. Aborting.');
     await logActivity('❌', 'structural', 'Page Builder failed — model returned empty code', 'error');
     await closeMemory();
