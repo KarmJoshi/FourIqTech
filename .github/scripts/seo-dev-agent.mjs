@@ -341,7 +341,7 @@ export default function ComponentName() {
 5. DO NOT use any inline color values — only design system tokens
 6. DO NOT use external images or URLs — icons only (lucide-react)
 7. The output MUST be at least 4000 characters of clean TSX code
-8. Return ONLY the complete TSX code. No markdown fences. No explanation.`, 'Page Builder', { json: false });
+8. Return ONLY the complete TSX code. No markdown fences. No explanation.`, 'Page Builder', { json: false, maxTokens: 16384 });
 
   // Clean up
   if (!raw) {
@@ -516,7 +516,7 @@ async function main() {
   
   if (!code || code.length < 3000) {
     console.log('\n❌ Code generation failed after 2 attempts. Aborting.');
-    await logActivity('❌', 'structural', 'Page Builder failed — model returned empty code', 'error');
+    await logActivity('❌', 'structural', `Page Builder failed — code too short (${code?.length || 0} chars, need 3000+). Model may be rate-limited.`, 'error');
     await closeMemory();
     return;
   }
