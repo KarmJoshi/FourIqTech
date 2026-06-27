@@ -77,7 +77,7 @@ async function marketScanner(memory, config, existingRoutes) {
   console.log('\n🔍 PHASE 1: Market Scanner — Finding commercial keywords...');
   
   const orders = loadDirectorOrders();
-  const models = await getModelsForRole('scanner');
+  const models = await getModelsForRole('researcher');
   
   const raw = await smartCall(models, `You are a market research specialist finding HIGH BUYER-INTENT keywords for service landing pages.
 
