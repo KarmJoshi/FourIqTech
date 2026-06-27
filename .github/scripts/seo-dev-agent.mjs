@@ -140,6 +140,7 @@ Return JSON:
 // ═══════════════════════════════════════════════════════════════════════
 async function pageStrategist(scanResult, memory, config) {
   console.log('\n🏛️ PHASE 2: Page Strategist — Designing architecture...');
+  await logActivity('🏛️', 'structural', `Page Strategist designing architecture for "${scanResult.keyword}"...`, 'info');
   
   const models = await getModelsForRole('architect');
   

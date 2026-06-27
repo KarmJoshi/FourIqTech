@@ -201,8 +201,8 @@ export async function smartCall(modelArrayOrRole, contents, agentName = 'AI', op
           contents: contents,
           config
         });
-        // Free tier: 6s gap between successful calls
-        await sleep(6000);
+        // Free tier needs a gap between calls; paid tier doesn't
+        await sleep(API_MODE === 'paid' ? 1000 : 6000);
         const text = typeof resp.text === 'function' ? resp.text() : resp.text;
         if (!text) {
           emptyTries++;
