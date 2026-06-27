@@ -506,11 +506,17 @@ async function main() {
 
   // Phase 3: Page Builder (with retry)
   let code = null;
+  await logActivity('🏗️', 'structural', `Page Builder starting — generating React code for "${scanResult.keyword}"...`, 'info');
   for (let attempt = 1; attempt <= 2; attempt++) {
     console.log(`\n🏗️ PHASE 3: Page Builder (attempt ${attempt}/2)...`);
+    await logActivity('🔄', 'structural', `Page Builder attempt ${attempt}/2 — calling model...`, 'info');
     code = await pageBuilder(scanResult, design);
-    if (code && code.length >= 3000) break;
+    if (code && code.length >= 3000) {
+      await logActivity('✅', 'structural', `Page Builder generated ${code.length} chars of code`, 'info');
+      break;
+    }
     console.log(`   ⚠️ Attempt ${attempt}: Code empty or too short (${code?.length || 0} chars). ${attempt < 2 ? 'Retrying...' : ''}`);
+    await logActivity('⚠️', 'structural', `Attempt ${attempt}: code too short (${code?.length || 0} chars). ${attempt < 2 ? 'Retrying...' : 'Giving up.'}`, 'info');
     if (attempt < 2) await sleep(5000);
   }
   

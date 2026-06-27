@@ -668,6 +668,11 @@ No extra words. Just the niche string.`;
           runningTasks={runningTasks}
           onDispatchDirector={dispatchDirectorCycle}
           isDispatching={isDispatching}
+          onStopTask={async (dept) => {
+            try {
+              await fetch(`${API_BASE_URL}/api/tasks/${dept}/stop`, { method: 'POST' });
+            } catch (e) { console.error('Stop failed:', e); }
+          }}
         />
 
         {/* Content */}

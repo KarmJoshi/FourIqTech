@@ -1,4 +1,4 @@
-import { Activity, Bell, Play, Loader2 } from "lucide-react";
+import { Activity, Bell, Play, Loader2, Square } from "lucide-react";
 
 type DeptId = "director" | "content" | "techseo" | "landing" | "backlinks" | "outreach" | "instagram" | "gsc";
 
@@ -8,6 +8,7 @@ interface TopBarProps {
   runningTasks: Record<string, any>;
   onDispatchDirector: () => void;
   isDispatching: string | null;
+  onStopTask?: (dept: string) => void;
 }
 
 const DEPT_META: Record<DeptId, { title: string; subtitle: string }> = {
@@ -21,9 +22,10 @@ const DEPT_META: Record<DeptId, { title: string; subtitle: string }> = {
   outreach: { title: "Outreach", subtitle: "Lead acquisition and email campaigns" },
 };
 
-export function TopBar({ activeDept, pendingCount, runningTasks, onDispatchDirector, isDispatching }: TopBarProps) {
+export function TopBar({ activeDept, pendingCount, runningTasks, onDispatchDirector, isDispatching, onStopTask }: TopBarProps) {
   const meta = DEPT_META[activeDept];
   const activeTaskCount = Object.keys(runningTasks).length;
+  const runningDepts = Object.keys(runningTasks);
 
   return (
     <header className="h-14 border-b border-[#1c1c1f] bg-[#0c0c0e]/90 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-30">
@@ -40,6 +42,15 @@ export function TopBar({ activeDept, pendingCount, runningTasks, onDispatchDirec
             <Loader2 className="h-3 w-3 text-white/60 animate-spin" />
             <span className="text-[11px] font-medium text-white/60">{activeTaskCount} running</span>
           </div>
+        )}
+
+        {runningDepts.length > 0 && onStopTask && (
+          <button
+            onClick={() => runningDepts.forEach(d => onStopTask(d))}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-red-500/[0.1] border border-red-500/[0.2] text-red-400 text-[11px] font-medium hover:bg-red-500/[0.15] transition-colors"
+          >
+            <Square className="h-3 w-3 fill-current" /> Stop
+          </button>
         )}
 
         {pendingCount > 0 && (

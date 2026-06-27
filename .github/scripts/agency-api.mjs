@@ -410,6 +410,26 @@ app.get('/api/tasks', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// POST /api/tasks/:dept/stop — Kill a running task
+// ═══════════════════════════════════════════════════════════════════════
+app.post('/api/tasks/:dept/stop', (req, res) => {
+  const dept = req.params.dept;
+  const task = runningTasks[dept];
+  if (!task) {
+    return res.json({ success: false, message: `No running task for ${dept}` });
+  }
+  try {
+    process.kill(task.pid, 'SIGTERM');
+    delete runningTasks[dept];
+    logActivity('🛑', dept, `${dept.toUpperCase()} TEAM stopped by user`, 'info');
+    res.json({ success: true, message: `${dept} task killed (PID ${task.pid})` });
+  } catch (e) {
+    delete runningTasks[dept];
+    res.json({ success: true, message: `${dept} task cleaned up` });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
 // GET /api/intelligence — SEO memory snapshot
 // ═══════════════════════════════════════════════════════════════════════
 app.get('/api/intelligence', (req, res) => {
