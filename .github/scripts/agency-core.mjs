@@ -203,7 +203,21 @@ export async function smartCall(modelArrayOrRole, contents, agentName = 'AI', op
         });
         // Free tier needs a gap between calls; paid tier doesn't
         await sleep(API_MODE === 'paid' ? 1000 : 6000);
-        const text = typeof resp.text === 'function' ? resp.text() : resp.text;
+        
+        // Extract text - handle both thinking and non-thinking models
+        let text = null;
+        try {
+          text = typeof resp.text === 'function' ? resp.text() : resp.text;
+        } catch (textErr) {
+          // Some models with thinking throw on .text - fallback to candidates
+        }
+        if (!text && resp.candidates?.[0]?.content?.parts) {
+          text = resp.candidates[0].content.parts
+            .filter(p => p.text)
+            .map(p => p.text)
+            .join('');
+        }
+        
         if (!text) {
           emptyTries++;
           if (emptyTries >= 3) {
