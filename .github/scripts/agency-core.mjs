@@ -96,14 +96,14 @@ export const sleep = ms => new Promise(r => setTimeout(r, ms));
 // Model presets — fallback defaults per role
 // Free tier (May 2026): gemini-3.5-flash, gemini-3-flash-preview, gemini-2.5-flash, gemini-2.0-flash
 export const MODELS = {
-  manager:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
-  content_manager: ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
+  manager:         ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-2.5-flash'],
+  content_manager: ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-2.5-flash'],
   researcher:      ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
-  writer:          ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
+  writer:          ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-2.5-flash'],
   architect:       ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   qa:              ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   scanner:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
-  builder:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
+  builder:         ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-2.5-pro'],
   auditor:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   browser:         ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],
   link_finder:     ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'],

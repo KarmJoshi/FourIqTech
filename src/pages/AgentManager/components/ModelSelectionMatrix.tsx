@@ -10,9 +10,13 @@ interface ModelSelectionMatrixProps {
 
 const AVAILABLE_MODELS = [
   { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash", tier: "flash" },
+  { id: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro", tier: "pro" },
+  { id: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash Lite", tier: "flash" },
+  { id: "gemini-3-pro-preview", label: "Gemini 3 Pro", tier: "pro" },
   { id: "gemini-3-flash-preview", label: "Gemini 3 Flash", tier: "flash" },
-  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", tier: "flash" },
   { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro", tier: "pro" },
+  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", tier: "flash" },
+  { id: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite", tier: "flash" },
   { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash", tier: "flash" },
   { id: "gemini-2.0-flash-lite", label: "Gemini 2.0 Flash Lite", tier: "flash" },
 ];
