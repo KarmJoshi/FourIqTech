@@ -183,6 +183,7 @@ export async function smartCall(modelArrayOrRole, contents, agentName = 'AI', op
 
   for (const model of models) {
     let rateLimitTries = 0;
+    let emptyTries = 0;
     let backoffMs = 5000;
     let withGrounding = useGrounding;
     const maxWaitTime = 5 * 60 * 1000; // 5 minutes max per model
@@ -204,7 +205,12 @@ export async function smartCall(modelArrayOrRole, contents, agentName = 'AI', op
         await sleep(6000);
         const text = typeof resp.text === 'function' ? resp.text() : resp.text;
         if (!text) {
-          console.log(`   ⚠️ [${agentName}] Model returned empty response. Retrying...`);
+          emptyTries++;
+          if (emptyTries >= 3) {
+            console.log(`   ❌ [${agentName}] Model ${model} returned empty ${emptyTries}x (likely MAX_TOKENS/safety block). Trying next model...`);
+            break;
+          }
+          console.log(`   ⚠️ [${agentName}] Model returned empty response (${emptyTries}/3). Retrying...`);
           continue;
         }
         return text;
