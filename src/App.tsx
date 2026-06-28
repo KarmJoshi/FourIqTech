@@ -30,6 +30,7 @@ import MultiTenantSaasDevelopment from "./pages/services/MultiTenantSaasDevelopm
 import LegacyApplicationModernization from "./pages/services/LegacyApplicationModernization";
 import EnterpriseNextjsDevelopment from "./pages/services/EnterpriseNextjsDevelopment";
 import WebPerformanceOptimization from "./pages/services/WebPerformanceOptimization";
+import CustomSaasDevelopment from "./pages/services/CustomSaasDevelopment";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -58,7 +59,8 @@ const App = () => (
               <Route path="/services/consulting" element={<Consulting />} />
               <Route path="/services/:slug" element={<DynamicServicePage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="/agent-manager" element={<AgentManager />} />              <Route path="/services/multi-tenant-saas-development" element={<MultiTenantSaasDevelopment />} />              <Route path="/services/legacy-application-modernization" element={<LegacyApplicationModernization />} />              <Route path="/services/enterprise-nextjs-development" element={<EnterpriseNextjsDevelopment />} />              <Route path="/services/web-performance-optimization" element={<WebPerformanceOptimization />} />
+              <Route path="/agent-manager" element={<AgentManager />} />              <Route path="/services/multi-tenant-saas-development" element={<MultiTenantSaasDevelopment />} />              <Route path="/services/legacy-application-modernization" element={<LegacyApplicationModernization />} />              <Route path="/services/enterprise-nextjs-development" element={<EnterpriseNextjsDevelopment />} />              <Route path="/services/web-performance-optimization" element={<WebPerformanceOptimization />} />              <Route path="/services/custom-saas-development" element={<CustomSaasDevelopment />} />
+
 
 
 
