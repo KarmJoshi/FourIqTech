@@ -224,7 +224,7 @@ async function pageBuilder(scanResult, design) {
   const sectionList = (design.sections || []).map(s => s.type).join(', ');
   const faqList = (design.faq_items || []).slice(0, 5).map(f => `Q: ${f.question}`).join(' | ');
 
-  const raw = await smartCall(models, `Generate a complete, premium React + TypeScript service page component. Return ONLY the .tsx code — no markdown fences, no explanation.
+  const raw = await smartCall(models, `You are a world-class frontend designer building a service page for FourIQ Tech — a luxury dark-gold tech agency. The page must look like a $50k premium agency site (think Linear, Vercel, Stripe quality). Return ONLY the .tsx code — no markdown fences, no explanation.
 
 PAGE: "${design.page_title}"
 H1: "${design.h1}"
@@ -233,7 +233,25 @@ META: "${design.meta_description}"
 COMPONENT NAME: ${componentName}
 ROUTE: ${scanResult.route}
 
-REQUIRED IMPORTS (use exactly these):
+═══ EXACT BRAND DESIGN SYSTEM (this site's real CSS) ═══
+THEME: Dark luxury. Background is near-black hsl(220 25% 2%). Primary is animated GOLD hsl(42 85% 55%). Accent is soft purple hsl(260 60% 60%).
+
+REAL CUSTOM CLASSES (use these — they exist in the CSS):
+- text-gradient → animated gold gradient text (use on 1-2 words in each heading)
+- text-gold → solid gold with glow
+- glow-text → gold text shadow halo (use on the hero H1)
+- glow-box → gold glow shadow on buttons/cards
+- glass-card → frosted dark card with hover lift (use for ALL cards)
+- glass-modern → premium frosted card with gradient + shadow
+- grid-pattern → subtle gold grid background (use on hero or one section)
+- liquid-bg → ambient radial gold/purple glow background
+- liquid-blob / liquid-blob-2 → organic morphing blob shapes for glow orbs
+- font-display → Space Grotesk (use for labels/buttons)
+- Headings (h1-h6) auto-use Playfair Display serif — so just use h1/h2/h3 tags
+
+COLOR TOKENS: bg-background, text-foreground, text-primary, text-muted-foreground, bg-primary, text-primary-foreground, border-white/5, border-white/10, text-accent, bg-accent
+
+REQUIRED IMPORTS:
 import { useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -241,33 +259,35 @@ import { useScrollLock } from '@/components/SmoothScroll';
 import SEO from '@/components/SEO';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ArrowRight, CheckCircle2, /* + any other icons you use */ } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, CheckCircle2, /* + relevant icons */ } from 'lucide-react';
 
-STRUCTURE (8 sections in this order):
-1. Hero — big headline with one <span className="text-gradient">phrase</span>, subtitle, two CTA buttons (Link to="/contact" gold + Link to="/services" outline)
-2. Results bar — 4 metric numbers in a grid (text-gradient)
-3. Capabilities — 6 feature cards (glass-card) with lucide icons
-4. Use cases — 6 items with CheckCircle2
-5. Process — 4 numbered steps
-6. Why us — 3 trust points
-7. FAQ — these questions: ${faqList || 'create 4 relevant ones'}
-8. CTA — closing call-to-action with gold button to /contact
+═══ 8 SECTIONS (make each visually distinct & premium) ═══
+1. HERO (pt-36 pb-24, relative overflow-hidden) — Add grid-pattern bg + 2 liquid-blob glow orbs (absolute, bg-primary/[0.06] blur-[120px]). Eyebrow label (text-primary uppercase tracking-[0.2em] with ✦). H1 (text-5xl md:text-7xl font-bold) with one phrase in <span className="text-gradient"> and glow-text on the h1. Subtitle (text-muted-foreground text-xl). Two CTAs: gold glow-box button (Link to="/contact") + outline button (Link to="/services").
+2. METRICS BAR — 4 big numbers (text-4xl font-display text-gradient) in glass-card cells with labels.
+3. CAPABILITIES — 6 glass-card cells (3-col grid). Each: icon in rounded gold-tinted box (bg-primary/10 text-primary p-3 rounded-xl), h3 title, muted description. Stagger animation.
+4. USE CASES — 2-col. Left: eyebrow + h2 + paragraph + text link. Right: 6 rows each with CheckCircle2 gold icon in a glass-card.
+5. PROCESS — 4 steps. Each glass-card with giant faded number (text-6xl font-display text-primary/10 absolute top-right), h3, description.
+6. WHY US — 2-col. Left: 3 icon+text trust rows. Right: a glass-modern card with a bold statement + stats.
+7. FAQ — Accordion using <details> with glass-card styling. Chevron rotates. 4-5 Q&A. Questions: ${faqList || 'create 5 relevant ones'}
+8. CTA — Centered, relative overflow-hidden with liquid-bg + a big blurred gold orb behind. H2 with text-gradient phrase, subtitle, large gold glow-box button to /contact.
 
-DESIGN TOKENS (use ONLY these classes):
-- Layout: min-h-screen bg-background text-foreground, sections py-24 px-6 lg:px-12, max-w-7xl mx-auto
-- Text: text-foreground, text-muted-foreground, text-primary, font-display font-bold, text-gradient
-- Cards: glass-card rounded-2xl p-7
-- Buttons: bg-primary text-primary-foreground font-heading font-semibold rounded-xl glow-box py-4 px-8
-- Section labels: text-primary text-sm uppercase tracking-[0.2em] with ✦ prefix
-- Animations: motion.div with variants fadeUp + useInView
+═══ LAYOUT RULES ═══
+- Sections: py-24 px-6 lg:px-12, content in max-w-7xl mx-auto
+- Alternate section backgrounds: some plain bg-background, some with bg-white/[0.01] for rhythm
+- Dividers: border-t border-white/5 between some sections
+- Generous whitespace, large type, confident spacing
 
-MUST:
-- Start: export default function ${componentName}() {
-- useEffect sets navVisible true and setScrollLocked(false) and window.scrollTo(0,0)
-- Include a serviceSchema JSON-LD object passed to <SEO schema={serviceSchema} />
-- <Navbar isVisible={navVisible} /> and <Footer />
-- Be specific and technical in copy. No filler words. No "leveraging" or "harnessing".
-- Output complete, valid TSX (4000+ chars).`, 'Page Builder', { json: false, maxTokens: 16384 });
+═══ ANIMATION ═══
+const fadeUp = { hidden: { opacity: 0, y: 30, filter: 'blur(6px)' }, visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } } };
+Wrap each section's content in motion.div with useInView (once: true, margin: '-80px'). Stagger card grids.
+
+═══ MUST ═══
+- export default function ${componentName}()
+- useEffect: setNavVisible(true), setScrollLocked(false), window.scrollTo(0,0)
+- serviceSchema JSON-LD object → <SEO title=... description=... url="https://fouriqtech.com${scanResult.route}" schema={serviceSchema} />
+- <Navbar isVisible={navVisible} /> at top, <Footer /> at bottom
+- Copy: specific, confident, technical. Real numbers. NO filler words ("leveraging", "harnessing", "unlock", "elevate", "seamless"). Write like a senior engineer who ships.
+- Output complete, valid TSX (5000+ chars).`, 'Page Builder', { json: false, maxTokens: 16384 });
 
   // Clean up
   if (!raw) {
