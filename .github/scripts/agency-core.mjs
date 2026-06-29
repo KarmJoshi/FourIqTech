@@ -88,10 +88,148 @@ export function rotateKey() {
 
 export function getAiClient() { return aiClient; }
 
-// ═══════════════════════════════════════════════════════════════════════
-// 🤖 SMART MODEL CALLING — with fallback, retry, and rate-limit handling
-// ═══════════════════════════════════════════════════════════════════════
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🛰️ ANTIGRAVITY AGENT — Autonomous multi-step web tasks (free tier OK)
+// ═══════════════════════════════════════════════════════════════════════
+// Wraps the Gemini Interactions API "antigravity-preview-05-2026" agent via
+// raw REST (the installed SDK v1.x predates the new "steps" schema). Uses the
+// Api-Revision header to opt into the current schema. Works on the same key
+// pool as smartCall (free or paid).
+//
+// Unlike smartCall (single prompt → response), this provisions a Linux
+// sandbox and runs an autonomous loop: plan → search → fetch → verify.
+//
+// Use it for HEAVY tasks where real web browsing + verification pays off:
+//   - Verifying backlink prospects actually exist & accept guest posts
+//   - Extracting real contact emails from live pages
+//   - Finding real businesses (vs Gemini hallucinating)
+// ═══════════════════════════════════════════════════════════════════════
+const ANTIGRAVITY_AGENT = 'antigravity-preview-05-2026';
+const ANTIGRAVITY_BASE = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+const ANTIGRAVITY_REVISION = '2026-05-20'; // new "steps" schema
+
+/** True if at least one Gemini key is configured (Antigravity runs on free tier). */
+export function hasAntigravity() {
+  return API_KEYS.length > 0;
+}
+
+// Extract the agent's final text output from the new "steps" schema.
+function extractAntigravityOutput(interaction) {
+  return (interaction.steps || [])
+    .filter(s => s.type === 'model_output')
+    .flatMap(s => (s.content || []).filter(c => c.type === 'text').map(c => c.text))
+    .join('')
+    .trim();
+}
+
+/**
+ * Run an autonomous Antigravity agent task with real web access.
+ * @param {string} task - Natural language instruction for the agent.
+ * @param {object} opts
+ *   - tools: tool array (default google_search + url_context)
+ *   - json: parse output as JSON (default true)
+ *   - timeoutMs: max wait before giving up (default 8 min)
+ *   - agentName: label for logs
+ * @returns {Promise<{ text: string, data: any|null, status: string }>}
+ */
+export async function antigravityCall(task, opts = {}) {
+  const {
+    tools = [{ type: 'google_search' }, { type: 'url_context' }],
+    json = true,
+    timeoutMs = 8 * 60 * 1000,
+    agentName = 'Antigravity',
+  } = opts;
+
+  if (API_KEYS.length === 0) {
+    throw new Error('Antigravity requires a Gemini API key. None configured.');
+  }
+
+  const input = json
+    ? `${task}\n\nIMPORTANT: Respond with ONLY valid JSON. No markdown code fences, no commentary.`
+    : task;
+
+  const headers = (key) => ({
+    'x-goog-api-key': key,
+    'Content-Type': 'application/json',
+    'Api-Revision': ANTIGRAVITY_REVISION,
+  });
+
+  console.log(`   🛰️ [${agentName}] Antigravity task started (provisioning sandbox)...`);
+  const start = Date.now();
+
+  // ── CREATE (with key rotation on 429) ──
+  let keyTries = 0;
+  let createJson = null;
+  let activeKey = API_KEYS[currentKeyIdx % API_KEYS.length];
+  while (true) {
+    const res = await fetch(ANTIGRAVITY_BASE, {
+      method: 'POST',
+      headers: headers(activeKey),
+      body: JSON.stringify({
+        agent: ANTIGRAVITY_AGENT,
+        input,
+        environment: 'remote',
+        background: true,
+        tools,
+      }),
+    });
+
+    if (res.status === 429) {
+      keyTries++;
+      if (keyTries > API_KEYS.length) throw new Error('Antigravity: all keys rate-limited (429)');
+      activeKey = rotateKey();
+      await sleep(3000);
+      continue;
+    }
+    createJson = await res.json();
+    if (res.status !== 200) {
+      throw new Error(`Antigravity create failed (${res.status}): ${JSON.stringify(createJson).slice(0, 300)}`);
+    }
+    break;
+  }
+
+  const id = createJson.id;
+  if (!id) throw new Error('Antigravity: no interaction id returned');
+
+  // ── POLL ──
+  let interaction = createJson;
+  let status = interaction.status;
+  while (status === 'in_progress' || status === 'queued' || status === 'pending') {
+    if (Date.now() - start > timeoutMs) {
+      throw new Error(`Antigravity timed out after ${Math.round(timeoutMs / 1000)}s`);
+    }
+    await sleep(5000);
+    const gr = await fetch(`${ANTIGRAVITY_BASE}/${id}`, { headers: headers(activeKey) });
+    interaction = await gr.json();
+    status = interaction.status;
+  }
+
+  const text = extractAntigravityOutput(interaction);
+  console.log(`   🛰️ [${agentName}] Finished: ${status} in ${Math.round((Date.now() - start) / 1000)}s (${text.length} chars)`);
+
+  if (status !== 'completed') {
+    throw new Error(`Antigravity ended with status: ${status}`);
+  }
+
+  if (!json) return { text, data: null, status };
+
+  // Parse JSON from the output (strip fences / extract first object)
+  let cleaned = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/, '').trim();
+  try {
+    return { text, data: JSON.parse(cleaned), status };
+  } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      try { return { text, data: JSON.parse(match[0]), status }; } catch {}
+    }
+    console.log(`   ⚠️ [${agentName}] Could not parse JSON from Antigravity output.`);
+    return { text, data: null, status };
+  }
+}
+
+
 
 // Model presets — fallback defaults per role
 // Free tier (May 2026): gemini-3.5-flash, gemini-3-flash-preview, gemini-2.5-flash, gemini-2.0-flash

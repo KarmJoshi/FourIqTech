@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { getModelsForRole, smartCall, sleep, logActivity, getApiKeyCount } from './agency-core.mjs';
+import { getModelsForRole, smartCall, sleep, logActivity, getApiKeyCount, hasAntigravity, antigravityCall } from './agency-core.mjs';
 import { compileMemory, recordAction, closeMemory } from './memory-compiler.mjs';
 import pkgPrisma from '@prisma/client';
 const { PrismaClient } = pkgPrisma;
@@ -137,14 +137,96 @@ Return JSON:
 
   const raw = await smartCall(models, prompts[strategy] || prompts.guest_post, 'Link Finder');
   
+  let opportunities = [];
   try {
     const parsed = JSON.parse(raw);
-    const opportunities = parsed.opportunities || [];
-    console.log(`   ✅ Found ${opportunities.length} opportunities`);
-    return opportunities.map(opp => ({ ...opp, type: strategy }));
+    opportunities = parsed.opportunities || [];
+    console.log(`   ✅ Found ${opportunities.length} candidate opportunities`);
   } catch (e) {
     console.log(`   ❌ Failed to parse: ${e.message}`);
     return [];
+  }
+
+  opportunities = opportunities.map(opp => ({ ...opp, type: strategy }));
+
+  // ── Phase 1b: VERIFY with Antigravity ──
+  // Gemini grounding often hallucinates "write for us" pages and emails.
+  // Antigravity actually visits each prospect to confirm it's real.
+  if (hasAntigravity() && opportunities.length > 0) {
+    opportunities = await verifyOpportunities(opportunities, strategy);
+  } else if (!hasAntigravity()) {
+    console.log(`   ℹ️ Antigravity verification skipped (no API key). Using unverified Gemini results.`);
+  }
+
+  return opportunities;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 1b: VERIFY OPPORTUNITIES — Antigravity browses each prospect live
+// ═══════════════════════════════════════════════════════════════════════
+async function verifyOpportunities(opportunities, strategy) {
+  console.log(`\n🛰️ PHASE 1b: Verifying ${opportunities.length} prospects with Antigravity...`);
+
+  const urls = opportunities.map(o => o.targetUrl).filter(Boolean);
+  if (urls.length === 0) return opportunities;
+
+  const strategyHint = {
+    guest_post: 'Confirm the site is live and actually accepts guest posts (look for a "Write for us", "Contribute", or "Submit a post" page). Find the real editorial/contact email.',
+    broken_link: 'Confirm the page is live and verify whether the listed broken link actually returns a 404/dead response. Find the site owner/contact email.',
+    resource_page: 'Confirm the resource/listing page is live, currently maintained, and relevant to web development agencies. Find the contact/submission email.',
+  }[strategy] || 'Confirm the site is live and relevant.';
+
+  const task = `You are a backlink prospect verifier for a React/Next.js web development agency (FourIQ Tech).
+
+Visit each of these URLs and verify them:
+${urls.map((u, i) => `${i + 1}. ${u}`).join('\n')}
+
+For EACH url: ${strategyHint}
+
+Mark verified=true ONLY if the page actually loads and matches the intended purpose. If a page 404s, is parked, irrelevant, or spammy, mark verified=false with a reason.
+
+Return JSON:
+{
+  "results": [
+    {
+      "targetUrl": "the url you checked",
+      "verified": true,
+      "live": true,
+      "realContactEmail": "actual email found on the site or null",
+      "acceptsContribution": true,
+      "reason": "short note on what you found"
+    }
+  ]
+}`;
+
+  try {
+    const { data } = await antigravityCall(task, { agentName: 'Backlink Verifier', timeoutMs: 6 * 60 * 1000 });
+    if (!data?.results) {
+      console.log(`   ⚠️ Verification returned no structured results — keeping unverified list.`);
+      return opportunities;
+    }
+
+    const byUrl = new Map(data.results.map(r => [r.targetUrl, r]));
+    const verified = [];
+    for (const opp of opportunities) {
+      const v = byUrl.get(opp.targetUrl);
+      if (v && v.verified && v.live) {
+        verified.push({
+          ...opp,
+          verified: true,
+          contactEmail: v.realContactEmail || opp.contactEmail || null,
+          notes: `${opp.notes || ''} [Verified: ${v.reason || 'live & relevant'}]`.trim(),
+        });
+      } else {
+        console.log(`   🗑️ Dropped ${opp.targetDomain}: ${v?.reason || 'could not verify'}`);
+      }
+    }
+
+    console.log(`   ✅ ${verified.length}/${opportunities.length} prospects verified as real`);
+    return verified.length > 0 ? verified : opportunities; // never return empty if verification flaked
+  } catch (e) {
+    console.log(`   ⚠️ Antigravity verification failed (${e.message}). Using unverified list.`);
+    return opportunities;
   }
 }
 

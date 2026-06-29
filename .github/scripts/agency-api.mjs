@@ -532,67 +532,184 @@ app.post('/api/run-task', (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════
+// 📬 EMAIL DELIVERABILITY SAFEGUARDS — Keep cold outreach out of spam
+// ═══════════════════════════════════════════════════════════════════════
+// These don't replace DNS auth (SPF/DKIM/DMARC) or domain warmup — those are
+// the foundation. But they handle every content/header signal that code can.
+// ═══════════════════════════════════════════════════════════════════════
+
+const FROM_DOMAIN = 'fouriqtech.com';
+const FROM_EMAIL = `hello@${FROM_DOMAIN}`;
+const REPLY_TO = `karm@${FROM_DOMAIN}`;
+const UNSUBSCRIBE_MAILTO = `unsubscribe@${FROM_DOMAIN}`;
+
+// Common spam-trigger words/patterns that hurt inbox placement.
+const SPAM_TRIGGERS = [
+  /\bfree\b/i, /\bguarantee/i, /\bact now\b/i, /\blimited time\b/i, /\bclick here\b/i,
+  /\b100%\b/i, /\brisk[- ]?free\b/i, /\bcash\b/i, /\bcheap\b/i, /\bdiscount\b/i,
+  /\bwinner\b/i, /\bcongratulations\b/i, /\burgent\b/i, /\bbuy now\b/i, /\border now\b/i,
+  /\$\$\$/, /!!!+/, /\bearn money\b/i, /\bdouble your\b/i, /\bno cost\b/i, /\bspecial promotion\b/i,
+];
+
+/** Scan subject+body for spam triggers. Returns array of matched words. */
+function scanForSpamTriggers(subject = '', body = '') {
+  const text = `${subject}\n${body}`;
+  const hits = [];
+  for (const re of SPAM_TRIGGERS) {
+    const m = text.match(re);
+    if (m) hits.push(m[0]);
+  }
+  // Excessive caps in subject is a classic flag
+  const letters = subject.replace(/[^a-zA-Z]/g, '');
+  if (letters.length > 6 && letters === letters.toUpperCase()) hits.push('ALL-CAPS subject');
+  return hits;
+}
+
+/** Ensure an unsubscribe footer exists in HTML and text bodies. */
+function ensureUnsubscribeFooter(htmlBody, textBody) {
+  const unsubUrl = `mailto:${UNSUBSCRIBE_MAILTO}?subject=Unsubscribe`;
+  const hasUnsub = /unsubscribe/i.test(htmlBody || '') || /unsubscribe/i.test(textBody || '');
+
+  let html = htmlBody;
+  let text = textBody;
+
+  if (html && !/<\/body>/i.test(html)) html = `${html}`; // no-op guard
+  if (html && !hasUnsub) {
+    const footer = `<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;text-align:center;">
+      You received this because we believe it's relevant to your business. <a href="${unsubUrl}" style="color:#94a3b8;">Unsubscribe</a> · FourIQ Tech, ${FROM_DOMAIN}
+    </div>`;
+    html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${footer}</body>`) : `${html}${footer}`;
+  }
+
+  if (text && !hasUnsub) {
+    text = `${text}\n\n—\nYou received this because we believe it's relevant to your business.\nTo opt out, reply with "unsubscribe" or email ${UNSUBSCRIBE_MAILTO}.\nFourIQ Tech, ${FROM_DOMAIN}`;
+  }
+
+  return { html, text };
+}
+
+/** Strip HTML to a readable plain-text alternative. */
+function htmlToPlainText(html) {
+  if (!html) return '';
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+}
+
+/**
+ * Core email sender shared by the API endpoint and the autonomous sender.
+ * Applies every deliverability safeguard in one place.
+ * @returns {Promise<{success, messageId?, error?, blocked?, spamTriggers}>}
+ */
+async function sendEmailCore({ to, subject, body: emailBody, htmlBody, fromName, leadId, force = false }) {
+  // Guard 1: valid recipient
+  const emailOk = typeof to === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to);
+  if (!emailOk) {
+    return { success: false, blocked: true, error: 'Invalid recipient email', spamTriggers: [] };
+  }
+
+  // Guard 2: spam-trigger scan
+  const spamHits = scanForSpamTriggers(subject, emailBody || htmlBody || '');
+  if (spamHits.length >= 3 && !force) {
+    return {
+      success: false,
+      blocked: true,
+      error: `Too many spam triggers (${spamHits.join(', ')})`,
+      spamTriggers: spamHits,
+    };
+  }
+
+  // Guard 3: unsubscribe footer + plain-text alternative
+  let workingHtml = htmlBody && htmlBody.includes('<') ? htmlBody : null;
+  let workingText = emailBody || (workingHtml ? htmlToPlainText(workingHtml) : '');
+  const withFooter = ensureUnsubscribeFooter(workingHtml, workingText);
+  workingHtml = withFooter.html;
+  workingText = withFooter.text;
+
+  const unsubHeaders = {
+    'List-Unsubscribe': `<mailto:${UNSUBSCRIBE_MAILTO}?subject=Unsubscribe>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+
+  if (RESEND_KEY) {
+    const emailPayload = {
+      from: `${fromName || 'Karm Joshi'} <${FROM_EMAIL}>`,
+      to: [to],
+      reply_to: REPLY_TO,
+      subject,
+      headers: unsubHeaders,
+    };
+    if (workingHtml) {
+      emailPayload.html = workingHtml;
+      emailPayload.text = workingText || htmlToPlainText(workingHtml);
+    } else {
+      emailPayload.text = workingText;
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(emailPayload),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || `Resend error: ${response.status}`);
+
+    if (leadId) {
+      await prisma.lead.update({ where: { id: leadId }, data: { status: 'sent', lastTouchedAt: new Date(), contactEmail: to } }).catch(() => {});
+      await prisma.draftEmail.update({ where: { leadId }, data: { deliveryStatus: 'sent', sentAt: new Date() } }).catch(() => {});
+    }
+    logActivity('📧', 'outreach', `Email sent to ${to} via Resend`, 'info');
+    return { success: true, messageId: data.id, spamTriggers: spamHits };
+  }
+
+  // SMTP fallback
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+  const info = await transporter.sendMail({
+    from: `"${fromName || 'Karm Joshi'}" <${process.env.SMTP_USER}>`,
+    to,
+    replyTo: REPLY_TO,
+    subject,
+    text: workingText,
+    ...(workingHtml ? { html: workingHtml } : {}),
+    headers: unsubHeaders,
+  });
+  if (leadId) {
+    await prisma.lead.update({ where: { id: leadId }, data: { status: 'sent', lastTouchedAt: new Date(), contactEmail: to } }).catch(() => {});
+    await prisma.draftEmail.update({ where: { leadId }, data: { deliveryStatus: 'sent', sentAt: new Date() } }).catch(() => {});
+  }
+  logActivity('📧', 'outreach', `Email sent to ${to} via SMTP`, 'info');
+  return { success: true, messageId: info.messageId, spamTriggers: spamHits };
+}
+
 app.post('/api/send-email', async (req, res) => {
   try {
-    const { to, subject, body: emailBody, htmlBody, fromName, leadId } = req.body;
-    console.log(`[Email] Sending to: ${to} via Resend`);
+    const { to, subject, body: emailBody, htmlBody, fromName, leadId, force } = req.body;
+    console.log(`[Email] Preparing send to: ${to}`);
 
-    // Use Resend API (works from Render — no SMTP blocking)
-    const RESEND_KEY = process.env.RESEND_API_KEY;
-    
-    if (RESEND_KEY) {
-      // Resend API
-      const emailPayload = {
-        from: `${fromName || 'Karm Joshi'} <hello@fouriqtech.com>`,
-        to: [to],
-        subject,
-      };
-      // Send HTML if available, otherwise plain text
-      if (htmlBody && htmlBody.includes('<html')) {
-        emailPayload.html = htmlBody;
-      } else {
-        emailPayload.text = emailBody || htmlBody;
+    const result = await sendEmailCore({ to, subject, body: emailBody, htmlBody, fromName, leadId, force });
+
+    if (!result.success) {
+      if (result.blocked) {
+        logActivity('⚠️', 'outreach', `Email to ${to} blocked: ${result.error}`, 'error');
+        return res.status(422).json({ ...result, hint: 'Rewrite the email or resend with force:true.' });
       }
-
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(emailPayload)
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || `Resend error: ${response.status}`);
-      
-      // Update DB
-      if (leadId) {
-        await prisma.lead.update({ where: { id: leadId }, data: { status: 'sent', lastTouchedAt: new Date(), contactEmail: to } }).catch(() => {});
-        await prisma.draftEmail.update({ where: { leadId }, data: { deliveryStatus: 'sent', sentAt: new Date() } }).catch(() => {});
-      }
-
-      logActivity('📧', 'outreach', `Email sent to ${to} via Resend`, 'info');
-      res.json({ success: true, messageId: data.id });
-    } else {
-      // Fallback to SMTP (for local testing)
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '465'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-      });
-
-      const info = await transporter.sendMail({
-        from: `"${fromName || 'Karm Joshi'}" <${process.env.SMTP_USER}>`,
-        to, subject, text: emailBody
-      });
-
-      if (leadId) {
-        await prisma.lead.update({ where: { id: leadId }, data: { status: 'sent', lastTouchedAt: new Date(), contactEmail: to } }).catch(() => {});
-        await prisma.draftEmail.update({ where: { leadId }, data: { deliveryStatus: 'sent', sentAt: new Date() } }).catch(() => {});
-      }
-
-      logActivity('📧', 'outreach', `Email sent to ${to} via SMTP`, 'info');
-      res.json({ success: true, messageId: info.messageId });
+      return res.status(500).json(result);
     }
+    res.json(result);
   } catch (e) {
     console.error(`[Email] ERROR: ${e.message}`);
     logActivity('❌', 'outreach', `Failed to send email: ${e.message}`, 'error');
@@ -923,6 +1040,101 @@ function startScheduler() {
   autoSyncGsc();
   setInterval(autoSyncGsc, 6 * 60 * 60 * 1000);
 
+  // ── Autonomous Outreach Sender: throttled, verified-only, daily-capped ──
+  // Defaults OFF. Enable via settings { autoOutreach: true }. Built for
+  // deliverability: business-hours only, one email per tick, random jitter,
+  // hard daily cap, verified emails only, spam-scanned by sendEmailCore.
+  let lastOutreachSendAt = 0;
+  async function autoSendOutreach() {
+    // 1. Read settings (JSON file — source of truth for agents)
+    let settings = {};
+    try {
+      if (fs.existsSync(SETTINGS_PATH)) settings = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
+    } catch { return; }
+
+    const enabled = settings.autoOutreach === true || process.env.OUTREACH_AUTOSEND === 'true';
+    if (!enabled) return;
+
+    const dailyCap = Math.max(1, Math.min(50, parseInt(settings.outreachDailyCap) || parseInt(process.env.OUTREACH_DAILY_CAP) || 10));
+
+    // 2. Business-hours gate (IST 9:00–18:00) so sends look human
+    const istNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const hour = istNow.getHours();
+    if (hour < 9 || hour >= 18) return;
+
+    // 3. Spacing gate: minimum random gap between sends (8–20 min)
+    const minGapMs = (8 + Math.random() * 12) * 60 * 1000;
+    if (Date.now() - lastOutreachSendAt < minGapMs) return;
+
+    // 4. Daily cap: count emails already sent today
+    const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+    let sentToday = 0;
+    try {
+      sentToday = await prisma.draftEmail.count({ where: { deliveryStatus: 'sent', sentAt: { gte: startOfDay } } });
+    } catch { return; }
+    if (sentToday >= dailyCap) return;
+
+    // 5. Bounce-rate safety brake: if too many bounces today, pause
+    try {
+      const bounced = await prisma.draftEmail.count({ where: { deliveryStatus: 'bounced', sentAt: { gte: startOfDay } } });
+      if (sentToday > 5 && bounced / Math.max(1, sentToday) > 0.1) {
+        logActivity('🛑', 'outreach', `Auto-send paused: bounce rate ${(bounced / sentToday * 100).toFixed(0)}% exceeds 10%`, 'error');
+        return;
+      }
+    } catch {}
+
+    // 6. Pick ONE eligible lead: verified email, drafted, not yet sent
+    let lead;
+    try {
+      lead = await prisma.lead.findFirst({
+        where: {
+          status: 'drafted',
+          confidence: 'verified',
+          contactEmail: { not: null },
+        },
+        orderBy: { collectedAt: 'asc' },
+        include: { draftEmail: true },
+      });
+    } catch (e) {
+      // draftEmail relation name may differ; fall back to separate query
+      lead = await prisma.lead.findFirst({
+        where: { status: 'drafted', confidence: 'verified', contactEmail: { not: null } },
+        orderBy: { collectedAt: 'asc' },
+      }).catch(() => null);
+    }
+    if (!lead) return;
+
+    let draft = lead.draftEmail;
+    if (!draft) {
+      draft = await prisma.draftEmail.findUnique({ where: { leadId: lead.id } }).catch(() => null);
+    }
+    if (!draft || draft.deliveryStatus !== 'draft') return;
+
+    // 7. Send via shared core (applies all deliverability safeguards)
+    try {
+      const result = await sendEmailCore({
+        to: lead.contactEmail,
+        subject: draft.subject,
+        htmlBody: draft.body,
+        fromName: 'Karm Joshi',
+        leadId: lead.id,
+      });
+      lastOutreachSendAt = Date.now();
+      if (result.success) {
+        console.log(`[Auto-Outreach] ✅ Sent ${sentToday + 1}/${dailyCap} → ${lead.businessName} (${lead.contactEmail})`);
+      } else if (result.blocked) {
+        // Mark blocked drafts so we don't retry them forever
+        await prisma.draftEmail.update({ where: { leadId: lead.id }, data: { deliveryStatus: 'blocked' } }).catch(() => {});
+        logActivity('⚠️', 'outreach', `Auto-send skipped ${lead.businessName}: ${result.error}`, 'error');
+      }
+    } catch (e) {
+      console.error(`[Auto-Outreach] Send failed for ${lead.businessName}: ${e.message}`);
+    }
+  }
+
+  // Check every 5 minutes; internal gates handle real pacing.
+  setInterval(autoSendOutreach, 5 * 60 * 1000);
+
   setInterval(async () => {
     let config;
     try {
@@ -1128,7 +1340,7 @@ app.get(['/api/config', '/api/settings'], async (req, res) => {
 
 app.post(['/api/config', '/api/settings'], async (req, res) => {
   try {
-    const { isAutoPilot, isAutoCommit, startTime, cyclesPerDay, agentModels, apiMode } = req.body;
+    const { isAutoPilot, isAutoCommit, startTime, cyclesPerDay, agentModels, apiMode, autoOutreach, outreachDailyCap } = req.body;
     const config = await prisma.agencyConfig.upsert({
       where: { id: 'default' },
       update: {
@@ -1166,6 +1378,9 @@ app.post(['/api/config', '/api/settings'], async (req, res) => {
     if (apiMode !== undefined) {
       merged.apiMode = apiMode;
     }
+    // Autonomous outreach settings (JSON-only). Default OFF until DNS auth is ready.
+    if (autoOutreach !== undefined) merged.autoOutreach = !!autoOutreach;
+    if (outreachDailyCap !== undefined) merged.outreachDailyCap = Math.max(1, Math.min(50, parseInt(outreachDailyCap) || 10));
     
     fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2));
 

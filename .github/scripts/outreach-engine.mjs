@@ -29,7 +29,7 @@
 
 import dotenv from 'dotenv';
 dotenv.config();
-import { getModelsForRole, smartCall, sleep, logActivity, getApiKeyCount } from './agency-core.mjs';
+import { getModelsForRole, smartCall, sleep, logActivity, getApiKeyCount, hasAntigravity, antigravityCall } from './agency-core.mjs';
 
 import pkgPrisma from '@prisma/client';
 const { PrismaClient } = pkgPrisma;
@@ -170,6 +170,13 @@ function estimateRevenue(employees) {
 // ═══════════════════════════════════════════════════════════════════════
 
 async function geminiScoutFallback(niche, count) {
+  // Prefer Antigravity (real browsing) when a paid key is available.
+  if (hasAntigravity()) {
+    const realLeads = await antigravityScout(niche, count);
+    if (realLeads.length > 0) return realLeads;
+    console.log('   ↩️ Antigravity scout returned nothing. Falling back to Gemini grounding...');
+  }
+
   console.log(`   🔍 Gemini fallback: Searching for ${count} businesses in "${niche}"...`);
   
   const models = await getModelsForRole('scanner');
@@ -209,6 +216,60 @@ Return JSON:
       competition_level: 'medium',
     }));
   } catch {
+    return [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ANTIGRAVITY SCOUT — Real browsing to find live businesses + contacts
+// ═══════════════════════════════════════════════════════════════════════
+// Replaces Gemini's hallucinated leads with prospects Antigravity actually
+// visited and confirmed are live. (Runs on the free tier.)
+// ═══════════════════════════════════════════════════════════════════════
+async function antigravityScout(niche, count) {
+  console.log(`\n🛰️ Antigravity Scout: finding ${count} REAL businesses in "${niche}"...`);
+
+  const task = `Find ${count} real local businesses matching: "${niche}".
+
+For each business:
+1. Find their actual website and VISIT it to confirm it loads (not parked/dead).
+2. Note a specific, real problem with their website (slow, outdated design, no mobile menu, broken contact form, missing SSL, old copyright year, etc.) — only what you actually observe.
+3. If you can find a public contact email on their site, include it.
+
+Only include businesses whose website you confirmed is live.
+
+Return JSON:
+{
+  "businesses": [
+    {
+      "name": "Business Name",
+      "website": "https://their-website.com",
+      "location": "City, State",
+      "niche": "their niche",
+      "specialization": "what they do",
+      "website_problem": "the specific real issue you observed",
+      "email": "public contact email or null"
+    }
+  ]
+}`;
+
+  try {
+    const { data } = await antigravityCall(task, { agentName: 'Outreach Scout', timeoutMs: 8 * 60 * 1000 });
+    const businesses = (data?.businesses || []).filter(b => b.website && b.website.startsWith('http'));
+    console.log(`   ✅ Antigravity confirmed ${businesses.length} live businesses`);
+    return businesses.map(b => ({
+      ...b,
+      owner_name: null,
+      email: b.email || null,
+      email_verified: false, // email found on-site but not deliverability-verified
+      source: 'antigravity-verified',
+      google_rating: null,
+      review_count: null,
+      revenue_estimate: 'Unknown',
+      competition_level: 'medium',
+    }));
+  } catch (e) {
+    console.log(`   ⚠️ Antigravity scout failed: ${e.message}`);
     return [];
   }
 }
