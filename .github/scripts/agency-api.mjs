@@ -1520,6 +1520,189 @@ app.get('/api/gsc/analytics', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// 🔄 POST /api/gsc/refresh — Force-pull LIVE daily data from GSC API
+// ═══════════════════════════════════════════════════════════════════════
+// Unlike the auto-sync (weekly chunks), this pulls daily-level data
+// for the freshest possible view. GSC has a ~48-72h delay from Google's side,
+// so "live" means the most recent data Google has available.
+// ═══════════════════════════════════════════════════════════════════════
+app.post('/api/gsc/refresh', async (req, res) => {
+  const days = parseInt(req.query.days) || 30;
+
+  const GSC_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  const GSC_CLIENT_SECRET_VAL = process.env.GSC_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+  const GSC_REFRESH_TOKEN = process.env.GSC_REFRESH_TOKEN;
+  const SITE_URL = process.env.WEBSITE_URL || 'https://www.fouriqtech.com';
+
+  if (!GSC_REFRESH_TOKEN || !GSC_CLIENT_ID || !GSC_CLIENT_SECRET_VAL) {
+    return res.status(400).json({ error: 'GSC credentials not configured' });
+  }
+
+  try {
+    // 1. Get fresh access token
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ client_id: GSC_CLIENT_ID, client_secret: GSC_CLIENT_SECRET_VAL, refresh_token: GSC_REFRESH_TOKEN, grant_type: 'refresh_token' }),
+    });
+    const tokenData = await tokenRes.json();
+
+    if (!tokenData.access_token) {
+      return res.status(401).json({ error: 'Failed to get GSC access token', details: tokenData.error });
+    }
+
+    // 2. Pull DAILY data for the entire period (most granular possible)
+    const today = new Date();
+    // GSC data is delayed ~3 days, so end date is today - 3
+    const endDate = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+    const start = startDate.toISOString().split('T')[0];
+    const end = endDate.toISOString().split('T')[0];
+
+    // 3. Pull page-level data with DATE dimension for daily granularity
+    const dailyRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['date'], rowLimit: 25000 })
+    });
+    const dailyData = await dailyRes.json();
+    const dailyRows = dailyData.rows || [];
+
+    // 4. Pull page-level aggregated
+    const pageRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['page'], rowLimit: 1000 })
+    });
+    const pageData = await pageRes.json();
+    const pageRows = pageData.rows || [];
+
+    // 5. Pull query-level aggregated
+    const queryRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['query'], rowLimit: 1000 })
+    });
+    const queryData = await queryRes.json();
+    const queryRows = queryData.rows || [];
+
+    // 6. Store daily snapshots in DB
+    let upsertedDays = 0;
+    for (const row of dailyRows) {
+      const dateStr = row.keys[0];
+      const dateObj = new Date(dateStr);
+      await prisma.gscDailySnapshot.upsert({
+        where: { date: dateObj },
+        update: { totalClicks: row.clicks, totalImpressions: row.impressions, avgPosition: row.position, avgCtr: row.ctr, pageCount: pageRows.length },
+        create: { date: dateObj, totalClicks: row.clicks, totalImpressions: row.impressions, avgPosition: row.position, avgCtr: row.ctr, pageCount: pageRows.length },
+      });
+      upsertedDays++;
+    }
+
+    // 7. Store page metrics (daily by page)
+    const pageDateRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['date', 'page'], rowLimit: 25000 })
+    });
+    const pageDateData = await pageDateRes.json();
+    for (const row of (pageDateData.rows || [])) {
+      const [dateStr, pageUrl] = row.keys;
+      await prisma.gscPageMetric.upsert({
+        where: { date_pageUrl: { date: new Date(dateStr), pageUrl } },
+        update: { clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+        create: { date: new Date(dateStr), pageUrl, clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+      }).catch(() => {});
+    }
+
+    // 8. Store query metrics (daily by query)
+    const queryDateRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startDate: start, endDate: end, dimensions: ['date', 'query'], rowLimit: 25000 })
+    });
+    const queryDateData = await queryDateRes.json();
+    for (const row of (queryDateData.rows || [])) {
+      const [dateStr, query] = row.keys;
+      await prisma.gscQueryMetric.upsert({
+        where: { date_query: { date: new Date(dateStr), query } },
+        update: { clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+        create: { date: new Date(dateStr), query, clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position },
+      }).catch(() => {});
+    }
+
+    // 9. Build response with live data (not from DB, directly from what we just pulled)
+    const totalClicks = dailyRows.reduce((s, r) => s + r.clicks, 0);
+    const totalImpressions = dailyRows.reduce((s, r) => s + r.impressions, 0);
+    const avgPosition = dailyRows.length > 0 ? dailyRows.reduce((s, r) => s + r.position, 0) / dailyRows.length : 0;
+    const avgCtr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
+
+    // 10. Get previous period for delta comparison
+    const prevEnd = startDate.toISOString().split('T')[0];
+    const prevStart = new Date(startDate.getTime() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    let prevClicks = 0, prevImpressions = 0, prevPosition = 0;
+    try {
+      const prevRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE_URL)}/searchAnalytics/query`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate: prevStart, endDate: prevEnd, dimensions: ['date'], rowLimit: 25000 })
+      });
+      const prevData = await prevRes.json();
+      const prevRows = prevData.rows || [];
+      prevClicks = prevRows.reduce((s, r) => s + r.clicks, 0);
+      prevImpressions = prevRows.reduce((s, r) => s + r.impressions, 0);
+      prevPosition = prevRows.length > 0 ? prevRows.reduce((s, r) => s + r.position, 0) / prevRows.length : 0;
+    } catch (_) {}
+
+    console.log(`   📊 GSC Force Refresh: ${upsertedDays} daily snapshots, ${pageRows.length} pages, ${queryRows.length} queries`);
+
+    res.json({
+      refreshed: true,
+      pulledAt: new Date().toISOString(),
+      dataRange: { start, end, note: 'GSC data has ~48-72h delay from Google. This is the freshest available.' },
+      period: { days, since: startDate.toISOString() },
+      summary: {
+        totalClicks,
+        totalImpressions,
+        avgPosition: +avgPosition.toFixed(1),
+        avgCtr: +(avgCtr * 100).toFixed(2),
+        pageCount: pageRows.length,
+      },
+      delta: {
+        clicks: prevClicks > 0 ? +(((totalClicks - prevClicks) / prevClicks) * 100).toFixed(1) : null,
+        impressions: prevImpressions > 0 ? +(((totalImpressions - prevImpressions) / prevImpressions) * 100).toFixed(1) : null,
+        position: prevPosition > 0 ? +(prevPosition - avgPosition).toFixed(1) : null,
+      },
+      timeSeries: dailyRows.map(r => ({
+        date: r.keys[0],
+        clicks: r.clicks,
+        impressions: r.impressions,
+        position: +r.position.toFixed(1),
+        ctr: +(r.ctr * 100).toFixed(2),
+      })).sort((a, b) => a.date.localeCompare(b.date)),
+      topPages: pageRows.slice(0, 20).map(r => ({
+        page: (r.keys?.[0] || '').replace('https://www.fouriqtech.com', ''),
+        clicks: r.clicks,
+        impressions: r.impressions,
+        position: +r.position.toFixed(1),
+        ctr: +(r.ctr * 100).toFixed(2),
+      })),
+      topQueries: queryRows.slice(0, 20).map(r => ({
+        query: r.keys?.[0] || '',
+        clicks: r.clicks,
+        impressions: r.impressions,
+        position: +r.position.toFixed(1),
+        ctr: +(r.ctr * 100).toFixed(2),
+      })),
+      insights: [],
+    });
+  } catch (err) {
+    console.error('GSC Force Refresh error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════════════════════════
 app.listen(PORT, () => {

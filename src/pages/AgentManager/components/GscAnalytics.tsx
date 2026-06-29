@@ -12,12 +12,12 @@ import {
   Search, Globe, Sparkles, RefreshCw
 } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ||
-  (typeof window !== "undefined" && window.location.hostname !== "localhost"
-    ? "https://fouriqtech.onrender.com"
-    : "http://localhost:3848");
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://fouriqtech.onrender.com";
 
 interface GscData {
+  refreshed?: boolean;
+  pulledAt?: string;
+  dataRange?: { start: string; end: string; note: string };
   period: { days: number; since: string };
   summary: { totalClicks: number; totalImpressions: number; avgPosition: number; avgCtr: number; pageCount: number };
   delta: { clicks: number | null; impressions: number | null; position: number | null };
@@ -76,19 +76,68 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function GscAnalytics() {
   const [data, setData] = useState<GscData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [days, setDays] = useState(90);
   const [activeTab, setActiveTab] = useState("overview");
 
-  const fetchData = async () => {
+  const fetchData = async (retries = 2) => {
+    setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/gsc/analytics?days=${days}`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 45000); // 45s timeout for Render cold starts
+      
+      const res = await fetch(`${API_BASE_URL}/api/gsc/analytics?days=${days}`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      
       if (res.ok) {
-        setData(await res.json());
+        const json = await res.json();
+        console.log('[GSC] Data received:', { timeSeries: json.timeSeries?.length, topPages: json.topPages?.length });
+        setData(json);
+      } else {
+        setError(`API returned ${res.status}`);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("GSC fetch error:", e);
+      if (e.name === 'AbortError' && retries > 0) {
+        // Render cold start — retry
+        setError("Server waking up... retrying...");
+        return fetchData(retries - 1);
+      }
+      setError(e.name === 'AbortError' ? "Server took too long to respond (Render cold start). Click refresh to try again." : (e.message || "Failed to connect to API"));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const forceRefresh = async () => {
+    setRefreshing(true);
+    setError(null);
+    try {
+      // Try the force-refresh endpoint first (pulls daily-level live data)
+      let res = await fetch(`${API_BASE_URL}/api/gsc/refresh?days=${days}`, { method: 'POST' });
+      
+      // If not deployed yet (404), fall back to the regular analytics endpoint
+      if (res.status === 404) {
+        res = await fetch(`${API_BASE_URL}/api/gsc/analytics?days=${days}`);
+      }
+
+      if (res.ok) {
+        const freshData = await res.json();
+        setData(freshData);
+        setLastRefreshed(freshData.pulledAt || new Date().toISOString());
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.error || `Refresh failed (${res.status})`);
+      }
+    } catch (e: any) {
+      console.error("GSC force refresh error:", e);
+      setError(e.message || "Cannot reach API server");
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -105,7 +154,8 @@ export function GscAnalytics() {
     );
   }
 
-  if (!data || data.timeSeries.length === 0) {
+  if (!data || (data.timeSeries.length === 0 && data.topPages.length === 0)) {
+    console.log('[GSC] Empty state - data:', data, 'error:', error);
     return (
       <div className="space-y-5 animate-in fade-in duration-300">
         <div className="flex items-center justify-between">
@@ -113,15 +163,47 @@ export function GscAnalytics() {
             <h2 className="text-base font-semibold text-white">Search Performance</h2>
             <p className="text-[11px] text-white/40">Google Search Console — fouriqtech.com</p>
           </div>
+          <div className="flex gap-1 bg-white/[0.03] border border-white/[0.06] rounded-lg p-0.5">
+            {[7, 14, 30, 90].map(d => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${
+                  days === d ? "bg-white/10 text-white" : "text-white/40 hover:text-white/60"
+                }`}
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
         </div>
         <Card className="border-[#1c1c1f] bg-[#111113]">
           <CardContent className="flex flex-col items-center justify-center py-16 gap-3">
-            <BarChart3 className="h-8 w-8 text-white/20" />
-            <p className="text-sm text-white/40">Syncing with Google Search Console...</p>
-            <p className="text-xs text-white/25">Data will appear automatically once available. GSC typically has a 2-3 day reporting delay.</p>
-            <button onClick={() => { setLoading(true); fetchData(); }} className="mt-3 px-3 py-1.5 rounded-md bg-white/[0.06] border border-white/[0.08] text-[11px] text-white/60 hover:text-white/80 hover:bg-white/[0.08] transition-all flex items-center gap-1.5">
-              <RefreshCw className="h-3 w-3" /> Refresh
-            </button>
+            {refreshing ? (
+              <>
+                <RefreshCw className="h-8 w-8 text-emerald-400 animate-spin" />
+                <p className="text-sm text-white/60">Pulling live data from Google Search Console...</p>
+                <p className="text-xs text-white/30">This may take 10-20 seconds.</p>
+              </>
+            ) : (
+              <>
+                <BarChart3 className="h-8 w-8 text-white/20" />
+                <p className="text-sm text-white/40">No data for the last {days} days</p>
+                <p className="text-xs text-white/25">
+                  {days < 30 
+                    ? "Try selecting a longer period (30d or 90d) — your earliest data may be older."
+                    : "Click below to pull fresh data directly from Google Search Console."}
+                </p>
+                {error && (
+                  <div className="mt-2 px-3 py-2 rounded-md bg-red-500/10 border border-red-500/20">
+                    <p className="text-[11px] text-red-400">{error}</p>
+                  </div>
+                )}
+                <button onClick={forceRefresh} disabled={refreshing} className="mt-3 px-4 py-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[12px] text-emerald-400 hover:bg-emerald-500/20 transition-all flex items-center gap-2">
+                  <RefreshCw className="h-3.5 w-3.5" /> Pull Live Data from GSC
+                </button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -130,28 +212,58 @@ export function GscAnalytics() {
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
-      {/* Period Selector */}
+      {/* Period Selector + Refresh */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold text-white">Search Performance</h2>
-          <p className="text-[11px] text-white/40">Google Search Console — fouriqtech.com</p>
+          <p className="text-[11px] text-white/40">
+            Google Search Console — fouriqtech.com
+            {lastRefreshed && (
+              <span className="ml-2 text-emerald-400/60">
+                · Synced {new Date(lastRefreshed).toLocaleString()}
+              </span>
+            )}
+          </p>
         </div>
-        <div className="flex gap-1 bg-white/[0.03] border border-white/[0.06] rounded-lg p-0.5">
-          {[7, 14, 30, 90].map(d => (
-            <button
-              key={d}
-              onClick={() => setDays(d)}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${
-                days === d ? "bg-white/10 text-white" : "text-white/40 hover:text-white/60"
-              }`}
-            >
-              {d}d
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={forceRefresh}
+            disabled={refreshing}
+            className={`px-3 py-1.5 rounded-md border text-[11px] font-medium transition-all flex items-center gap-1.5 ${
+              refreshing
+                ? "bg-white/[0.03] border-white/[0.06] text-white/30 cursor-not-allowed"
+                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
+            }`}
+          >
+            <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Pulling live data..." : "Refresh from GSC"}
+          </button>
+          <div className="flex gap-1 bg-white/[0.03] border border-white/[0.06] rounded-lg p-0.5">
+            {[7, 14, 30, 90].map(d => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all ${
+                  days === d ? "bg-white/10 text-white" : "text-white/40 hover:text-white/60"
+                }`}
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* KPI Cards */}
+      {data.dataRange && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-emerald-500/5 border border-emerald-500/10">
+          <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <p className="text-[10px] text-emerald-400/80">
+            Live data: {data.dataRange.start} → {data.dataRange.end}
+          </p>
+          <p className="text-[10px] text-white/30 ml-auto">{data.dataRange.note}</p>
+        </div>
+      )}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="border-[#1c1c1f] bg-[#111113]">
           <CardContent className="pt-4 pb-3 px-4">
