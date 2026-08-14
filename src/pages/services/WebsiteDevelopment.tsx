@@ -36,17 +36,14 @@ export default function WebsiteDevelopment() {
   ];
 
   const serviceSchema = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "Website Development",
-    "description": "High-performance, responsive websites engineered for speed, accessibility, and conversion — from marketing sites to complex web applications.",
-    "provider": {
-      "@type": "Organization",
-      "name": "FourIQ Tech",
-      "url": "https://fouriqtech.com"
-    },
-    "url": "https://fouriqtech.com/services/website-development",
-    "serviceType": "Website Development"
+    name: "Website Development",
+    description: "High-performance, responsive websites engineered for speed, accessibility, and conversion — from marketing sites to complex web applications.",
+    areaServed: "Worldwide",
+    offers: [
+      { name: "Website Development", description: "High-performance, responsive websites engineered for speed, accessibility, and conversion", price: "5000", currency: "USD" },
+      { name: "E-Commerce Solutions", description: "Scalable online stores with secure payment processing", price: "8000", currency: "USD" },
+      { name: "CMS Integration", description: "Seamless content management with headless CMS platforms", price: "3000", currency: "USD" }
+    ]
   };
 
   const FeaturesSection = () => {
@@ -115,11 +112,11 @@ export default function WebsiteDevelopment() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/30 selection:text-primary">
-      <SEO
-        title="Website Development Services"
-        description="High-performance, responsive websites engineered for speed, accessibility, and conversion. Custom web development by FourIQ Tech."
-        url="https://fouriqtech.com/services/website-development"
-        schema={serviceSchema}
+      <SEO 
+        title="Professional Website Development Services | FouriqTech"
+        description="High-performance, responsive websites engineered for speed, accessibility, and conversion — from marketing sites to complex web applications."
+        url="https://www.fouriqtech.com/services/website-development"
+        service={serviceSchema}
       />
       <Navbar isVisible={navVisible} />
 

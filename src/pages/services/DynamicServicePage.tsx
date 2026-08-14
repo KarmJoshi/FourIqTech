@@ -70,7 +70,18 @@ export default function DynamicServicePage() {
       <SEO 
         title={page.title || 'Service | FouriqTech'}
         description={page.metaDesc || page.title}
-        url={`https://fouriqtech.com/services/${slug}`}
+        url={`https://www.fouriqtech.com/services/${slug}`}
+        service={{
+          name: page.title || 'Service',
+          description: page.metaDesc || page.title || 'Custom software service by FouriqTech',
+          areaServed: "Worldwide",
+          offers: [{
+            name: page.title || 'Service',
+            description: page.metaDesc || page.title || 'Custom software service by FouriqTech',
+            price: "5000",
+            currency: "USD"
+          }]
+        }}
       />
       <Navbar isVisible={navVisible} />
       

@@ -8,6 +8,14 @@ interface SEOProps {
   image?: string;
   schema?: Record<string, any> | Record<string, any>[];
   article?: boolean;
+  // New: service data for Service schema
+  service?: {
+    name: string;
+    description: string;
+    provider?: string;
+    areaServed?: string;
+    offers?: { name: string; description: string; price?: string; currency?: string }[];
+  };
 }
 
 export default function SEO({ 
@@ -16,10 +24,12 @@ export default function SEO({
   url, 
   image = 'https://fouriqtech.com/og-image.jpg',
   schema,
-  article = false
+  article = false,
+  service
 }: SEOProps) {
   const location = useLocation();
-  const baseUrl = 'https://fouriqtech.com';
+  // Use www to match the actual redirect - canonical should match the indexed URL
+  const baseUrl = 'https://www.fouriqtech.com';
   
   // Clean path: Remove trailing slashes to prevent duplicate content loops
   const cleanPath = location.pathname === '/' ? '' : location.pathname.replace(/\/+$/, '');
@@ -66,9 +76,32 @@ export default function SEO({
     ]
   };
 
-  const schemasToRender = schema 
-    ? (Array.isArray(schema) ? [organizationSchema, ...schema] : [organizationSchema, schema])
-    : [organizationSchema];
+  // Service schema for service pages
+  const serviceSchema = service ? {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": service.name,
+    "description": service.description,
+    "provider": {
+      "@type": "Organization",
+      "name": "Four IQ Tech",
+      "url": baseUrl
+    },
+    "areaServed": service.areaServed || "Worldwide",
+    "offers": service.offers || [{
+      "@type": "Offer",
+      "name": service.name,
+      "description": service.description,
+      "availability": "https://schema.org/InStock",
+      "priceCurrency": "USD"
+    }]
+  } : null;
+
+  const schemasToRender = [
+    organizationSchema,
+    ...(schema ? (Array.isArray(schema) ? schema : [schema]) : []),
+    ...(serviceSchema ? [serviceSchema] : [])
+  ];
 
   return (
     <Helmet>

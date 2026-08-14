@@ -36,17 +36,14 @@ export default function AppDevelopment() {
   ];
 
   const serviceSchema = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "App Development",
-    "description": "Cross-platform and native mobile applications built for scale, with seamless API integrations and polished user experiences.",
-    "provider": {
-      "@type": "Organization",
-      "name": "FourIQ Tech",
-      "url": "https://fouriqtech.com"
-    },
-    "url": "https://fouriqtech.com/services/app-development",
-    "serviceType": "App Development"
+    name: "App Development",
+    description: "Cross-platform and native mobile applications built for scale, with seamless API integrations and polished user experiences.",
+    areaServed: "Worldwide",
+    offers: [
+      { name: "Cross-Platform Development", description: "Build once, deploy everywhere with React Native and Flutter", price: "8000", currency: "USD" },
+      { name: "Native iOS/Android", description: "Native mobile applications with Swift/Kotlin", price: "12000", currency: "USD" },
+      { name: "API Integration", description: "Seamless connectivity with REST and GraphQL APIs", price: "3000", currency: "USD" }
+    ]
   };
 
   const FeaturesSection = () => {
@@ -115,11 +112,11 @@ export default function AppDevelopment() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/30 selection:text-primary">
-      <SEO
-        title="App Development Services"
+      <SEO 
+        title="Mobile App Development Services | FouriqTech"
         description="Cross-platform and native mobile applications built for scale. React Native, Flutter, and native iOS/Android development by FourIQ Tech."
-        url="https://fouriqtech.com/services/app-development"
-        schema={serviceSchema}
+        url="https://www.fouriqtech.com/services/app-development"
+        service={serviceSchema}
       />
       <Navbar isVisible={navVisible} />
 

@@ -68,8 +68,8 @@ export default function HeroSection({ onComplete }: HeroSectionProps) {
             />
           </div>
 
-          {/* Second line: Digital Future */}
-          <div className="font-bold glow-text not-italic text-[clamp(3.5rem,9vw,9rem)] leading-[1.1] pb-4">
+          {/* Second line: Digital Future - H1 for SEO */}
+          <h1 className="font-bold glow-text not-italic text-[clamp(3.5rem,9vw,9rem)] leading-[1.1] pb-4">
             {introLine1Done ? (
               <TextType
                 texts={["Digital Future"]}
@@ -85,7 +85,7 @@ export default function HeroSection({ onComplete }: HeroSectionProps) {
             ) : (
               <span className="opacity-0">Digital Future</span>
             )}
-          </div>
+          </h1>
         </div>
 
         <motion.p
